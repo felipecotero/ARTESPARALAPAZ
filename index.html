@@ -7,21 +7,39 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lancelot&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lancelot&family=Nunito+Sans:wght@400;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Preload de fuente personalizada para mejor rendimiento -->
+    <link rel="preconnect" href="https://raw.githubusercontent.com">
+    <link rel="preload" href="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/LANCEAPLP.ttf" as="font" type="font/ttf" crossorigin>
     <style>
         @font-face {
             font-family: 'LANCEAPLP';
             src: url('https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/LANCEAPLP.ttf') format('truetype');
             font-weight: normal;
             font-style: normal;
+            font-display: swap; /* Mejora la carga de fuentes */
         }
         
         body {
             font-family: 'Inter', sans-serif;
         }
+        
         .title-font {
-            font-family: 'LANCEAPLP', serif;
+            font-family: 'LANCEAPLP', 'Lancelot', 'Georgia', 'Times New Roman', serif;
             color: white;
+            font-display: swap;
+            /* Estilos adicionales para asegurar legibilidad */
+            letter-spacing: 0.02em;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        /* Preload y fallback para dispositivos móviles */
+        .title-font-loading {
+            font-family: 'Lancelot', 'Georgia', 'Times New Roman', serif;
+            color: white;
+            letter-spacing: 0.02em;
         }
         .subtitle-font {
             font-family: 'Nunito Sans', sans-serif;
@@ -191,6 +209,27 @@
             }
         }
         
+        /* Font fallback optimization */
+        @supports not (font-display: swap) {
+            .title-font {
+                font-family: 'Lancelot', 'Georgia', 'Times New Roman', serif !important;
+            }
+        }
+        
+        /* Improved mobile font rendering */
+        @media (max-width: 768px) {
+            .title-font {
+                /* Asegurar que la fuente sea legible en móviles */
+                font-family: 'LANCEAPLP', 'Lancelot', 'Playfair Display', 'Georgia', serif !important;
+                font-weight: 400 !important;
+                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+                /* Mejorar renderizado en pantallas móviles */
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+                text-rendering: optimizeLegibility;
+            }
+        }
+
         /* Improved touch targets for mobile */
         @media (max-width: 768px) {
             .session-toggle {
@@ -222,6 +261,19 @@
             /* Improved spacing for module sections */
             .space-y-12 > * + * {
                 margin-top: 2rem !important;
+            }
+        }
+        
+        /* Additional font loading optimization */
+        .title-font {
+            /* Timeout fallback si la fuente no carga en 3 segundos */
+            font-family: 'LANCEAPLP', 'Lancelot', 'Playfair Display', 'Georgia', 'Times New Roman', serif;
+        }
+        
+        /* Fallback styles for when custom font fails */
+        @media screen and (-webkit-min-device-pixel-ratio: 0) {
+            .title-font {
+                font-family: 'LANCEAPLP', 'Lancelot', 'Playfair Display', 'Georgia', serif;
             }
         }
     </style>
@@ -454,8 +506,53 @@
     </div>
 
     <script>
+        // Font loading detection and fallback
+        function checkFontLoaded() {
+            return new Promise((resolve) => {
+                if ('fonts' in document) {
+                    // Usar la API de Font Loading si está disponible
+                    document.fonts.ready.then(() => {
+                        const fontFace = new FontFace('LANCEAPLP', 'url(https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/LANCEAPLP.ttf)');
+                        fontFace.load().then(() => {
+                            resolve(true);
+                        }).catch(() => {
+                            resolve(false);
+                        });
+                    });
+                } else {
+                    // Fallback para navegadores que no soportan Font Loading API
+                    setTimeout(() => {
+                        const testElement = document.createElement('span');
+                        testElement.style.fontFamily = 'LANCEAPLP, sans-serif';
+                        testElement.style.fontSize = '72px';
+                        testElement.style.position = 'absolute';
+                        testElement.style.left = '-9999px';
+                        testElement.textContent = 'Test';
+                        document.body.appendChild(testElement);
+                        
+                        const fallbackWidth = testElement.offsetWidth;
+                        testElement.style.fontFamily = 'sans-serif';
+                        const sansSerifWidth = testElement.offsetWidth;
+                        
+                        document.body.removeChild(testElement);
+                        resolve(fallbackWidth !== sansSerifWidth);
+                    }, 1000);
+                }
+            });
+        }
+
         // Enhanced script to toggle session details with mobile optimization
         document.addEventListener('DOMContentLoaded', () => {
+            // Check font loading
+            checkFontLoaded().then(fontLoaded => {
+                if (!fontLoaded) {
+                    console.log('LANCEAPLP font not loaded, using fallback');
+                    // Si la fuente no se carga, no hacemos nada ya que los fallbacks están en CSS
+                } else {
+                    console.log('LANCEAPLP font loaded successfully');
+                }
+            });
+
             const toggles = document.querySelectorAll('.session-toggle');
             
             toggles.forEach(toggle => {
