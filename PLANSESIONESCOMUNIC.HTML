@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ciclo de Talleres: Potenciar Voces para Visibilizar Acciones</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lancelot&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'LANCEAPLP';
+            src: url('https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/LANCEAPLP.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .title-font {
+            font-family: 'LANCEAPLP', serif;
+            color: white;
+        }
+        .subtitle-font {
+            font-family: 'Nunito Sans', sans-serif;
+            font-weight: 600;
+        }
+        .module-gradient-1 { 
+            background-color: #886FFF; 
+        }
+        .module-gradient-2 { 
+            background-image: linear-gradient(to right, #ec4899, #f9a8d4); 
+        }
+        .module-gradient-3 { 
+            background-image: linear-gradient(to right, #10b981, #6ee7b7); 
+        }
+        .module-bg-1 {
+            background-color: #E8E0FF;
+        }
+        .module-bg-2 {
+            background-color: #FAE8F0;
+        }
+        .module-bg-3 {
+            background-color: #E0F7E8;
+        }
+        .pause-background { 
+            background-color: #51CAFC; 
+        }
+        .session-date {
+            min-width: 160px;
+            white-space: nowrap;
+        }
+        .session-toggle span:nth-child(2) {
+            min-width: 160px;
+            white-space: nowrap;
+            text-align: right;
+        }
+        .session-toggle span:nth-child(1) {
+            flex: 1;
+            margin-right: 1rem;
+        }
+    </style>
+</head>
+<body class="text-gray-800" style="background-color: #FFDC4A;">
+
+    <div class="container mx-auto p-4 md:p-8">
+        
+        <!-- Header Section -->
+        <header class="text-center mb-10">
+            <div class="flex justify-between items-center mb-6">
+                <!-- Logo Izquierdo -->
+                <div class="flex items-center">
+                    <a href="https://artesparalapaz.mincultura.gov.co/Paginas/index.aspx" target="_blank" rel="noopener noreferrer">
+                        <img src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/APLP%20MORADO.png" alt="Artes para la Paz" style="height: 65px;" class="hover:opacity-80 transition-opacity cursor-pointer">
+                    </a>
+                </div>
+                
+                <!-- Título Centrado -->
+                <div class="flex-1 text-center px-4">
+                    <h1 class="text-3xl md:text-4xl font-bold mb-2 title-font" style="color: white;">Potenciar Voces para Visibilizar Acciones</h1>
+                </div>
+                
+                <!-- Logo Derecho -->
+                <div class="flex items-center">
+                    <a href="https://www.mincultura.gov.co/" target="_blank" rel="noopener noreferrer">
+                        <img src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/GRIS%20CULTURAS%406x.png" alt="Ministerio de Cultura" style="height: 65px;" class="hover:opacity-80 transition-opacity cursor-pointer">
+                    </a>
+                </div>
+            </div>
+            
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto subtitle-font">Un ciclo de talleres diseñado para fortalecer las capacidades de comunicación de las organizaciones del programa Artes para la Paz.</p>
+        </header>
+
+        <!-- General Information -->
+        <div class="p-6 rounded-2xl shadow-lg mb-12" style="background-color: #E85A7A;">
+                        <div class="flex items-center justify-center space-x-4 md:space-x-8 text-center flex-wrap text-white">
+                <div class="flex items-center text-lg mb-2 md:mb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <span class="font-semibold">Horario:</span>
+                    <span class="ml-2">6:30 PM (Hora Colombia) - 1 hora por sesión</span>
+                </div>
+                 <div class="flex items-center text-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2z" /></svg>
+                    <span class="font-semibold">Frecuencia:</span>
+                    <span class="ml-2">Dos sesiones semanales (Martes y Jueves)</span>
+                </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-white text-center text-sm text-white">
+                <p><strong class="font-semibold">Metodología:</strong> Cada sesión incluye un ejercicio práctico para desarrollar entre talleres. Se dedicará un espacio al inicio de la siguiente sesión para socializar avances y recibir retroalimentación colectiva.</p>
+            </div>
+        </div>
+
+        <!-- Itinerary -->
+        <div class="space-y-12">
+
+            <!-- Módulo I: Cimientos Estratégicos -->
+            <div>
+                <div class="module-gradient-1 text-white p-4 rounded-t-2xl">
+                    <h2 class="text-2xl font-bold">Módulo I: Cimientos Estratégicos</h2>
+                    <p>Nivelamos al grupo y entregamos un marco de trabajo común.</p>
+                </div>
+                <div class="space-y-2 module-bg-1 p-4 rounded-b-2xl shadow-md">
+                    <!-- Session 1 -->
+                    <div class="session-card border rounded-lg">
+                        <button class="session-toggle w-full flex justify-between items-center p-4 text-left">
+                            <span class="font-semibold text-lg flex-1">Sesión 1: El Relato es la Estrategia</span>
+                            <span class="text-sm text-gray-500 session-date">Martes, 14 de Octubre</span>
+                            <span class="toggle-icon text-indigo-500 font-bold text-2xl ml-2">+</span>
+                        </button>
+                        <div class="session-details hidden p-4 border-t">
+                            <p class="mb-2"><strong>Contenido:</strong> Taller para definir el mensaje clave (el "porqué" de cada organización) y alinearlo con los objetivos de comunicación.</p>
+                            <p class="mb-2"><strong>Perfil Experto:</strong> Comunicador/a con experiencia en Storytelling para el sector social.</p>
+                            <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Escribir el "párrafo entraña" de su organización (máximo 150 palabras). Este texto debe responder: ¿Qué problema sanamos? ¿Cómo lo hacemos? ¿Qué futuro soñamos? Será la base para futuras comunicaciones y se compartirá en un documento colaborativo.</p>
+                        </div>
+                    </div>
+                     <!-- Session 2 -->
+                    <div class="session-card border rounded-lg">
+                        <button class="session-toggle w-full flex justify-between items-center p-4 text-left">
+                            <span class="font-semibold text-lg flex-1">Sesión 2: El Ecosistema Digital</span>
+                            <span class="text-sm text-gray-500 session-date">Jueves, 16 de Octubre</span>
+                            <span class="toggle-icon text-indigo-500 font-bold text-2xl ml-2">+</span>
+                        </button>
+                        <div class="session-details hidden p-4 border-t">
+                            <p class="mb-2"><strong>Contenido:</strong> Análisis de las principales redes (Instagram, TikTok, Facebook, YouTube). ¿Para qué sirve cada una? ¿Cómo elegir la correcta para mi mensaje y mi público?</p>
+                            <p class="mb-2"><strong>Perfil Experto:</strong> Estratega Digital o Social Media Manager.</p>
+                            <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Realizar una "mini-auditoría" de su red social principal. Deben identificar: 1) ¿Qué tipo de contenido funciona mejor? 2) ¿Qué no funciona? 3) Proponer una idea para una nueva publicación que responda a su "párrafo corazón" (del ejercicio 1) y esté adaptada a esa plataforma.</p>
+                        </div>
+                    </div>
+                    <!-- Session 3 -->
+                    <div class="session-card border rounded-lg">
+                        <button class="session-toggle w-full flex justify-between items-center p-4 text-left">
+                            <span class="font-semibold text-lg flex-1">Sesión 3: Mesa de Trabajo: Mi Plan de Contenidos</span>
+                            <span class="text-sm text-gray-500 session-date">Martes, 21 de Octubre</span>
+                            <span class="toggle-icon text-indigo-500 font-bold text-2xl ml-2">+</span>
+                        </button>
+                        <div class="session-details hidden p-4 border-t">
+                            <p class="mb-2"><strong>Contenido:</strong> Taller práctico para que cada organización diseñe una parrilla de contenidos de una semana, definiendo formatos, temas y objetivos por publicación.</p>
+                            <p class="mb-2"><strong>Perfil Experto:</strong> Estratega de Contenidos (Content Strategist).</p>
+                             <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Diseñar una "Micro-Campaña" de 3 publicaciones conectadas bajo un solo tema. Deben entregar la idea de la campaña y la descripción de cada una de las 3 publicaciones (formato, texto y objetivo).</p>
+                        </div>
+                    </div>
+                    <!-- Session 4 -->
+                    <div class="session-card border rounded-lg">
+                        <button class="session-toggle w-full flex justify-between items-center p-4 text-left">
+                            <span class="font-semibold text-lg flex-1">Sesión 4: Fotografía con Celular para Historias Potentes</span>
+                            <span class="text-sm text-gray-500 session-date">Jueves, 23 de Octubre</span>
+                            <span class="toggle-icon text-indigo-500 font-bold text-2xl ml-2">+</span>
+                        </button>
+                        <div class="session-details hidden p-4 border-t">
+                            <p class="mb-2"><strong>Contenido:</strong> Taller técnico fundamental. Nociones de composición, luz y edición básica para mejorar radicalmente la calidad visual.</p>
+                            <p class="mb-2"><strong>Perfil Experto:</strong> Felipe Camacho Otero - Enlace de Comunicaciones del programa.</p>
+                            <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Crear una "Foto-Manifiesto". Capturar una sola imagen (retrato, objeto o espacio) que encapsule el espíritu de su proyecto. Deben acompañarla de un pie de foto que explique por qué esa imagen representa su "párrafo entraña". Se creará una galería virtual para que todos vean y comenten el trabajo de los demás.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pause Note 1 -->
+            <div class="text-center p-4 rounded-lg shadow-sm text-white" style="background-color: #51CAFC;">
+                <p><strong class="font-semibold">Pausa Activa:</strong> No habrá talleres entre el 27 y 31 de octubre por los encuentros presenciales.</p>
+            </div>
+
+            <!-- Módulo II: Laboratorios de Creación -->
+            <div>
+                 <div class="module-gradient-2 text-white p-4 rounded-t-2xl">
+                    <h2 class="text-2xl font-bold">Módulo II: Laboratorios de Creación</h2>
+                    <p>Fortalecemos habilidades técnicas específicas con talleres prácticos.</p>
+                </div>
+                 <div class="space-y-2 module-bg-2 p-4 rounded-b-2xl shadow-md">
+                    <!-- Session 5 -->
+                    <div class="session-card border rounded-lg">
+                        <button class="session-toggle w-full flex justify-between items-center p-4 text-left">
+                            <span class="font-semibold text-lg">Sesión 5: Laboratorio de Video: Del Reel al Mini-Doc</span>
+                            <span class="text-sm text-gray-500">Martes, 4 de Noviembre</span>
+                            <span class="toggle-icon text-pink-500 font-bold text-2xl">+</span>
+                        </button>
+                        <div class="session-details hidden p-4 border-t">
+                            <p class="mb-2"><strong>Contenido:</strong> Taller práctico sobre narrativa audiovisual para redes. Guion, grabación y edición de videos cortos con CapCut, enfocado en contar historias de impacto.</p>
+                            <p class="mb-2"><strong>Perfil Experto:</strong> Felipe Camacho Otero - Enlace de Comunicaciones del programa.</p>
+                            <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Producir un "Video-Testimonio" de 30 a 60 segundos. Deben entrevistar a alguien de su proyecto respondiendo a la pregunta: "¿Qué ha transformado este proyecto en ti o en la comunidad?". El entregable es el video editado.</p>
+                        </div>
+                    </div>
+                     <!-- Session 6 -->
+                    <div class="session-card border rounded-lg">
+                        <button class="session-toggle w-full flex justify-between items-center p-4 text-left">
+                            <span class="font-semibold text-lg">Sesión 6: Taller de Diseño Ágil con Canva</span>
+                            <span class="text-sm text-gray-500">Jueves, 6 de Noviembre</span>
+                            <span class="toggle-icon text-pink-500 font-bold text-2xl">+</span>
+                        </button>
+                        <div class="session-details hidden p-4 border-t">
+                             <p class="mb-2"><strong>Contenido:</strong> Taller para crear piezas gráficas de alto impacto, plantillas y un kit visual básico para la organización, aprovechando la habilidad ya existente.</p>
+                             <p class="mb-2"><strong>Perfil Experto:</strong> Felipe Camacho Otero - Enlace de Comunicaciones del programa.</p>
+                             <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Diseñar un "Carrusel de Impacto" en Canva (3 a 5 diapositivas). El carrusel debe contar visualmente una pequeña historia de éxito o un dato clave de su proyecto, manteniendo coherencia visual entre las diapositivas.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+             <!-- Pause Note 2 & 3 -->
+            <div class="text-center p-4 rounded-lg shadow-sm text-white" style="background-color: #51CAFC;">
+                <p><strong class="font-semibold">Pausa Activa:</strong> No habrá talleres entre el 10-14 y el 19-22 de noviembre por los encuentros presenciales.</p>
+            </div>
+
+
+            <!-- Módulo III: Comunicación para la Incidencia -->
+            <div>
+                 <div class="module-gradient-3 text-white p-4 rounded-t-2xl">
+                    <h2 class="text-2xl font-bold">Módulo III: Comunicación para la Incidencia</h2>
+                    <p>Entregamos herramientas avanzadas para generar cambio y construir memoria.</p>
+                </div>
+                 <div class="space-y-2 module-bg-3 p-4 rounded-b-2xl shadow-md">
+                    <!-- Session 7 (renumbered for calendar continuity) -->
+                    <div class="session-card border rounded-lg">
+                        <button class="session-toggle w-full flex justify-between items-center p-4 text-left">
+                            <span class="font-semibold text-lg">Sesión 7: Conversatorio: "Pitch" a Medios y Aliados</span>
+                            <span class="text-sm text-gray-500">Martes, 18 de Noviembre</span>
+                            <span class="toggle-icon text-green-500 font-bold text-2xl">+</span>
+                        </button>
+                        <div class="session-details hidden p-4 border-t">
+                            <p class="mb-2"><strong>Contenido:</strong> Un espacio con un experto que dé claves para redactar correos, presentar un proyecto y generar interés en periodistas y posibles aliados estratégicos.</p>
+                            <p class="mb-2"><strong>Perfil Experto:</strong> Periodista Cultural o Comunicador/a especializado en relaciones públicas para el sector cultural.</p>
+                            <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Redactar un borrador de correo electrónico completo (asunto, saludo, cuerpo del mensaje y llamado a la acción) dirigido a un aliado real (medio de comunicación, institución) que hayan identificado. Se socializarán algunos para feedback grupal.</p>
+                        </div>
+                    </div>
+                     <!-- Session 8 -->
+                    <div class="session-card border rounded-lg">
+                        <button class="session-toggle w-full flex justify-between items-center p-4 text-left">
+                            <span class="font-semibold text-lg">Sesión 8: Estrategias para el Cambio Social</span>
+                            <span class="text-sm text-gray-500">Martes, 25 de Noviembre</span>
+                            <span class="toggle-icon text-green-500 font-bold text-2xl">+</span>
+                        </button>
+                        <div class="session-details hidden p-4 border-t">
+                             <p class="mb-2"><strong>Contenido:</strong> ¿Qué es una campaña de incidencia? Mapeo de actores, construcción de mensajes clave y diseño de acciones comunicativas para influir.</p>
+                            <p class="mb-2"><strong>Perfil Experto:</strong> Politólogo/a o Comunicador/a Social especializado en activismo digital y campañas de impacto.</p>
+                             <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Diseñar el "Manifiesto de una Causa". En una sola página, definir el esqueleto de una mini-campaña de incidencia: 1) El problema a visibilizar. 2) El cambio a lograr. 3) El mensaje clave. 4) Un llamado a la acción concreto para la audiencia.</p>
+                        </div>
+                    </div>
+                     <!-- Session 9 -->
+                    <div class="session-card border rounded-lg">
+                        <button class="session-toggle w-full flex justify-between items-center p-4 text-left">
+                            <span class="font-semibold text-lg">Sesión 9: Taller de Sistematización y Memoria Digital</span>
+                            <span class="text-sm text-gray-500">Jueves, 27 de Noviembre</span>
+                            <span class="toggle-icon text-green-500 font-bold text-2xl">+</span>
+                        </button>
+                        <div class="session-details hidden p-4 border-t">
+                            <p class="mb-2"><strong>Contenido:</strong> Herramientas y métodos para organizar un archivo visual y construir un relato a largo plazo (ej. Story Maps, líneas de tiempo digitales, blogs).</p>
+                             <p class="mb-2"><strong>Perfil Experto:</strong> Historiador/a, Antropólogo/a visual o Documentalista con experiencia en archivos comunitarios.</p>
+                             <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Crear un "Hilo de la Memoria" para X (Twitter) o un carrusel para Instagram. Deben seleccionar entre 3 y 5 fotos de su archivo y escribir un texto para cada una, contando una historia cronológica sobre la evolución de su proyecto.</p>
+                        </div>
+                    </div>
+                     <!-- Session 10 -->
+                    <div class="session-card border rounded-lg bg-gray-50">
+                        <button class="session-toggle w-full flex justify-between items-center p-4 text-left">
+                            <span class="font-semibold text-lg">Sesión 10: Laboratorio de Cierre: Tejiendo la Red</span>
+                            <span class="text-sm text-gray-500">Viernes, 28 de Noviembre</span>
+                            <span class="toggle-icon text-green-500 font-bold text-2xl">+</span>
+                        </button>
+                        <div class="session-details hidden p-4 border-t">
+                            <p class="mb-2"><strong>Contenido:</strong> Sesión final para presentar los avances de las organizaciones, generar alianzas de colaboración y definir una agenda común de comunicación para el futuro.</p>
+                            <p class="mb-2"><strong>Facilitador:</strong> Felipe Camacho Otero.</p>
+                             <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> "Minga Creativa". Formular una propuesta de colaboración concreta con otra organización del ciclo de talleres. La propuesta debe definir: 1) Qué harían juntos y 2) Por qué esa colaboración potenciaría el mensaje de ambos. Se presentará en la sesión para buscar "pareja" creativa.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // Simple script to toggle session details
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggles = document.querySelectorAll('.session-toggle');
+            toggles.forEach(toggle => {
+                toggle.addEventListener('click', () => {
+                    const details = toggle.nextElementSibling;
+                    const icon = toggle.querySelector('.toggle-icon');
+                    details.classList.toggle('hidden');
+                    if (details.classList.contains('hidden')) {
+                        icon.textContent = '+';
+                    } else {
+                        icon.textContent = '-';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+
