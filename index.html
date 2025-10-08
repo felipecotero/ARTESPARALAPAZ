@@ -30,7 +30,7 @@
         }
         
         .title-font {
-            font-family: 'LANCEAPLP', serif;
+            font-family: 'LANCEAPLP', serif !important;
             color: white;
             font-display: swap;
             /* Estilos adicionales para asegurar legibilidad */
@@ -38,6 +38,9 @@
             text-rendering: optimizeLegibility;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            /* Asegurar que se use en todos los dispositivos */
+            font-weight: normal !important;
+            font-style: normal !important;
         }
         .subtitle-font {
             font-family: 'Nunito Sans', sans-serif;
@@ -255,17 +258,50 @@
             }
         }
         
-        /* Font loading optimization para LANCEAPLP */
+        /* Font loading optimization para LANCEAPLP - TODOS LOS DISPOSITIVOS */
         .title-font {
-            font-family: 'LANCEAPLP', serif;
+            font-family: 'LANCEAPLP', serif !important;
+        }
+        
+        /* Asegurar LANCEAPLP en dispositivos de escritorio */
+        @media (min-width: 769px) {
+            .title-font {
+                font-family: 'LANCEAPLP', serif !important;
+                font-weight: normal !important;
+                font-style: normal !important;
+                text-rendering: optimizeLegibility;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+            }
         }
         
         /* Optimización para mejor carga de LANCEAPLP */
         @supports (font-display: swap) {
             .title-font {
-                font-family: 'LANCEAPLP', serif;
+                font-family: 'LANCEAPLP', serif !important;
                 font-display: swap;
             }
+        }
+        
+        /* Override absoluto para asegurar LANCEAPLP en todos los casos */
+        h1.title-font,
+        .title-font,
+        [class*="title-font"] {
+            font-family: 'LANCEAPLP', serif !important;
+            font-weight: normal !important;
+            font-style: normal !important;
+        }
+        
+        /* Especificidad máxima para el título principal */
+        header .title-center h1.title-font {
+            font-family: 'LANCEAPLP', serif !important;
+        }
+        
+        /* Asegurar que Tailwind no override la fuente */
+        .text-3xl.title-font,
+        .md\:text-4xl.title-font,
+        .font-bold.title-font {
+            font-family: 'LANCEAPLP', serif !important;
         }
     </style>
 </head>
@@ -285,7 +321,7 @@
                 
                 <!-- Título Centrado -->
                 <div class="title-center flex-1 text-center px-4">
-                    <h1 class="text-3xl md:text-4xl font-bold mb-2 title-font" style="color: white;">Potenciar Voces para Visibilizar Acciones</h1>
+                    <h1 class="text-3xl md:text-4xl font-bold mb-2 title-font" style="color: white; font-family: 'LANCEAPLP', serif !important;">Potenciar Voces para Visibilizar Acciones</h1>
                 </div>
                 
                 <!-- Logo Derecho -->
@@ -560,22 +596,30 @@
 
         // Enhanced script to toggle session details with mobile optimization
         document.addEventListener('DOMContentLoaded', () => {
+            // Forzar fuente LANCEAPLP inmediatamente
+            const titleElements = document.querySelectorAll('.title-font');
+            titleElements.forEach(element => {
+                element.style.setProperty('font-family', 'LANCEAPLP, serif', 'important');
+                element.style.setProperty('font-weight', 'normal', 'important');
+                element.style.setProperty('font-style', 'normal', 'important');
+            });
+            
             // Verificar carga de fuente LANCEAPLP
             checkLanceaplpFont().then(fontLoaded => {
-                const titleElements = document.querySelectorAll('.title-font');
-                
                 if (!fontLoaded) {
-                    // Aplicar estilos de emergencia si LANCEAPLP no carga
+                    console.warn('⚠️ LANCEAPLP no cargó, pero manteniendo serif como fallback');
+                    // Solo aplicar estilos de emergencia si realmente no carga
                     titleElements.forEach(element => {
-                        element.style.fontFamily = 'serif';
-                        element.style.fontWeight = 'bold';
-                        element.style.letterSpacing = '0.05em';
-                        element.style.textShadow = '2px 2px 4px rgba(0, 0, 0, 0.5)';
+                        element.style.setProperty('font-family', 'serif', 'important');
+                        element.style.setProperty('font-weight', 'bold', 'important');
+                        element.style.setProperty('letter-spacing', '0.05em', 'important');
+                        element.style.setProperty('text-shadow', '2px 2px 4px rgba(0, 0, 0, 0.5)', 'important');
                     });
                 } else {
-                    // Asegurar que LANCEAPLP se aplique correctamente
+                    console.log('✅ LANCEAPLP confirmada - forzando aplicación');
+                    // Forzar nuevamente LANCEAPLP
                     titleElements.forEach(element => {
-                        element.style.fontFamily = 'LANCEAPLP, serif';
+                        element.style.setProperty('font-family', 'LANCEAPLP, serif', 'important');
                     });
                 }
             });
