@@ -282,9 +282,30 @@
                 padding: 0.875rem 1.25rem;
             }
         }
+        
+        /* Estilos para el contador de visitantes */
+        #visitorCount {
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        
+        .visitor-counter {
+            background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+            border-top: 1px solid #d1d5db;
+        }
     </style>
 </head>
 <body class="text-gray-800">
+
+    <!-- Contador de visitantes -->
+    <div class="visitor-counter py-2 px-8 text-center">
+        <div class="container mx-auto">
+            <p class="text-xs text-gray-600">
+                <span class="font-semibold">👥 Visitantes:</span> 
+                <span id="visitorCount" class="font-bold text-gray-800">0</span>
+            </p>
+        </div>
+    </div>
 
     <div class="container mx-auto p-4 md:p-8">
         
@@ -668,6 +689,9 @@
             // Ejecutar verificación de fuente
             checkFontLoad();
             
+            // Inicializar contador de visitantes
+            initVisitorCounter();
+            
             // Auto-ocultar cajita flotante después de 10 segundos
             setTimeout(() => {
                 const tip = document.getElementById('floatingTip');
@@ -690,6 +714,62 @@
                 });
             });
         });
+
+        // Función del contador de visitantes
+        function initVisitorCounter() {
+            const VISITOR_KEY = 'artesparalapaz_visitor_count';
+            const LAST_VISIT_KEY = 'artesparalapaz_last_visit';
+            const SESSION_KEY = 'artesparalapaz_session_' + Date.now();
+            
+            // Verificar si es una nueva sesión (no ha visitado en las últimas 30 minutos)
+            const lastVisit = localStorage.getItem(LAST_VISIT_KEY);
+            const now = Date.now();
+            const thirtyMinutes = 30 * 60 * 1000; // 30 minutos en millisegundos
+            
+            let isNewVisit = true;
+            if (lastVisit && (now - parseInt(lastVisit)) < thirtyMinutes) {
+                isNewVisit = false;
+            }
+            
+            // Obtener contador actual
+            let currentCount = parseInt(localStorage.getItem(VISITOR_KEY) || '0');
+            
+            // Incrementar solo si es una nueva visita
+            if (isNewVisit) {
+                currentCount++;
+                localStorage.setItem(VISITOR_KEY, currentCount.toString());
+                localStorage.setItem(LAST_VISIT_KEY, now.toString());
+            }
+            
+            // Mostrar contador con animación
+            const counterElement = document.getElementById('visitorCount');
+            if (counterElement) {
+                // Iniciar desde 0 y animar hasta el número actual
+                let displayCount = 0;
+                const increment = Math.max(1, Math.floor(currentCount / 50));
+                
+                const animation = setInterval(() => {
+                    displayCount += increment;
+                    if (displayCount >= currentCount) {
+                        displayCount = currentCount;
+                        clearInterval(animation);
+                    }
+                    counterElement.textContent = displayCount.toLocaleString();
+                }, 30);
+                
+                // Si es una nueva visita, añadir efecto visual
+                if (isNewVisit && currentCount > 1) {
+                    setTimeout(() => {
+                        counterElement.style.transform = 'scale(1.2)';
+                        counterElement.style.color = '#10b981';
+                        setTimeout(() => {
+                            counterElement.style.transform = 'scale(1)';
+                            counterElement.style.color = '';
+                        }, 500);
+                    }, 1000);
+                }
+            }
+        }
     </script>
 
 </body>
