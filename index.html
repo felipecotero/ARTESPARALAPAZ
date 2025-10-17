@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Nunito+Sans:wght@400;600;700&family=Merriweather+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- Preload agresivo de fuente LANCEAPLP -->
     <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
     <link rel="dns-prefetch" href="https://raw.githubusercontent.com">
@@ -43,7 +43,7 @@
             font-style: normal !important;
         }
         .subtitle-font {
-            font-family: 'Nunito Sans', sans-serif;
+            font-family: 'Merriweather Sans', sans-serif;
             font-weight: 600;
         }
         .module-gradient-1 { 
@@ -303,6 +303,88 @@
         .font-bold.title-font {
             font-family: 'LANCEAPLP', serif !important;
         }
+        
+        /* Cajita flotante de instrucciones */
+        .floating-tip {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+            z-index: 1000;
+            max-width: 300px;
+            font-family: 'Merriweather Sans', sans-serif;
+            font-size: 0.875rem;
+            line-height: 1.4;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            animation: pulseGlow 3s ease-in-out infinite;
+        }
+        
+        .floating-tip-icon {
+            font-size: 1.2rem;
+            margin-right: 0.5rem;
+            animation: bounce 2s ease-in-out infinite;
+        }
+        
+        .floating-tip-close {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.75rem;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+        
+        .floating-tip-close:hover {
+            opacity: 1;
+        }
+        
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3); }
+            50% { box-shadow: 0 8px 35px rgba(255, 107, 107, 0.5); }
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-3px); }
+            60% { transform: translateY(-2px); }
+        }
+        
+        /* Responsive para móvil */
+        @media (max-width: 768px) {
+            .floating-tip {
+                bottom: 10px;
+                right: 10px;
+                left: 10px;
+                max-width: none;
+                font-size: 0.8rem;
+                padding: 0.875rem 1.25rem;
+            }
+        }
+        
+        /* Animación de entrada */
+        .floating-tip.show {
+            animation: slideInUp 0.5s ease-out;
+        }
+        
+        @keyframes slideInUp {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body class="text-gray-800" style="background-color: #FFDC4A;">
@@ -332,7 +414,7 @@
                 </div>
             </div>
             
-            <p class="text-lg text-gray-600 max-w-3xl mx-auto subtitle-font">Un ciclo de talleres diseñado para fortalecer las capacidades de comunicación de las organizaciones del programa Artes para la Paz.</p>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto" style="font-family: 'Merriweather Sans', sans-serif; font-weight: 400;">Un ciclo de talleres diseñado para fortalecer las capacidades de comunicación de las organizaciones del programa Artes para la Paz.</p>
         </header>
 
         <!-- General Information -->
@@ -340,13 +422,13 @@
             <div class="general-info flex items-center justify-center space-x-4 md:space-x-8 text-center flex-wrap text-white">
                 <div class="flex items-center text-lg mb-2 md:mb-0">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    <span class="font-semibold">Horario:</span>
-                    <span class="ml-2">6:30 PM (Hora Colombia) - 1 hora por sesión</span>
+                    <span class="font-semibold">Horarios:</span>
+                    <span class="ml-2">Martes y Jueves: 6:00 PM - 7:00 PM | Viernes: 7:00 AM - 8:00 AM (Hora Colombia)</span>
                 </div>
                 <div class="flex items-center text-lg">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2z" /></svg>
                     <span class="font-semibold">Frecuencia:</span>
-                    <span class="ml-2">Dos sesiones semanales (Martes y Jueves)</span>
+                    <span class="ml-2">Martes, jueves y viernes según calendario específico. El único miércoles que se trabajará es el 26 de noviembre en horario de la tarde.</span>
                 </div>
             </div>
             <div class="mt-4 pt-4 border-t border-white text-center text-sm text-white">
@@ -364,16 +446,37 @@
                     <p>Nivelamos al grupo y entregamos un marco de trabajo común.</p>
                 </div>
                 <div class="space-y-2 module-bg-1 p-4 rounded-b-2xl shadow-md">
-                    <!-- Session 1 -->
+                    <!-- Session 1a -->
                     <div class="session-card border rounded-lg">
                         <button class="session-toggle w-full flex justify-between items-center p-4 text-left">
-                            <span class="font-semibold text-lg flex-1">Sesión 1: El Relato es la Estrategia</span>
-                            <span class="text-sm text-gray-500 session-date">Martes, 14 de Octubre</span>
+                            <span class="font-semibold text-lg flex-1">Sesión 1a: El Relato es la Estrategia</span>
+                            <div class="text-sm text-gray-500 session-date text-right">
+                                <div>Martes, 21 de Octubre</div>
+                                <div class="text-xs opacity-75">6:00 PM - 7:00 PM</div>
+                            </div>
                             <span class="toggle-icon text-indigo-500 font-bold text-2xl ml-2">+</span>
                         </button>
                         <div class="session-details hidden p-4 border-t">
                             <p class="mb-2"><strong>Contenido:</strong> Taller para definir el mensaje clave (el "porqué" de cada organización) y alinearlo con los objetivos de comunicación.</p>
-                            <p class="mb-2"><strong>Perfil Experto:</strong> Comunicador/a con experiencia en Storytelling para el sector social.</p>
+                            <p class="mb-2"><strong>Facilitadora:</strong> Paula Ricciulli, Líder de Redes - Minculturas.</p>
+                            <p class="mb-2"><strong>Horario:</strong> 6:00 PM - 7:00 PM (Hora Colombia).</p>
+                            <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Escribir el "párrafo entraña" de su organización (máximo 150 palabras). Este texto debe responder: ¿Qué problema sanamos? ¿Cómo lo hacemos? ¿Qué futuro soñamos? Será la base para futuras comunicaciones y se compartirá en un documento colaborativo.</p>
+                        </div>
+                    </div>
+                     <!-- Session 1b - Nueva sesión adicional -->
+                    <div class="session-card border rounded-lg">
+                        <button class="session-toggle w-full flex justify-between items-center p-4 text-left">
+                            <span class="font-semibold text-lg flex-1">Sesión 1b: El Relato es la Estrategia (Sesión Adicional)</span>
+                            <div class="text-sm text-gray-500 session-date text-right">
+                                <div>Jueves, 23 de Octubre</div>
+                                <div class="text-xs opacity-75">7:00 AM - 8:00 AM</div>
+                            </div>
+                            <span class="toggle-icon text-indigo-500 font-bold text-2xl ml-2">+</span>
+                        </button>
+                        <div class="session-details hidden p-4 border-t">
+                            <p class="mb-2"><strong>Contenido:</strong> Taller introductorio para definir el mensaje clave (el "porqué" de cada organización) y alinearlo con los objetivos de comunicación.</p>
+                            <p class="mb-2"><strong>Facilitadora:</strong> Guisselle Vargas.</p>
+                            <p class="mb-2"><strong>Horario:</strong> 7:00 AM - 8:00 AM (Hora Colombia).</p>
                             <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Escribir el "párrafo entraña" de su organización (máximo 150 palabras). Este texto debe responder: ¿Qué problema sanamos? ¿Cómo lo hacemos? ¿Qué futuro soñamos? Será la base para futuras comunicaciones y se compartirá en un documento colaborativo.</p>
                         </div>
                     </div>
@@ -381,12 +484,15 @@
                     <div class="session-card border rounded-lg">
                         <button class="session-toggle w-full flex justify-between items-center p-4 text-left">
                             <span class="font-semibold text-lg flex-1">Sesión 2: El Ecosistema Digital</span>
-                            <span class="text-sm text-gray-500 session-date">Jueves, 16 de Octubre</span>
+                            <div class="text-sm text-gray-500 session-date text-right">
+                                <div>Jueves, 23 de Octubre</div>
+                                <div class="text-xs opacity-75">6:00 PM - 7:00 PM</div>
+                            </div>
                             <span class="toggle-icon text-indigo-500 font-bold text-2xl ml-2">+</span>
                         </button>
                         <div class="session-details hidden p-4 border-t">
                             <p class="mb-2"><strong>Contenido:</strong> Análisis de las principales redes (Instagram, TikTok, Facebook, YouTube). ¿Para qué sirve cada una? ¿Cómo elegir la correcta para mi mensaje y mi público?</p>
-                            <p class="mb-2"><strong>Perfil Experto:</strong> Estratega Digital o Social Media Manager.</p>
+                            <p class="mb-2"><strong>Facilitadoras:</strong> Paula Ricciulli, Líder de Redes - Minculturas y Gabriela Sáenz, Líder Digital del Programa Presidencial Artes para la Paz - Minculturas.</p>
                             <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Realizar una "mini-auditoría" de su red social principal. Deben identificar: 1) ¿Qué tipo de contenido funciona mejor? 2) ¿Qué no funciona? 3) Proponer una idea para una nueva publicación que responda a su "párrafo corazón" (del ejercicio 1) y esté adaptada a esa plataforma.</p>
                         </div>
                     </div>
@@ -394,12 +500,15 @@
                     <div class="session-card border rounded-lg">
                         <button class="session-toggle w-full flex justify-between items-center p-4 text-left">
                             <span class="font-semibold text-lg flex-1">Sesión 3: Mesa de Trabajo: Mi Plan de Contenidos</span>
-                            <span class="text-sm text-gray-500 session-date">Martes, 21 de Octubre</span>
+                            <div class="text-sm text-gray-500 session-date text-right">
+                                <div>Viernes, 24 de Octubre</div>
+                                <div class="text-xs opacity-75">7:00 AM - 8:00 AM</div>
+                            </div>
                             <span class="toggle-icon text-indigo-500 font-bold text-2xl ml-2">+</span>
                         </button>
                         <div class="session-details hidden p-4 border-t">
                             <p class="mb-2"><strong>Contenido:</strong> Taller práctico para que cada organización diseñe una parrilla de contenidos de una semana, definiendo formatos, temas y objetivos por publicación.</p>
-                            <p class="mb-2"><strong>Perfil Experto:</strong> Estratega de Contenidos (Content Strategist).</p>
+                            <p class="mb-2"><strong>Facilitadora:</strong> Gabriela Sáenz, Líder Digital del Programa Presidencial Artes para la Paz - Minculturas.</p>
                              <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Diseñar una "Micro-Campaña" de 3 publicaciones conectadas bajo un solo tema. Deben entregar la idea de la campaña y la descripción de cada una de las 3 publicaciones (formato, texto y objetivo).</p>
                         </div>
                     </div>
@@ -407,12 +516,15 @@
                     <div class="session-card border rounded-lg">
                         <button class="session-toggle w-full flex justify-between items-center p-4 text-left">
                             <span class="font-semibold text-lg flex-1">Sesión 4: Fotografía con Celular para Historias Potentes</span>
-                            <span class="text-sm text-gray-500 session-date">Jueves, 23 de Octubre</span>
+                            <div class="text-sm text-gray-500 session-date text-right">
+                                <div>Martes, 4 de Noviembre</div>
+                                <div class="text-xs opacity-75">6:00 PM - 7:00 PM</div>
+                            </div>
                             <span class="toggle-icon text-indigo-500 font-bold text-2xl ml-2">+</span>
                         </button>
                         <div class="session-details hidden p-4 border-t">
                             <p class="mb-2"><strong>Contenido:</strong> Taller técnico fundamental. Nociones de composición, luz y edición básica para mejorar radicalmente la calidad visual.</p>
-                            <p class="mb-2"><strong>Perfil Experto:</strong> Felipe Camacho Otero - Enlace de Comunicaciones del programa.</p>
+                            <p class="mb-2"><strong>Facilitador:</strong> Felipe Camacho, Enlace de Comunicaciones del Grupo de Fortalecimiento a Organizaciones de Base Comunitaria del Programa Artes para la Paz - Minculturas.</p>
                             <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Crear una "Foto-Manifiesto". Capturar una sola imagen (retrato, objeto o espacio) que encapsule el espíritu de su proyecto. Deben acompañarla de un pie de foto que explique por qué esa imagen representa su "párrafo entraña". Se creará una galería virtual para que todos vean y comenten el trabajo de los demás.</p>
                         </div>
                     </div>
@@ -421,7 +533,7 @@
             
             <!-- Pause Note 1 -->
             <div class="text-center p-4 rounded-lg shadow-sm text-white" style="background-color: #51CAFC;">
-                <p><strong class="font-semibold">Pausa Activa:</strong> No habrá talleres entre el 27 y 31 de octubre por los encuentros presenciales.</p>
+                <p><strong class="font-semibold">Pausa Activa:</strong> Continuamos en noviembre con los laboratorios de creación.</p>
             </div>
 
             <!-- Módulo II: Laboratorios de Creación -->
@@ -435,12 +547,15 @@
                     <div class="session-card border rounded-lg">
                         <button class="session-toggle w-full flex justify-between items-center p-4 text-left">
                             <span class="font-semibold text-lg">Sesión 5: Laboratorio de Video: Del Reel al Mini-Doc</span>
-                            <span class="text-sm text-gray-500">Martes, 4 de Noviembre</span>
+                            <div class="text-sm text-gray-500 session-date text-right">
+                                <div>Martes, 11 de Noviembre</div>
+                                <div class="text-xs opacity-75">6:00 PM - 7:00 PM</div>
+                            </div>
                             <span class="toggle-icon text-pink-500 font-bold text-2xl">+</span>
                         </button>
                         <div class="session-details hidden p-4 border-t">
                             <p class="mb-2"><strong>Contenido:</strong> Taller práctico sobre narrativa audiovisual para redes. Guion, grabación y edición de videos cortos con CapCut, enfocado en contar historias de impacto.</p>
-                            <p class="mb-2"><strong>Perfil Experto:</strong> Felipe Camacho Otero - Enlace de Comunicaciones del programa.</p>
+                            <p class="mb-2"><strong>Facilitadora:</strong> María Catalina Sandoval, Líder de Audiovisuales del Programa Presidencial Artes para la Paz - Minculturas.</p>
                             <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Producir un "Video-Testimonio" de 30 a 60 segundos. Deben entrevistar a alguien de su proyecto respondiendo a la pregunta: "¿Qué ha transformado este proyecto en ti o en la comunidad?". El entregable es el video editado.</p>
                         </div>
                     </div>
@@ -448,12 +563,15 @@
                     <div class="session-card border rounded-lg">
                         <button class="session-toggle w-full flex justify-between items-center p-4 text-left">
                             <span class="font-semibold text-lg">Sesión 6: Taller de Diseño Ágil con Canva</span>
-                            <span class="text-sm text-gray-500">Jueves, 6 de Noviembre</span>
+                            <div class="text-sm text-gray-500 session-date text-right">
+                                <div>Martes, 18 de Noviembre</div>
+                                <div class="text-xs opacity-75">6:00 PM - 7:00 PM</div>
+                            </div>
                             <span class="toggle-icon text-pink-500 font-bold text-2xl">+</span>
                         </button>
                         <div class="session-details hidden p-4 border-t">
                              <p class="mb-2"><strong>Contenido:</strong> Taller para crear piezas gráficas de alto impacto, plantillas y un kit visual básico para la organización, aprovechando la habilidad ya existente.</p>
-                             <p class="mb-2"><strong>Perfil Experto:</strong> Felipe Camacho Otero - Enlace de Comunicaciones del programa.</p>
+                             <p class="mb-2"><strong>Facilitador:</strong> Felipe Camacho, Enlace de Comunicaciones del Grupo de Fortalecimiento a Organizaciones de Base Comunitaria del Programa Artes para la Paz - Minculturas.</p>
                              <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Diseñar un "Carrusel de Impacto" en Canva (3 a 5 diapositivas). El carrusel debe contar visualmente una pequeña historia de éxito o un dato clave de su proyecto, manteniendo coherencia visual entre las diapositivas.</p>
                         </div>
                     </div>
@@ -462,7 +580,7 @@
             
              <!-- Pause Note 2 & 3 -->
             <div class="text-center p-4 rounded-lg shadow-sm text-white" style="background-color: #51CAFC;">
-                <p><strong class="font-semibold">Pausa Activa:</strong> No habrá talleres entre el 10-14 y el 19-22 de noviembre por los encuentros presenciales.</p>
+                <p><strong class="font-semibold">Continuidad:</strong> Finalizamos el programa con las sesiones de comunicación para la incidencia.</p>
             </div>
 
 
@@ -477,12 +595,15 @@
                     <div class="session-card border rounded-lg">
                         <button class="session-toggle w-full flex justify-between items-center p-4 text-left">
                             <span class="font-semibold text-lg">Sesión 7: Conversatorio: "Pitch" a Medios y Aliados</span>
-                            <span class="text-sm text-gray-500">Martes, 18 de Noviembre</span>
+                            <div class="text-sm text-gray-500 session-date text-right">
+                                <div>Jueves, 20 de Noviembre</div>
+                                <div class="text-xs opacity-75">6:00 PM - 7:00 PM</div>
+                            </div>
                             <span class="toggle-icon text-green-500 font-bold text-2xl">+</span>
                         </button>
                         <div class="session-details hidden p-4 border-t">
                             <p class="mb-2"><strong>Contenido:</strong> Un espacio con un experto que dé claves para redactar correos, presentar un proyecto y generar interés en periodistas y posibles aliados estratégicos.</p>
-                            <p class="mb-2"><strong>Perfil Experto:</strong> Periodista Cultural o Comunicador/a especializado en relaciones públicas para el sector cultural.</p>
+                            <p class="mb-2"><strong>Facilitador:</strong> Iván Oliva, Profesional adscrito al Fondo Mixto de Cultura de Nariño.</p>
                             <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Redactar un borrador de correo electrónico completo (asunto, saludo, cuerpo del mensaje y llamado a la acción) dirigido a un aliado real (medio de comunicación, institución) que hayan identificado. Se socializarán algunos para feedback grupal.</p>
                         </div>
                     </div>
@@ -490,12 +611,15 @@
                     <div class="session-card border rounded-lg">
                         <button class="session-toggle w-full flex justify-between items-center p-4 text-left">
                             <span class="font-semibold text-lg">Sesión 8: Estrategias para el Cambio Social</span>
-                            <span class="text-sm text-gray-500">Martes, 25 de Noviembre</span>
+                            <div class="text-sm text-gray-500 session-date text-right">
+                                <div>Miércoles, 26 de Noviembre</div>
+                                <div class="text-xs opacity-75">6:00 PM - 7:00 PM</div>
+                            </div>
                             <span class="toggle-icon text-green-500 font-bold text-2xl">+</span>
                         </button>
                         <div class="session-details hidden p-4 border-t">
                              <p class="mb-2"><strong>Contenido:</strong> ¿Qué es una campaña de incidencia? Mapeo de actores, construcción de mensajes clave y diseño de acciones comunicativas para influir.</p>
-                            <p class="mb-2"><strong>Perfil Experto:</strong> Politólogo/a o Comunicador/a Social especializado en activismo digital y campañas de impacto.</p>
+                            <p class="mb-2"><strong>Facilitadores:</strong> Santiago Mejía y Cristian Aragón, Equipa de Paz - Minculturas.</p>
                              <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Diseñar el "Manifiesto de una Causa". En una sola página, definir el esqueleto de una mini-campaña de incidencia: 1) El problema a visibilizar. 2) El cambio a lograr. 3) El mensaje clave. 4) Un llamado a la acción concreto para la audiencia.</p>
                         </div>
                     </div>
@@ -503,12 +627,16 @@
                     <div class="session-card border rounded-lg">
                         <button class="session-toggle w-full flex justify-between items-center p-4 text-left">
                             <span class="font-semibold text-lg">Sesión 9: Taller de Sistematización y Memoria Digital</span>
-                            <span class="text-sm text-gray-500">Jueves, 27 de Noviembre</span>
+                            <div class="text-sm text-gray-500 session-date text-right">
+                                <div>Jueves, 27 de Noviembre</div>
+                                <div class="text-xs opacity-75">6:00 PM - 7:00 PM</div>
+                            </div>
                             <span class="toggle-icon text-green-500 font-bold text-2xl">+</span>
                         </button>
                         <div class="session-details hidden p-4 border-t">
                             <p class="mb-2"><strong>Contenido:</strong> Herramientas y métodos para organizar un archivo visual y construir un relato a largo plazo (ej. Story Maps, líneas de tiempo digitales, blogs).</p>
-                             <p class="mb-2"><strong>Perfil Experto:</strong> Historiador/a, Antropólogo/a visual o Documentalista con experiencia en archivos comunitarios.</p>
+                             <p class="mb-2"><strong>Facilitadores:</strong> Santiago Mejía y Cristian Aragón, Equipa de Paz - Minculturas.</p>
+                             <p class="mb-2"><strong>Horario:</strong> 7:00 AM - 8:00 AM (Hora Colombia).</p>
                              <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Crear un "Hilo de la Memoria" para X (Twitter) o un carrusel para Instagram. Deben seleccionar entre 3 y 5 fotos de su archivo y escribir un texto para cada una, contando una historia cronológica sobre la evolución de su proyecto.</p>
                         </div>
                     </div>
@@ -516,12 +644,15 @@
                     <div class="session-card border rounded-lg bg-gray-50">
                         <button class="session-toggle w-full flex justify-between items-center p-4 text-left">
                             <span class="font-semibold text-lg">Sesión 10: Laboratorio de Cierre: Tejiendo la Red</span>
-                            <span class="text-sm text-gray-500">Viernes, 28 de Noviembre</span>
+                            <div class="text-sm text-gray-500 session-date text-right">
+                                <div>Viernes, 28 de Noviembre</div>
+                                <div class="text-xs opacity-75">6:00 PM - 7:00 PM</div>
+                            </div>
                             <span class="toggle-icon text-green-500 font-bold text-2xl">+</span>
                         </button>
                         <div class="session-details hidden p-4 border-t">
                             <p class="mb-2"><strong>Contenido:</strong> Sesión final para presentar los avances de las organizaciones, generar alianzas de colaboración y definir una agenda común de comunicación para el futuro.</p>
-                            <p class="mb-2"><strong>Facilitador:</strong> Felipe Camacho Otero.</p>
+                            <p class="mb-2"><strong>Facilitadores:</strong> Santiago Mejía y Cristian Aragón, Equipa de Paz - Minculturas.</p>
                              <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> "Minga Creativa". Formular una propuesta de colaboración concreta con otra organización del ciclo de talleres. La propuesta debe definir: 1) Qué harían juntos y 2) Por qué esa colaboración potenciaría el mensaje de ambos. Se presentará en la sesión para buscar "pareja" creativa.</p>
                         </div>
                     </div>
@@ -532,7 +663,52 @@
 
     </div>
 
+    <!-- Cajita flotante de instrucciones -->
+    <div id="floatingTip" class="floating-tip show">
+        <button class="floating-tip-close" onclick="closeFloatingTip()">&times;</button>
+        <div style="display: flex; align-items: flex-start;">
+            <span class="floating-tip-icon">💡</span>
+            <div>
+                <strong style="display: block; margin-bottom: 0.5rem;">¡Tip de navegación!</strong>
+                Para ver el detalle de cada sesión, haz clic en el <strong>título</strong> o en el símbolo <strong>+</strong> junto a la fecha.
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Función para cerrar la cajita flotante
+        function closeFloatingTip() {
+            const tip = document.getElementById('floatingTip');
+            tip.style.animation = 'slideOutDown 0.3s ease-in';
+            setTimeout(() => {
+                tip.style.display = 'none';
+            }, 300);
+        }
+        
+        // Animación de salida
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideOutDown {
+                from {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateY(100px);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Auto-ocultar después de 10 segundos
+        setTimeout(() => {
+            const tip = document.getElementById('floatingTip');
+            if (tip && tip.style.display !== 'none') {
+                closeFloatingTip();
+            }
+        }, 10000);
+
         // Font loading detection específicamente para LANCEAPLP
         function checkLanceaplpFont() {
             return new Promise((resolve) => {
