@@ -715,60 +715,62 @@
             });
         });
 
-        // Función del contador de visitantes
+        // Función del contador de visitantes con API
         function initVisitorCounter() {
-            const VISITOR_KEY = 'artesparalapaz_visitor_count';
-            const LAST_VISIT_KEY = 'artesparalapaz_last_visit';
-            const SESSION_KEY = 'artesparalapaz_session_' + Date.now();
-            
-            // Verificar si es una nueva sesión (no ha visitado en las últimas 30 minutos)
-            const lastVisit = localStorage.getItem(LAST_VISIT_KEY);
-            const now = Date.now();
-            const thirtyMinutes = 30 * 60 * 1000; // 30 minutos en millisegundos
-            
-            let isNewVisit = true;
-            if (lastVisit && (now - parseInt(lastVisit)) < thirtyMinutes) {
-                isNewVisit = false;
-            }
-            
-            // Obtener contador actual
-            let currentCount = parseInt(localStorage.getItem(VISITOR_KEY) || '0');
-            
-            // Incrementar solo si es una nueva visita
-            if (isNewVisit) {
-                currentCount++;
-                localStorage.setItem(VISITOR_KEY, currentCount.toString());
-                localStorage.setItem(LAST_VISIT_KEY, now.toString());
-            }
-            
-            // Mostrar contador con animación
             const counterElement = document.getElementById('visitorCount');
+            const API_URL = 'https://api.countapi.xyz/hit/artesparalapaz-talleres/visits';
+            
+            // Mostrar contador inicial
             if (counterElement) {
-                // Iniciar desde 0 y animar hasta el número actual
-                let displayCount = 0;
-                const increment = Math.max(1, Math.floor(currentCount / 50));
-                
-                const animation = setInterval(() => {
-                    displayCount += increment;
-                    if (displayCount >= currentCount) {
-                        displayCount = currentCount;
-                        clearInterval(animation);
-                    }
-                    counterElement.textContent = displayCount.toLocaleString();
-                }, 30);
-                
-                // Si es una nueva visita, añadir efecto visual
-                if (isNewVisit && currentCount > 1) {
-                    setTimeout(() => {
-                        counterElement.style.transform = 'scale(1.2)';
-                        counterElement.style.color = '#10b981';
-                        setTimeout(() => {
-                            counterElement.style.transform = 'scale(1)';
-                            counterElement.style.color = '';
-                        }, 500);
-                    }, 1000);
-                }
+                counterElement.textContent = '...';
             }
+            
+            // Llamar a la API para incrementar y obtener el conteo
+            fetch(API_URL)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.value && counterElement) {
+                        const currentCount = data.value;
+                        
+                        // Animar el contador
+                        animateCounter(counterElement, currentCount);
+                        
+                        // Efecto visual para nuevas visitas
+                        setTimeout(() => {
+                            counterElement.style.transform = 'scale(1.1)';
+                            counterElement.style.color = '#10b981';
+                            setTimeout(() => {
+                                counterElement.style.transform = 'scale(1)';
+                                counterElement.style.color = '';
+                            }, 500);
+                        }, 800);
+                    }
+                })
+                .catch(error => {
+                    console.log('Usando contador local como respaldo');
+                    // Fallback a localStorage si la API falla
+                    const localCount = parseInt(localStorage.getItem('artesparalapaz_local_count') || '0') + 1;
+                    localStorage.setItem('artesparalapaz_local_count', localCount.toString());
+                    
+                    if (counterElement) {
+                        animateCounter(counterElement, localCount);
+                    }
+                });
+        }
+        
+        // Función para animar el contador
+        function animateCounter(element, targetCount) {
+            let currentDisplay = 0;
+            const increment = Math.max(1, Math.ceil(targetCount / 30));
+            
+            const animation = setInterval(() => {
+                currentDisplay += increment;
+                if (currentDisplay >= targetCount) {
+                    currentDisplay = targetCount;
+                    clearInterval(animation);
+                }
+                element.textContent = currentDisplay.toLocaleString();
+            }, 50);
         }
     </script>
 
