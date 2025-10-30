@@ -3,777 +3,1090 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ciclo de Talleres: Potenciar Voces para Visibilizar Acciones</title>
     
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- MEJORA DE SEGURIDAD 1: Política de Seguridad de Contenidos (CSP) -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self'; 
+        script-src 'self' 'unsafe-inline' https://unpkg.com; 
+        style-src 'self' 'unsafe-inline' https://unpkg.com; 
+        img-src 'self' data: https://*.basemaps.cartocdn.com https://artesparalapaz.mincultura.gov.co https://raw.githubusercontent.com;
+        connect-src 'self' https://unpkg.com https://api.countapi.xyz ws://127.0.0.1:5500; 
+        font-src 'none';
+        frame-src 'none';
+        object-src 'none';">
+
+    <title>Mapa Redes Culturales - Artes para la Paz</title>
     
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Nunito+Sans:wght@400;600;700&family=Merriweather+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Fuente LANCEAPLP optimizada para GitHub -->
-    <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
-    <link rel="preload" href="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/LANCEAPLP.ttf" as="font" type="font/ttf" crossorigin>
-    
+    <!-- MEJORA DE SEGURIDAD 2: Integridad de Subrecursos (SRI) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css"
+          xintegrity="sha512-Rz1T9522Z1Xw23sD2d3iY6/QAGF3Kz34f1C6R3Tf11/9d5aCbevXQn/Hh/7WfIq0O/E247J3/2Vn1Q=="
+          crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css"
+          xintegrity="sha512-H/0594411K3z7gMh52Zk11At/2Zc1pM99L/2P+p2r4n+t3KVJkE7T4k2v90I/k/t2Qe1T2l5OQyw=="
+          crossorigin=""/>
+          
     <style>
-        /* Fuente LANCEAPLP */
-        @font-face {
-            font-family: 'LANCEAPLP';
-            src: url('https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/LANCEAPLP.ttf') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-            font-display: swap;
+        html, body {
+            height: 100%; width: 100%; margin: 0; padding: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(120deg, #f0f0f0 0%, #e0e7ff 100%);
+            color: #222;
+            transition: background 0.5s, color 0.3s;
+            display: flex; flex-direction: column;
+        }
+        body.dark-mode {
+            background: linear-gradient(120deg, #1a1a1a 0%, #312e81 100%);
+            color: #f0f0f0;
+        }
+        #main-header {
+            background: rgba(255,255,255,0.95);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            padding: 18px 24px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: relative; z-index: 1500;
+            transition: background 0.3s, color 0.3s;
+        }
+        #main-header h1 {
+            font-size: 1.7em; margin: 0 40px; flex-grow: 1; text-align: center;
+            letter-spacing: 1px;
+        }
+        .header-logo {
+            height: 54px; width: auto; flex-shrink: 0;
+            transition: filter 0.3s;
         }
         
-        /* Estilos base */
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #FFDC4A;
+        .header-logo-right {
+            height: 68px; width: auto; flex-shrink: 0; margin-left: 12px; opacity: 0.95;
+            transition: transform 0.18s, opacity 0.2s;
+        }
+        .header-logo-right:hover { transform: translateY(-2px); opacity: 1; }
+        @media (max-width: 800px) {
+            .header-logo-right { height: 50px; margin-left: 8px; }
+        }
+        #theme-toggle-btn {
+            background: rgba(255,255,255,0.06); border: none; color: #ffffff;
+            width: 44px; height: 36px; display:flex; align-items:center; justify-content:center;
+            border-radius: 8px; cursor: pointer; transition: background 0.2s, transform 0.12s;
+            padding: 6px;
+        }
+        #theme-toggle-btn:hover { background: rgba(255,255,255,0.12); transform: translateY(-1px); }
+        body.dark-mode #main-header {
+            background: rgba(30,41,59,0.95); color: #fff;
+        }
+        /* Estilo diurno: encabezado en amarillo quemado suave, panel sigue carmesí claro */
+        body:not(.dark-mode) #main-header {
+            background: #ffdc4a;
+            color: #111;
+        }
+        /* Forzar H1 blanco sobre el header */
+        body:not(.dark-mode) #main-header h1 { color: #fff; }
+        body:not(.dark-mode) #panel {
+            background: #2b8ec6;
+            color: #fff;
+        }
+        body.dark-mode #theme-toggle-btn { color: #ffffff; }
+    #app-container { flex-grow: 1; position: relative; overflow: hidden; min-height: 0; }
+        #panel {
+            background: rgba(255,255,255,0.98);
+            box-shadow: 2px 0 12px rgba(0,0,0,0.18);
+            color: #222;
+            position: absolute; top: 0; left: 0;
+            width: 420px; height: 100%; padding: 24px 48px 20px 20px;
+            display: flex; flex-direction: column; overflow-y: auto;
+            z-index: 2000; transition: left 0.3s, background 0.3s, color 0.3s;
+            box-sizing: border-box;
+            animation: panelFadeIn 0.7s;
+        }
+        @keyframes panelFadeIn {
+            from { opacity: 0; left: -420px; }
+            to { opacity: 1; left: 0; }
+        }
+        body.dark-mode #panel {
+            background: rgba(30,41,59,0.98); color: #f0f0f0;
+        }
+        #filters h2, #legend h2 {
+            border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 10px; color: inherit;
+        }
+        body.dark-mode #filters h2, body.dark-mode #legend h2 {
+            border-bottom: 1px solid #444;
+        }
+        #close-panel-btn {
+            position: absolute; top: 10px; right: 18px;
+            background: none; border: none; color: #888;
+            font-size: 28px; font-weight: bold; cursor: pointer;
+            transition: color 0.2s;
+            z-index: 3000;
+        }
+        #close-panel-btn:hover { color: #6366f1; }
+        .filter-option label {
+            display: flex; align-items: center; cursor: pointer; padding: 6px 0;
+            transition: background 0.2s;
+        }
+        .filter-option label:hover {
+            background: #e0e7ff;
+        }
+        body.dark-mode .filter-option label:hover {
+            background: #312e81;
+        }
+        #search-box {
+            margin-bottom: 18px;
+            display: flex; align-items: center;
+            padding-right: 50px; /* espacio para el botón cerrar en mobile */
+            position: relative; /* para posicionar el botón de borrar */
         }
         
-        /* Clase principal para títulos */
-        .title-font {
-            font-family: 'LANCEAPLP', 'Georgia', 'Times New Roman', serif !important;
-            color: white;
-            font-weight: normal !important;
-            font-style: normal !important;
-            letter-spacing: 0.02em;
-            text-rendering: optimizeLegibility;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+    :root { --search-clear-w: 34px; --search-btn-w: 44px; --search-gap: 10px; --filters-blue: #51cafc; --panel-theme-purple: #7c3aed; }
+        #search-input {
+            
+            width: calc(100% - var(--search-btn-w) - 5px);
+            padding: 7px 12px; border-radius: 6px; border: 1px solid #6366f1;
+            
+            padding-right: 20px; /* Ajuste para mostrar el placeholder completo */
+            font-size: 1em; outline: none; margin-right: 0;
+            box-sizing: border-box; position: relative; z-index: 2500; background: #fff;
+        }
+        #search-input:focus {
+            border-color: #fbbf24;
         }
         
-        .subtitle-font {
-            font-family: 'Merriweather Sans', sans-serif;
-            font-weight: 600;
+        #search-btn {
+            position: absolute; right: calc(var(--search-gap)); top: 50%; transform: translateY(-50%);
+            background: var(--filters-blue); color: #fff; border: none; border-radius: 6px;
+            width: var(--search-btn-w); height: 34px; cursor: pointer; font-size: 1em; z-index: 2750;
+            display: inline-flex; align-items: center; justify-content: center;
+            transition: background 0.18s, transform 0.12s;
+        }
+        #search-btn:hover { filter: brightness(0.95); transform: translateY(-50%) scale(1.02); }
+        
+        #search-suggestions {
+            display: none; position: relative; width: 100%; margin-bottom: 8px; z-index: 2500;
+            max-height: 260px; overflow-y: auto; border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(16,24,40,0.12);
+        }
+        .suggestion-item {
+            padding: 10px 12px; background: rgba(255,255,255,0.98); cursor: pointer; border-bottom: 1px solid rgba(0,0,0,0.04);
+            color: #111; display: block;
+        }
+        .suggestion-item:last-child { border-bottom: none; }
+        .suggestion-item:hover, .suggestion-item:focus { background: #f3f4f6; outline: none; }
+    .suggestion-item.highlight { background: #eef2ff; }
+        body.dark-mode .suggestion-item { background: rgba(20,24,32,0.96); color: #fff; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        body.dark-mode .suggestion-item:hover, body.dark-mode .suggestion-item:focus { background: rgba(40,44,59,0.95); }
+        
+        #search-clear-btn {
+            
+            position: absolute; right: calc(var(--search-btn-w) + var(--search-gap) + 5px); top: 50%; transform: translateY(-50%);
+            width: var(--search-clear-w); height: 28px; border-radius: 50%; border: 1px solid #d1d5db; background: #e5e7eb;
+            display: none; align-items: center; justify-content: center; cursor: pointer; z-index: 2800;
+            font-size: 14px; color: #000; padding: 0; box-sizing: border-box; box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        #search-clear-btn:hover { background: #d1d5db; }
+        body.dark-mode #search-clear-btn { background: rgba(255,255,255,0.06); color: #fff; }
+        
+        #search-clear-btn.visible { display: flex !important; }
+        #legend .legend-item {
+            display: flex; align-items: center; margin-bottom: 10px;
+            font-size: 1em;
+        }
+        .legend-logo {
+            width: 26px; height: 26px; margin-right: 10px;
         }
         
-        /* Colores de módulos */
-        .module-gradient-1 { 
-            background-color: #886FFF; 
+        .filter-option.active { border-radius: 6px; }
+        .filter-option .filter-btn { 
+            display:flex; 
+            align-items:center; 
+            justify-content: space-between;
+            gap:8px; 
+            padding:6px 8px; 
+            cursor:pointer; 
+            background: transparent; 
+            border: none; 
+            width: 100%; 
+            text-align: left; 
         }
-        .module-gradient-2 { 
-            background: linear-gradient(to right, #ec4899, #f9a8d4); 
-        }
-        .module-gradient-3 { 
-            background: linear-gradient(to right, #10b981, #6ee7b7); 
-        }
-        .module-bg-1 {
-            background-color: #E8E0FF;
-        }
-        .module-bg-2 {
-            background-color: #FAE8F0;
-        }
-        .module-bg-3 {
-            background-color: #E0F7E8;
-        }
-        .pause-background { 
-            background-color: #51CAFC; 
-        }
+        .filter-option .filter-btn:focus { outline: 2px solid #fbbf24; }
+        .filter-btn.night-mode { opacity: 0.95; }
+        .filter-btn.night-mode:active, .filter-option.active .filter-btn.night-mode { background: rgba(255,255,255,0.04); }
+        .filter-btn div span { color: #111; }
         
-        /* Estilos para sesiones */
-        .session-date {
-            min-width: 160px;
-            white-space: nowrap;
-        }
-        
-        /* Responsivo móvil */
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem !important;
-            }
-            
-            .header-layout {
-                flex-direction: column !important;
-                gap: 1rem;
-            }
-            
-            .header-layout .logo-left,
-            .header-layout .logo-right {
-                order: 1;
-                display: flex;
-                justify-content: center;
-            }
-            
-            .header-layout .title-center {
-                order: 2;
-                padding: 0 !important;
-            }
-            
-            .header-layout .logo-left img,
-            .header-layout .logo-right img {
-                height: 50px !important;
-            }
-            
-            .title-font {
-                font-size: 1.5rem !important;
-                line-height: 1.3;
-            }
-            
-            .general-info {
-                flex-direction: column !important;
-                gap: 1rem;
-                text-align: left !important;
-            }
-            
-            .general-info > div {
-                width: 100% !important;
-                margin-bottom: 0.5rem !important;
-            }
-            
-            .session-toggle {
-                flex-direction: column !important;
-                align-items: flex-start !important;
-                gap: 0.5rem;
-                position: relative;
-                padding-right: 3rem !important;
-                min-height: 60px;
-                padding: 1rem !important;
-            }
-            
-            .session-toggle span:nth-child(1) {
-                margin-right: 0 !important;
-                width: 100%;
-                font-size: 0.95rem !important;
-                font-weight: 600;
-                line-height: 1.4;
-            }
-            
-            .session-toggle span:nth-child(2) {
-                font-size: 0.875rem;
-                min-width: auto !important;
-                text-align: left !important;
-                order: 3;
-            }
-            
-            .toggle-icon {
-                position: absolute;
-                right: 1rem;
-                top: 1rem;
-                font-size: 1.5rem !important;
-                width: 2rem;
-                height: 2rem;
-                display: flex !important;
-                align-items: center;
-                justify-content: center;
-                background-color: rgba(255, 255, 255, 0.2);
-                border-radius: 50%;
-            }
-            
-            .session-card {
-                margin-bottom: 0.75rem !important;
-            }
-            
-            .session-details {
-                padding: 1rem !important;
-                font-size: 0.875rem;
-            }
-            
-            .space-y-12 > * + * {
-                margin-top: 2rem !important;
-            }
-        }
-        
-        /* Extra pequeño */
-        @media (max-width: 480px) {
-            .title-font {
-                font-size: 1.25rem !important;
-            }
-            
-            .header-layout .logo-left img,
-            .header-layout .logo-right img {
-                height: 40px !important;
-            }
-            
-            .container {
-                padding: 0.75rem !important;
-            }
-        }
-        
-        /* Cajita flotante */
-        .floating-tip {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
-            color: white;
-            padding: 1rem 1.5rem;
+        .filter-option.active .filter-btn div span { color: #111; }
+        body.dark-mode .filter-option.active .filter-btn div span { color: #fff; }
+
+        .network-count {
+            padding: 3px 9px;
             border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
-            z-index: 1000;
-            max-width: 300px;
-            font-family: 'Merriweather Sans', sans-serif;
-            font-size: 0.875rem;
-            line-height: 1.4;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            animation: pulseGlow 3s ease-in-out infinite;
+            font-size: 0.8em;
+            font-weight: bold;
+            min-width: 24px;
+            text-align: center;
+            box-sizing: border-box;
         }
-        
-        .floating-tip-icon {
-            font-size: 1.2rem;
-            margin-right: 0.5rem;
-            animation: bounce 2s ease-in-out infinite;
-        }
-        
-        .floating-tip-close {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.75rem;
-            background: none;
-            border: none;
+
+        body:not(.dark-mode) .network-count {
+            background-color: var(--blue-dark);
             color: white;
-            font-size: 1.2rem;
-            cursor: pointer;
-            opacity: 0.8;
-            transition: opacity 0.3s ease;
+        }
+
+        body.dark-mode .network-count {
+            background-color: var(--blue-pastel);
+            color: var(--blue-dark);
+        }
+
+        .filters-card {
+            background: rgba(255,255,255,0.96);
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 6px 18px rgba(16,24,40,0.06);
+            margin-bottom: 12px;
         }
         
-        .floating-tip-close:hover {
-            opacity: 1;
-        }
+    #panel .filters-card h2 { margin: 0 0 8px 0; color: #111; font-size: 1.05em; font-weight: 700; }
+    
+    .filters-card { background: #51cafc; }
+    body.dark-mode #panel .filters-card { background: rgba(20,24,32,0.82); box-shadow: 0 6px 18px rgba(0,0,0,0.45); }
+    body.dark-mode #panel .filters-card h2 { color: #fff; }
+
         
-        @keyframes pulseGlow {
-            0%, 100% { box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3); }
-            50% { box-shadow: 0 8px 35px rgba(255, 107, 107, 0.5); }
+        :root {
+            --blue-pastel: #d7f0ff;
+            --blue-dark: #063c6b;
         }
+        .filters-card .filter-btn { background: transparent; border-radius: 8px; padding: 8px; display: flex; align-items: center; gap:8px; }
+        .filters-card .filter-btn .legend-logo { filter: none; }
         
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-3px); }
-            60% { transform: translateY(-2px); }
+        body:not(.dark-mode) .filters-card .filter-btn div span { color: var(--blue-dark); }
+
+        
+        body:not(.dark-mode) .filters-card .filter-option.active .filter-btn { background: var(--blue-pastel); }
+        body:not(.dark-mode) .filters-card .filter-option.active .filter-btn div span { color: var(--blue-dark); font-weight: 600; }
+
+        
+        body.dark-mode .filters-card .filter-btn div span { color: #ffffff; }
+        body.dark-mode .filters-card .filter-option.active .filter-btn { background: var(--blue-pastel); }
+        body.dark-mode .filters-card .filter-option.active .filter-btn div span { color: var(--blue-dark); font-weight: 700; }
+
+        
+        /* Se eliminan los fondos de colores específicos para los botones activos en modo oscuro para unificar el estilo */
+        #map-container {
+            width: 100%; height: 100%; position: absolute; top: 0;
+            transition: left 0.3s, width 0.3s;
         }
+        #map { width: 100%; height: 100%; }
         
-        @keyframes slideInUp {
-            from {
-                transform: translateY(100px);
-                opacity: 0;
+    #map.day-enhance { filter: saturate(1.15) contrast(1.05) hue-rotate(-6deg); }
+    body.dark-mode #map { filter: grayscale(0.15) contrast(0.9) brightness(0.9); }
+        /* Debug overlay */
+        #debug-overlay {
+            position: fixed; right: 12px; bottom: 12px; z-index: 99999;
+            background: rgba(0,0,0,0.7); color: #fff; padding: 10px 12px; border-radius: 8px;
+            font-size: 12px; max-width: 420px; box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+        }
+        .panel-toggle-btn {
+            position: absolute; top: 18px; left: 18px; z-index: 1000;
+            background: #6366f1; color: #fff; border: none; border-radius: 6px;
+            cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+            font-size: 1.1em; padding: 8px 16px; transition: background 0.3s;
+        }
+        .panel-toggle-btn:hover { background: #fbbf24; color: #222; }
+        /* Tooltip for header logos (positioned above each logo) */
+        .header-tooltip {
+            position: absolute; transform: translateY(-8px); z-index: 5000; background: rgba(0,0,0,0.85); color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 13px; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.12s, transform 0.12s;
+        }
+        .header-tooltip.show { opacity: 1; transform: translateY(-12px); }
+        /* Panel theme toggle styles */
+        .panel-theme-btn {
+            background: var(--panel-theme-purple); border: 1px solid rgba(0,0,0,0.06); padding: 8px 10px; border-radius: 8px; cursor: pointer;
+            color: #fff; display: inline-flex; align-items: center; justify-content: center;
+        }
+        body.dark-mode .panel-theme-btn { border-color: rgba(255,255,255,0.08); }
+        .popup-content {
+            max-width: 320px; font-size: 1em;
+            animation: popupFadeIn 0.5s;
+        }
+        @keyframes popupFadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .popup-content h5 { margin: 0 0 7px 0; color: #6366f1; font-size: 1.15em; }
+        .popup-content p { margin: 3px 0; font-size: 0.98em; color: #555; }
+        .popup-content strong { color: #222; }
+        .leaflet-tooltip {
+            background: rgba(99,102,241,0.85); color: #fff; border: 1px solid #6366f1;
+            border-radius: 5px; padding: 6px; font-size: 1em;
+        }
+        .leaflet-marker-icon {
+            /* sombra del ícono: más intensa para separar mejor del fondo (80% opacity) */
+            filter: drop-shadow(0px 4px 8px rgba(99,102,241,0.8));
+            transition: filter 0.3s;
+        }
+        .leaflet-marker-icon:hover {
+            filter: drop-shadow(0px 6px 12px rgba(251,191,36,0.8));
+        }
+        /* Estilos para clusters: color plano, número en blanco, sin borde */
+        .marker-cluster div {
+            background: #cfe8ff; /* día: pastel azul por defecto */
+            border-radius: 50%;
+            width: 46px; height: 46px;
+            display: flex; align-items: center; justify-content: center;
+            border: none;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.28);
+            color: #fff; font-weight: 700; font-size: 14px;
+        }
+        .marker-cluster span { line-height: 1; }
+        /* Tonalidades por red (día) - colores planos, número blanco */
+        .marker-cluster.marker-cluster-hiphop div { background: #b91c1c; } /* carmesí */
+        .marker-cluster.marker-cluster-emergentes div { background: #059669; } /* verde */
+        .marker-cluster.marker-cluster-juvenil div { background: #7c3aed; } /* morado */
+        .marker-cluster.marker-cluster-mujeres div { background: #d946ef; } /* fucsia */
+        /* Ajustes para clusters grandes */
+        .marker-cluster .marker-cluster-1, .marker-cluster div.large { width: 56px; height: 56px; font-size: 16px; }
+
+        /* Modo oscuro: colores complementarios y más saturados */
+        body.dark-mode .marker-cluster div { background: #23303a; color: #fff; box-shadow: 0 6px 18px rgba(0,0,0,0.45); }
+        body.dark-mode .marker-cluster.marker-cluster-hiphop div { background: #ff6b6b; }
+        body.dark-mode .marker-cluster.marker-cluster-emergentes div { background: #34d399; }
+        body.dark-mode .marker-cluster.marker-cluster-juvenil div { background: #a78bfa; }
+        body.dark-mode .marker-cluster.marker-cluster-mujeres div { background: #f472b6; } /* rosado */
+        /* Accesibilidad */
+        #main-header, #panel, #map-container, .panel-toggle-btn, #theme-toggle-btn {
+            outline: none;
+        }
+        #main-header:focus, #panel:focus, #map-container:focus, .panel-toggle-btn:focus, #theme-toggle-btn:focus {
+            box-shadow: 0 0 0 3px #fbbf24;
+        }
+        /* Tutorial Panel Styles */
+        .tutorial-card {
+            background: #eef2ff;
+            border-radius: 12px;
+            padding: 12px 16px;
+            box-shadow: 0 6px 18px rgba(16,24,40,0.06);
+            margin-top: 20px;
+            max-height: 240px; /* Altura máxima para activar el scroll */
+            overflow-y: auto; /* Scroll vertical solo cuando sea necesario */
+        }
+        body:not(.dark-mode) .tutorial-card {
+            color: #3730a3; /* Violeta oscuro para legibilidad en modo día */
+        }
+        body.dark-mode .tutorial-card {
+            background: rgba(40,44,59,0.95);
+        }
+        .tutorial-card h2 {
+            margin: 0 0 10px 0;
+            color: #111;
+            font-size: 1.05em;
+            font-weight: 700;
+        }
+        body.dark-mode .tutorial-card h2 {
+            color: #fff;
+        }
+        .tutorial-card ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        .tutorial-card li {
+            font-size: 0.85em; /* Letra más pequeña */
+            line-height: 1.5;
+            margin-bottom: 10px;
+            padding-right: 8px; /* Espacio para la barra de scroll */
+        }
+        .tutorial-card li:last-child {
+            margin-bottom: 0;
+        }
+        .tutorial-card strong {
+            color: #6366f1;
+        }
+        body.dark-mode .tutorial-card strong {
+            color: #a78bfa;
+        }
+
+    @media (max-width: 800px) {
+            #main-header { padding: 12px 10px; }
+            #main-header h1 { font-size: 1em; margin: 0 10px; }
+            .header-logo { height: 40px; }
+            /* En móvil el panel ocupa 80% del ancho para dejar 20% del mapa visible detrás */
+            #panel { width: 80vw; left: -80vw; padding-right: 18px; box-shadow: 2px 0 18px rgba(0,0,0,0.22); }
+            #panel.show { left: 0; }
+            #map-container { left: 0; width: 100vw; }
+            #desktop-panel-toggle { display: none; }
+            #mobile-panel-toggle { display: block; width: 44px; height: 44px; font-size: 26px; padding: 0; text-align: center;}
+            /* move close X more to the corner on mobile and make it white to avoid overlap */
+            #close-panel-btn { right: 1px; top: 8px; color: #fff; z-index: 3000; }
+            
+            /* Ajustes para el panel de tutorial en móvil */
+            .tutorial-card {
+                max-height: none; /* Permitir que se expanda completamente */
+                overflow-y: visible; /* Desactivar el scroll interno para que el panel principal se desplace */
             }
-            to {
-                transform: translateY(0);
-                opacity: 1;
+        }
+        @media (min-width: 801px) {
+            #panel { left: 0; }
+            #map-container { left: 420px; width: calc(100% - 420px); }
+            #app-container.panel-collapsed #panel { left: -420px; }
+            #app-container.panel-collapsed #map-container { left: 0; width: 100%; }
+            #desktop-panel-toggle { display: block; padding: 10px 16px; }
+            #mobile-panel-toggle { display: none; }
+            #close-panel-btn { display: none; }
+            
+            /* Nuevas reglas para el encabezado en escritorio */
+            #main-header {
+                position: relative;
+                padding-left: 420px;
+                box-sizing: border-box;
             }
-        }
-        
-        @keyframes slideOutDown {
-            from {
-                transform: translateY(0);
-                opacity: 1;
+            #main-header .header-logo-link:first-child {
+                position: absolute;
+                left: 24px;
+                top: 50%;
+                transform: translateY(-50%);
             }
-            to {
-                transform: translateY(100px);
-                opacity: 0;
+            #main-header h1 {
+                margin-left: 0;
             }
-        }
-        
-        .floating-tip.show {
-            animation: slideInUp 0.5s ease-out;
-        }
-        
-        /* Responsive móvil para cajita */
-        @media (max-width: 768px) {
-            .floating-tip {
-                bottom: 10px;
-                right: 10px;
-                left: 10px;
-                max-width: none;
-                font-size: 0.8rem;
-                padding: 0.875rem 1.25rem;
-            }
-        }
-        
-        /* Estilos para el contador de visitantes */
-        #visitorCount {
-            transition: all 0.3s ease;
-            display: inline-block;
-        }
-        
-        .visitor-counter {
-            background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
-            border-top: 1px solid #d1d5db;
         }
     </style>
 </head>
-<body class="text-gray-800">
-
-    <!-- Contador de visitantes -->
-    <div class="visitor-counter py-2 px-8 text-center">
-        <div class="container mx-auto">
-            <p class="text-xs text-gray-600">
-                <span class="font-semibold">👥 Visitantes:</span> 
-                <span id="visitorCount" class="font-bold text-gray-800">0</span>
-            </p>
-        </div>
+<body>
+    <div id="main-header" tabindex="0">
+        <a id="link-artes" class="header-logo-link" href="https://artesparalapaz.mincultura.gov.co/Paginas/index.aspx" target="_blank" rel="noopener noreferrer" title="Volver a la página de Artes para la Paz">
+            <img src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/APLP%20MORADO.png?v=2" alt="Logo Artes para la Paz" class="header-logo">
+        </a>
+    <h1>Redes y Procesos Artísticos y Comunitarios &bull; Artes para la Paz</h1>
+        <a id="link-culturas" class="header-logo-link" href="https://www.mincultura.gov.co/" target="_blank" rel="noopener noreferrer" title="Ir al Ministerio de las Culturas, las Artes y los Saberes de Colombia">
+            <img src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/GRIS_CULTURAS.png?v=2" alt="Logo Culturas" class="header-logo-right" />
+        </a>
     </div>
-
-    <div class="container mx-auto p-4 md:p-8">
-        
-        <!-- Header Section -->
-        <header class="text-center mb-10">
-            <div class="header-layout flex justify-between items-center mb-6">
-                <!-- Logo Izquierdo -->
-                <div class="logo-left flex items-center">
-                    <a href="https://artesparalapaz.mincultura.gov.co/Paginas/index.aspx" target="_blank" rel="noopener noreferrer">
-                        <img src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/APLP%20MORADO.png" alt="Artes para la Paz" style="height: 65px;" class="hover:opacity-80 transition-opacity cursor-pointer">
-                    </a>
-                </div>
-                
-                <!-- Título Centrado -->
-                <div class="title-center flex-1 text-center px-4">
-                    <h1 class="text-3xl md:text-4xl font-bold mb-2 title-font">Potenciar Voces para Visibilizar Acciones</h1>
-                </div>
-                
-                <!-- Logo Derecho -->
-                <div class="logo-right flex items-center">
-                    <a href="https://www.mincultura.gov.co/" target="_blank" rel="noopener noreferrer">
-                        <img src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/GRIS%20CULTURAS%406x.png" alt="Ministerio de Cultura" style="height: 65px;" class="hover:opacity-80 transition-opacity cursor-pointer">
-                    </a>
+    <div id="app-container">
+        <div id="panel" tabindex="0">
+            <button id="close-panel-btn" title="Cerrar panel" tabindex="0">&times;</button>
+            <div id="search-box">
+                <input id="search-input" type="text" placeholder="Buscar por organización, proyecto o ciudad..." aria-label="Buscar" tabindex="0">
+                <button id="search-btn" title="Buscar" tabindex="0">🔍</button>
+                <button id="search-clear-btn" title="Borrar búsqueda" aria-label="Borrar búsqueda" tabindex="0">✕</button>
+            </div>
+            <div id="search-suggestions" role="listbox" aria-label="Sugerencias de búsqueda"></div>
+            <div id="filters">
+                <div class="filters-card">
+                    <h2>Convenciones y Filtros</h2>
+                    <!-- Las opciones y logos se generan dinámicamente en JS para respetar logoUrls y fallback -->
+                    <div id="filters-list"></div>
+                        <!-- Eliminado botón de compatibilidad y resultados -->
+                    <!-- Theme toggle inside filters card (bottom-left) -->
+                    <div id="panel-theme-row" style="margin-top:10px; display:flex; align-items:center;">
+                        <button id="panel-theme-toggle-btn" class="panel-theme-btn" title="Cambiar modo claro/oscuro" aria-pressed="false" style="margin-left:0;">🌙</button>
+                    </div>
                 </div>
             </div>
-            
-            <p class="text-lg text-gray-600 max-w-3xl mx-auto subtitle-font">Un ciclo de talleres diseñado para fortalecer las capacidades de comunicación de las organizaciones del programa Artes para la Paz.</p>
-        </header>
-
-        <!-- General Information -->
-        <div class="p-6 rounded-2xl shadow-lg mb-12" style="background-color: #E85A7A;">
-            <div class="general-info flex items-center justify-center space-x-4 md:space-x-8 text-center flex-wrap text-white">
-                <div class="flex items-center text-lg mb-2 md:mb-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span class="font-semibold">Horarios:</span>
-                    <span class="ml-2">Martes y Jueves: 6:00 PM - 7:00 PM | Viernes: 7:00 AM - 8:00 AM (Hora Colombia)</span>
-                </div>
-                <div class="flex items-center text-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2z" />
-                    </svg>
-                    <span class="font-semibold">Frecuencia:</span>
-                    <span class="ml-2">Martes, jueves y viernes según calendario específico. El único miércoles que se trabajará es el 26 de noviembre en horario de la tarde.</span>
-                </div>
-            </div>
-            <div class="mt-4 pt-4 border-t border-white text-center text-sm text-white">
-                <p><strong class="font-semibold">Metodología:</strong> Cada sesión incluye un ejercicio práctico para desarrollar entre talleres. Se dedicará un espacio al inicio de la siguiente sesión para socializar avances y recibir retroalimentación colectiva.</p>
+            <div id="tutorial-panel" class="tutorial-card">
+                <h2>¿Cómo usar el mapa?</h2>
+                <ul>
+                    <li><strong>Explora:</strong> Acércate en el mapa para ver los puntos individuales de cada organización. Los grupos de puntos (clusters) se abrirán al hacer zoom.</li>
+                    <li><strong>Busca:</strong> Usa el campo de búsqueda para encontrar organizaciones por su nombre, el nombre del proyecto o la ciudad.</li>
+                    <li><strong>Reinicia:</strong> Al borrar el texto del campo de búsqueda, el mapa volverá a la vista inicial de Colombia, respetando los filtros que hayas seleccionado.</li>
+                </ul>
             </div>
         </div>
-
-        <!-- Itinerary -->
-        <div class="space-y-12">
-
-            <!-- Módulo I: Cimientos Estratégicos -->
-            <div>
-                <div class="module-gradient-1 text-white p-4 rounded-t-2xl">
-                    <h2 class="text-2xl font-bold">Módulo I: Cimientos Estratégicos</h2>
-                    <p>Nivelamos al grupo y entregamos un marco de trabajo común.</p>
-                </div>
-                <div class="space-y-2 module-bg-1 p-4 rounded-b-2xl shadow-md">
-                    
-                    <!-- Session 1a -->
-                    <div class="session-card border rounded-lg">
-                        <button class="session-toggle w-full flex justify-between items-center p-4 text-left" onclick="toggleSession(this)">
-                            <span class="font-semibold text-lg flex-1">Sesión 1a: El Relato es la Estrategia</span>
-                            <div class="text-sm text-gray-500 session-date text-right">
-                                <div>Martes, 21 de Octubre</div>
-                                <div class="text-xs opacity-75">6:00 PM - 7:00 PM</div>
-                            </div>
-                            <span class="toggle-icon text-indigo-500 font-bold text-2xl ml-2">+</span>
-                        </button>
-                        <div class="session-details hidden p-4 border-t">
-                            <p class="mb-2"><strong>Contenido:</strong> Taller para definir el mensaje clave (el "porqué" de cada organización) y alinearlo con los objetivos de comunicación.</p>
-                            <p class="mb-2"><strong>Facilitadora:</strong> Paula Ricciulli, Líder de Redes - Minculturas.</p>
-                            <p class="mb-2"><strong>Horario:</strong> 6:00 PM - 7:00 PM (Hora Colombia).</p>
-                            <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Escribir el "párrafo entraña" de su organización (máximo 150 palabras). Este texto debe responder: ¿Qué problema sanamos? ¿Cómo lo hacemos? ¿Qué futuro soñamos? Será la base para futuras comunicaciones y se compartirá en un documento colaborativo.</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Session 1b -->
-                    <div class="session-card border rounded-lg">
-                        <button class="session-toggle w-full flex justify-between items-center p-4 text-left" onclick="toggleSession(this)">
-                            <span class="font-semibold text-lg flex-1">Sesión 1b: El Relato es la Estrategia (Sesión Adicional)</span>
-                            <div class="text-sm text-gray-500 session-date text-right">
-                                <div>Sábado, 25 de Octubre</div>
-                                <div class="text-xs opacity-75">8:30 AM - 9:30 AM</div>
-                            </div>
-                            <span class="toggle-icon text-indigo-500 font-bold text-2xl ml-2">+</span>
-                        </button>
-                        <div class="session-details hidden p-4 border-t">
-                            <p class="mb-2"><strong>Contenido:</strong> Taller introductorio para definir el mensaje clave (el "porqué" de cada organización) y alinearlo con los objetivos de comunicación.</p>
-                            <p class="mb-2"><strong>Facilitadora:</strong> Guisselle Vargas.</p>
-                            <p class="mb-2"><strong>Horario:</strong> 8:30 AM - 9:30 AM (Hora Colombia).</p>
-                            <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Escribir el "párrafo entraña" de su organización (máximo 150 palabras). Este texto debe responder: ¿Qué problema sanamos? ¿Cómo lo hacemos? ¿Qué futuro soñamos? Será la base para futuras comunicaciones y se compartirá en un documento colaborativo.</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Session 2 -->
-                    <div class="session-card border rounded-lg">
-                        <button class="session-toggle w-full flex justify-between items-center p-4 text-left" onclick="toggleSession(this)">
-                            <span class="font-semibold text-lg flex-1">Sesión 2: El Ecosistema Digital</span>
-                            <div class="text-sm text-gray-500 session-date text-right">
-                                <div>Jueves, 23 de Octubre</div>
-                                <div class="text-xs opacity-75">6:00 PM - 7:00 PM</div>
-                            </div>
-                            <span class="toggle-icon text-indigo-500 font-bold text-2xl ml-2">+</span>
-                        </button>
-                        <div class="session-details hidden p-4 border-t">
-                            <p class="mb-2"><strong>Contenido:</strong> Análisis de las principales redes (Instagram, TikTok, Facebook, YouTube). ¿Para qué sirve cada una? ¿Cómo elegir la correcta para mi mensaje y mi público?</p>
-                            <p class="mb-2"><strong>Facilitadoras:</strong> Paula Ricciulli, Líder de Redes - Minculturas y Gabriela Sáenz, Líder Digital del Programa Presidencial Artes para la Paz - Minculturas.</p>
-                            <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Realizar una "mini-auditoría" de su red social principal. Deben identificar: 1) ¿Qué tipo de contenido funciona mejor? 2) ¿Qué no funciona? 3) Proponer una idea para una nueva publicación que responda a su "párrafo corazón" (del ejercicio 1) y esté adaptada a esa plataforma.</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Session 3 -->
-                    <div class="session-card border rounded-lg">
-                        <button class="session-toggle w-full flex justify-between items-center p-4 text-left" onclick="toggleSession(this)">
-                            <span class="font-semibold text-lg flex-1">Sesión 3: Mesa de Trabajo: Nuestro Plan de Contenidos</span>
-                            <div class="text-sm text-gray-500 session-date text-right">
-                                <div>Jueves, 30 de Octubre</div>
-                                <div class="text-xs opacity-75">6:00 PM - 7:00 PM</div>
-                            </div>
-                            <span class="toggle-icon text-indigo-500 font-bold text-2xl ml-2">+</span>
-                        </button>
-                        <div class="session-details hidden p-4 border-t">
-                            <p class="mb-2"><strong>Contenido:</strong> Taller práctico para que cada organización diseñe una parrilla de contenidos de una semana, definiendo formatos, temas y objetivos por publicación.</p>
-                            <p class="mb-2"><strong>Facilitadora:</strong> Gabriela Sáenz, Líder Digital del Programa Presidencial Artes para la Paz - Minculturas.</p>
-                            <p class="mb-2"><strong>Horario:</strong> 6:00 PM - 7:00 PM (Hora Colombia).</p>
-                            <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Diseñar una "Micro-Campaña" de 3 publicaciones conectadas bajo un solo tema. Deben entregar la idea de la campaña y la descripción de cada una de las 3 publicaciones (formato, texto y objetivo).</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Session 4 -->
-                    <div class="session-card border rounded-lg">
-                        <button class="session-toggle w-full flex justify-between items-center p-4 text-left" onclick="toggleSession(this)">
-                            <span class="font-semibold text-lg flex-1">Sesión 4: Fotografía con Celular para Historias Potentes</span>
-                            <div class="text-sm text-gray-500 session-date text-right">
-                                <div>Martes, 4 de Noviembre</div>
-                                <div class="text-xs opacity-75">6:00 PM - 7:00 PM</div>
-                            </div>
-                            <span class="toggle-icon text-indigo-500 font-bold text-2xl ml-2">+</span>
-                        </button>
-                        <div class="session-details hidden p-4 border-t">
-                            <p class="mb-2"><strong>Contenido:</strong> Taller técnico fundamental. Nociones de composición, luz y edición básica para mejorar radicalmente la calidad visual.</p>
-                            <p class="mb-2"><strong>Facilitador:</strong> Felipe Camacho, Enlace de Comunicaciones del Grupo de Fortalecimiento a Organizaciones de Base Comunitaria del Programa Artes para la Paz - Minculturas.</p>
-                            <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Crear una "Foto-Manifiesto". Capturar una sola imagen (retrato, objeto o espacio) que encapsule el espíritu de su proyecto. Deben acompañarla de un pie de foto que explique por qué esa imagen representa su "párrafo entraña". Se creará una galería virtual para que todos vean y comenten el trabajo de los demás.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Pause Note 1 -->
-            <div class="text-center p-4 rounded-lg shadow-sm text-white pause-background">
-                <p><strong class="font-semibold">Pausa Activa:</strong> Continuamos en noviembre con los laboratorios de creación.</p>
-            </div>
-
-            <!-- Módulo II: Laboratorios de Creación -->
-            <div>
-                <div class="module-gradient-2 text-white p-4 rounded-t-2xl">
-                    <h2 class="text-2xl font-bold">Módulo II: Laboratorios de Creación</h2>
-                    <p>Fortalecemos habilidades técnicas específicas con talleres prácticos.</p>
-                </div>
-                <div class="space-y-2 module-bg-2 p-4 rounded-b-2xl shadow-md">
-                    
-                    <!-- Session 5 -->
-                    <div class="session-card border rounded-lg">
-                        <button class="session-toggle w-full flex justify-between items-center p-4 text-left" onclick="toggleSession(this)">
-                            <span class="font-semibold text-lg flex-1">Sesión 5: Laboratorio de Video: Del Reel al Mini-Doc</span>
-                            <div class="text-sm text-gray-500 session-date text-right">
-                                <div>Martes, 11 de Noviembre</div>
-                                <div class="text-xs opacity-75">6:00 PM - 7:00 PM</div>
-                            </div>
-                            <span class="toggle-icon text-pink-500 font-bold text-2xl ml-2">+</span>
-                        </button>
-                        <div class="session-details hidden p-4 border-t">
-                            <p class="mb-2"><strong>Contenido:</strong> Taller práctico sobre narrativa audiovisual para redes. Guion, grabación y edición de videos cortos con CapCut, enfocado en contar historias de impacto.</p>
-                            <p class="mb-2"><strong>Facilitadora:</strong> María Catalina Sandoval, Líder de Audiovisuales del Programa Presidencial Artes para la Paz - Minculturas.</p>
-                            <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Producir un "Video-Testimonio" de 30 a 60 segundos. Deben entrevistar a alguien de su proyecto respondiendo a la pregunta: "¿Qué ha transformado este proyecto en ti o en la comunidad?". El entregable es el video editado.</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Session 6 -->
-                    <div class="session-card border rounded-lg">
-                        <button class="session-toggle w-full flex justify-between items-center p-4 text-left" onclick="toggleSession(this)">
-                            <span class="font-semibold text-lg flex-1">Sesión 6: Taller de Diseño Ágil con Canva</span>
-                            <div class="text-sm text-gray-500 session-date text-right">
-                                <div>Martes, 18 de Noviembre</div>
-                                <div class="text-xs opacity-75">6:00 PM - 7:00 PM</div>
-                            </div>
-                            <span class="toggle-icon text-pink-500 font-bold text-2xl ml-2">+</span>
-                        </button>
-                        <div class="session-details hidden p-4 border-t">
-                            <p class="mb-2"><strong>Contenido:</strong> Taller para crear piezas gráficas de alto impacto, plantillas y un kit visual básico para la organización, aprovechando la habilidad ya existente.</p>
-                            <p class="mb-2"><strong>Facilitador:</strong> Felipe Camacho, Enlace de Comunicaciones del Grupo de Fortalecimiento a Organizaciones de Base Comunitaria del Programa Artes para la Paz - Minculturas.</p>
-                            <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Diseñar un "Carrusel de Impacto" en Canva (3 a 5 diapositivas). El carrusel debe contar visualmente una pequeña historia de éxito o un dato clave de su proyecto, manteniendo coherencia visual entre las diapositivas.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Pause Note 2 -->
-            <div class="text-center p-4 rounded-lg shadow-sm text-white pause-background">
-                <p><strong class="font-semibold">Continuidad:</strong> Finalizamos el programa con las sesiones de comunicación para la incidencia.</p>
-            </div>
-
-            <!-- Módulo III: Comunicación para la Incidencia -->
-            <div>
-                <div class="module-gradient-3 text-white p-4 rounded-t-2xl">
-                    <h2 class="text-2xl font-bold">Módulo III: Comunicación para la Incidencia</h2>
-                    <p>Entregamos herramientas avanzadas para generar cambio y construir memoria.</p>
-                </div>
-                <div class="space-y-2 module-bg-3 p-4 rounded-b-2xl shadow-md">
-                    
-                    <!-- Session 7 -->
-                    <div class="session-card border rounded-lg">
-                        <button class="session-toggle w-full flex justify-between items-center p-4 text-left" onclick="toggleSession(this)">
-                            <span class="font-semibold text-lg flex-1">Sesión 7: Conversatorio: "Pitch" a Medios y Aliados</span>
-                            <div class="text-sm text-gray-500 session-date text-right">
-                                <div>Jueves, 20 de Noviembre</div>
-                                <div class="text-xs opacity-75">6:00 PM - 7:00 PM</div>
-                            </div>
-                            <span class="toggle-icon text-green-500 font-bold text-2xl ml-2">+</span>
-                        </button>
-                        <div class="session-details hidden p-4 border-t">
-                            <p class="mb-2"><strong>Contenido:</strong> Un espacio con un experto que dé claves para redactar correos, presentar un proyecto y generar interés en periodistas y posibles aliados estratégicos.</p>
-                            <p class="mb-2"><strong>Facilitador:</strong> Iván Oliva, Profesional adscrito al Fondo Mixto de Cultura de Nariño.</p>
-                            <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Redactar un borrador de correo electrónico completo (asunto, saludo, cuerpo del mensaje y llamado a la acción) dirigido a un aliado real (medio de comunicación, institución) que hayan identificado. Se socializarán algunos para feedback grupal.</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Session 8 -->
-                    <div class="session-card border rounded-lg">
-                        <button class="session-toggle w-full flex justify-between items-center p-4 text-left" onclick="toggleSession(this)">
-                            <span class="font-semibold text-lg flex-1">Sesión 8: Estrategias para el Cambio Social</span>
-                            <div class="text-sm text-gray-500 session-date text-right">
-                                <div>Miércoles, 26 de Noviembre</div>
-                                <div class="text-xs opacity-75">6:00 PM - 7:00 PM</div>
-                            </div>
-                            <span class="toggle-icon text-green-500 font-bold text-2xl ml-2">+</span>
-                        </button>
-                        <div class="session-details hidden p-4 border-t">
-                            <p class="mb-2"><strong>Contenido:</strong> ¿Qué es una campaña de incidencia? Mapeo de actores, construcción de mensajes clave y diseño de acciones comunicativas para influir.</p>
-                            <p class="mb-2"><strong>Facilitadores:</strong> Santiago Mejía y Cristian Aragón, Equipa de Paz - Minculturas.</p>
-                            <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Diseñar el "Manifiesto de una Causa". En una sola página, definir el esqueleto de una mini-campaña de incidencia: 1) El problema a visibilizar. 2) El cambio a lograr. 3) El mensaje clave. 4) Un llamado a la acción concreto para la audiencia.</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Session 9 -->
-                    <div class="session-card border rounded-lg">
-                        <button class="session-toggle w-full flex justify-between items-center p-4 text-left" onclick="toggleSession(this)">
-                            <span class="font-semibold text-lg flex-1">Sesión 9: Taller de Sistematización y Memoria Digital</span>
-                            <div class="text-sm text-gray-500 session-date text-right">
-                                <div>Jueves, 27 de Noviembre</div>
-                                <div class="text-xs opacity-75">6:00 PM - 7:00 PM</div>
-                            </div>
-                            <span class="toggle-icon text-green-500 font-bold text-2xl ml-2">+</span>
-                        </button>
-                        <div class="session-details hidden p-4 border-t">
-                            <p class="mb-2"><strong>Contenido:</strong> Herramientas y métodos para organizar un archivo visual y construir un relato a largo plazo (ej. Story Maps, líneas de tiempo digitales, blogs).</p>
-                            <p class="mb-2"><strong>Facilitadores:</strong> Santiago Mejía y Cristian Aragón, Equipa de Paz - Minculturas.</p>
-                            <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> Crear un "Hilo de la Memoria" para X (Twitter) o un carrusel para Instagram. Deben seleccionar entre 3 y 5 fotos de su archivo y escribir un texto para cada una, contando una historia cronológica sobre la evolución de su proyecto.</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Session 10 -->
-                    <div class="session-card border rounded-lg bg-gray-50">
-                        <button class="session-toggle w-full flex justify-between items-center p-4 text-left" onclick="toggleSession(this)">
-                            <span class="font-semibold text-lg flex-1">Sesión 10: Laboratorio de Cierre: Tejiendo la Red</span>
-                            <div class="text-sm text-gray-500 session-date text-right">
-                                <div>Viernes, 28 de Noviembre</div>
-                                <div class="text-xs opacity-75">6:00 PM - 7:00 PM</div>
-                            </div>
-                            <span class="toggle-icon text-green-500 font-bold text-2xl ml-2">+</span>
-                        </button>
-                        <div class="session-details hidden p-4 border-t">
-                            <p class="mb-2"><strong>Contenido:</strong> Sesión final para presentar los avances de las organizaciones, generar alianzas de colaboración y definir una agenda común de comunicación para el futuro.</p>
-                            <p class="mb-2"><strong>Facilitadores:</strong> Santiago Mejía y Cristian Aragón, Equipa de Paz - Minculturas.</p>
-                            <p class="mt-3 pt-3 border-t border-gray-200"><strong>Ejercicio Práctico:</strong> "Minga Creativa". Formular una propuesta de colaboración concreta con otra organización del ciclo de talleres. La propuesta debe definir: 1) Qué harían juntos y 2) Por qué esa colaboración potenciaría el mensaje de ambos. Se presentará en la sesión para buscar "pareja" creativa.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- Imagen de cierre - Borde a borde -->
-    <div class="w-full mt-12">
-        <img src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/IMAGEN%20DE%20PROGRAMACION.png" 
-             alt="Imagen de Programación - Potenciar Voces para Visibilizar Acciones" 
-             class="w-full h-auto block">
-    </div>
-
-    <!-- Cajita flotante de instrucciones -->
-    <div id="floatingTip" class="floating-tip show">
-        <button class="floating-tip-close" onclick="closeFloatingTip()">&times;</button>
-        <div style="display: flex; align-items: flex-start;">
-            <span class="floating-tip-icon">💡</span>
-            <div>
-                <strong style="display: block; margin-bottom: 0.5rem;">¡Tip de navegación!</strong>
-                Para ver el detalle de cada sesión, haz clic en el <strong>título</strong> o en el símbolo <strong>+</strong> junto a la fecha.
-            </div>
+        <div id="map-container" tabindex="0">
+            <button id="mobile-panel-toggle" class="panel-toggle-btn" title="Abrir filtros" tabindex="0">☰</button>
+            <button id="desktop-panel-toggle" class="panel-toggle-btn" title="Abrir filtros" tabindex="0">Filtros</button>
+            <div id="map"></div>
         </div>
     </div>
-
+    <!-- Debug overlay removed for production build -->
+    <!-- header tooltips will be created dynamically by JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin="" defer></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"
+            xintegrity="sha512-QcKOeNZe6K+Ie3LPSLhBmfv0oKj+M/aRClLqlbSBcMRvNf2vS+uS1JzM/2gR6fF2FTr2PCl2XhYsDjpbWGNQ5w=="
+            crossorigin="" defer></script>
     <script>
-        // Función principal para alternar sesiones
-        function toggleSession(button) {
-            const details = button.nextElementSibling;
-            const icon = button.querySelector('.toggle-icon');
-            
-            // Cerrar otras sesiones en móvil para mejor UX
-            if (window.innerWidth <= 768) {
-                const allToggles = document.querySelectorAll('.session-toggle');
-                allToggles.forEach(otherToggle => {
-                    if (otherToggle !== button) {
-                        const otherDetails = otherToggle.nextElementSibling;
-                        const otherIcon = otherToggle.querySelector('.toggle-icon');
-                        if (!otherDetails.classList.contains('hidden')) {
-                            otherDetails.classList.add('hidden');
-                            otherIcon.textContent = '+';
-                        }
-                    }
-                });
-            }
-            
-            // Alternar sesión actual
-            details.classList.toggle('hidden');
-            if (details.classList.contains('hidden')) {
-                icon.textContent = '+';
-            } else {
-                icon.textContent = '-';
-                // Scroll suave en móvil
-                if (window.innerWidth <= 768) {
-                    setTimeout(() => {
-                        button.scrollIntoView({ 
-                            behavior: 'smooth', 
-                            block: 'start' 
-                        });
-                    }, 300);
-                }
-            }
-        }
-
-        // Función para cerrar la cajita flotante
-        function closeFloatingTip() {
-            const tip = document.getElementById('floatingTip');
-            if (tip) {
-                tip.style.animation = 'slideOutDown 0.3s ease-in';
-                setTimeout(() => {
-                    tip.style.display = 'none';
-                }, 300);
-            }
-        }
-        
-        // Inicialización cuando la página carga
-        document.addEventListener('DOMContentLoaded', function() {
-            // Verificar si la fuente LANCEAPLP cargó
-            const checkFontLoad = () => {
-                const titleElements = document.querySelectorAll('.title-font');
-                
-                // Asegurar que use LANCEAPLP
-                titleElements.forEach(element => {
-                    element.style.setProperty('font-family', 'LANCEAPLP, Georgia, Times New Roman, serif', 'important');
-                });
-                
-                // Verificar carga de fuente después de un momento
-                setTimeout(() => {
-                    if (document.fonts && document.fonts.check) {
-                        if (!document.fonts.check('16px LANCEAPLP')) {
-                            console.warn('⚠️ Fuente LANCEAPLP no cargó completamente');
-                        } else {
-                            console.log('✅ Fuente LANCEAPLP cargada correctamente');
-                        }
-                    }
-                }, 2000);
+    window.addEventListener('DOMContentLoaded', function() {
+            const PREVIEW_ASSETS = false; 
+            const FORCE_USE_PRODUCTION_LOGOS = true;
+            function svgDataUri(svg){ return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg); }
+            const previewLogos = {
+                aplp: svgDataUri(`<svg xmlns='http://www.w3.org/2000/svg' width='160' height='54' viewBox='0 0 160 54'><rect width='100%' height='100%' rx='8' fill='%237c3aed'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='white' font-family='Arial' font-size='18'>ARTES</text></svg>`),
+                culturas: svgDataUri(`<svg xmlns='http://www.w3.org/2000/svg' width='216' height='68' viewBox='0 0 216 68'><rect width='100%' height='100%' rx='8' fill='%237c3aed'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='white' font-family='Arial' font-size='16'>CULTURAS</text></svg>`),
+                hiphop: svgDataUri(`<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><rect width='80' height='80' rx='12' fill='%23b91c1c'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='white' font-family='Arial' font-size='12'>HIPHOP</text></svg>`),
+                emergentes: svgDataUri(`<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><rect width='80' height='80' rx='12' fill='%23059669'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='white' font-family='Arial' font-size='10'>EMERGENTES</text></svg>`),
+                juvenil: svgDataUri(`<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><rect width='80' height='80' rx='12' fill='%237c3aed'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='white' font-family='Arial' font-size='12'>JUVENIL</text></svg>`)
             };
-            
-            // Ejecutar verificación de fuente
-            checkFontLoad();
-            
-            // Inicializar contador de visitantes
-            initVisitorCounter();
-            
-            // Auto-ocultar cajita flotante después de 10 segundos
-            setTimeout(() => {
-                const tip = document.getElementById('floatingTip');
-                if (tip && tip.style.display !== 'none') {
-                    closeFloatingTip();
+            function debugMsg(msg){ /* no-op for production; keep for dev toggling */ }
+            debugMsg('DOMContentLoaded - esperando Leaflet...');
+            window.addEventListener('unhandledrejection', function(evt){
+                try{
+                    const reason = evt.reason && (evt.reason.message || evt.reason.toString()) || String(evt.reason);
+                    console.warn('Captured unhandledrejection:', evt.reason);
+                    debugMsg('UnhandledRejection: ' + reason + '\n(Revisa extensiones del navegador o scripts externos)');
+                    evt.preventDefault();
+                }catch(e){ console.warn('Error handling unhandledrejection', e); }
+            });
+            function showStatus(){
+            const mapEl = document.getElementById('map');
+            const rect = mapEl.getBoundingClientRect();
+            const clusterAvailable = (typeof L !== 'undefined' && typeof L.markerClusterGroup === 'function');
+            debugMsg(`L definido: ${typeof L !== 'undefined'}\nmarkerCluster disponible: ${clusterAvailable}\nmap size: ${Math.round(rect.width)} x ${Math.round(rect.height)}\nwindow: ${window.innerWidth} x ${window.innerHeight}`);
+        }
+            let tries = 0;
+            const tryInit = setInterval(()=>{
+                tries++;
+                if(typeof L !== 'undefined' || tries > 20){
+                    clearInterval(tryInit);
+                    if(typeof L === 'undefined'){
+                        debugMsg('Leaflet no cargado. Comprueba conexión o CDN.');
+                        console.error('Leaflet no cargado');
+                        return;
+                    }
+                                debugMsg('Leaflet cargado. Comprobando logos y preparando interfaz...');
+                                showStatus();
+                                    preloadLogos().then(result => {
+                        for (const k in result) {
+                            if (result[k] === 'failed' || result[k] === 'unknown') {
+                                logoUrls[k] = placeholderLogo;
+                            }
+                        }
+                        renderFilters();
+                        debugMsg('Logos comprobados. Inicializando mapa...');
+                        initMap();
+                    }).catch(e => { console.warn('preloadLogos error', e); renderFilters(); initMap(); });
                 }
-            }, 10000);
+            }, 200);
+        const appContainer = document.getElementById('app-container');
+        const panel = document.getElementById('panel');
+        const mobileToggleButton = document.getElementById('mobile-panel-toggle');
+        const desktopToggleButton = document.getElementById('desktop-panel-toggle');
+        const closeButton = document.getElementById('close-panel-btn');
+    // header theme toggle removed; panel toggle used instead
+        const searchInput = document.getElementById('search-input');
+        const searchBtn = document.getElementById('search-btn');
+
+    const markersById = new Map();
+
+        const organizations = [
+            {network: 'Red Hip Hop', name: 'FUNDACION CULTURAL Y SOCIAL 5TA CON 5TA CREW', project: 'Proceso pedagógico y artístico', dates: 'Hasta 08/11/25', lat: 7.907, lng: -72.504, city: 'Cúcuta'},
+            {network: 'Red Hip Hop', name: 'FUNDACION SURPRISE CITY', project: 'Talleres en Jamondino y cárcel', dates: 'Hasta 01/11/25', lat: 1.213, lng: -77.281, city: 'Pasto'},
+            {network: 'Red Hip Hop', name: 'FUNDACION HIP HOP PEÑA', project: 'Encuentros Formativos y Festival', dates: 'Hasta 16/11/25', lat: 3.451, lng: -76.532, city: 'Cali'},
+            {network: 'Red Hip Hop', name: 'FUNDACION CULTURAL PAZ Y TERRITORIO', project: 'Sesiones formativas (MC, DJ, etc.)', dates: '01/11/25 - 20/11/25', lat: 4.438, lng: -75.232, city: 'Ibagué'},
+            {network: 'Red Hip Hop', name: 'CORPORACION CASA KOLACHO', project: 'Festival Manifiesto Fest', dates: '15/11/25 - 29/11/25', lat: 6.244, lng: -75.574, city: 'Medellín'},
+            {network: 'Red Hip Hop', name: 'ASOCIACION RAPJUDESCO', project: 'Encuentros formativos y Festival', dates: 'Hasta 23/11/25', lat: 4.711, lng: -74.072, city: 'Bogotá D.C.'},
+            {network: 'Red Hip Hop', name: 'FUNDACION EL CIRCULO HIP HOP', project: 'Talleres y Festival LIL CONCEP', dates: 'Hasta 16/11/25', lat: 4.711, lng: -74.072, city: 'Bogotá D.C.'},
+            {network: 'Red Hip Hop', name: 'FUNDACION TURA HIP HOP', project: 'Técnicas de composición lírica', dates: '15/10/25 - 05/11/25', lat: 3.877, lng: -77.025, city: 'Buenaventura'},
+            {network: 'Red Hip Hop', name: 'CASA DEL BARDO', project: 'Circulación de Artistas', dates: '20/11/25 - 27/11/25', lat: 6.244, lng: -75.574, city: 'Medellín'},
+            {network: 'Red Hip Hop', name: 'MONTAÑA RECORDS', project: 'Talleres y Festival Campesino', dates: 'Hasta 05/11/25', lat: 8.237, lng: -73.355, city: 'Ocaña'},
+            {network: 'Red Hip Hop', name: 'EXPRESION TEJIDA Y NEWPAPER', project: 'Encuentro Nacional de Hip Hop', dates: 'Hasta 18/10/25', lat: 10.393, lng: -75.482, city: 'Cartagena'},
+            {network: 'Red Hip Hop', name: 'FUNDACION HIP HOP IPIALES', project: 'Formación y Festival Binacional', dates: 'Hasta 17/11/25', lat: 0.828, lng: -77.641, city: 'Ipiales'},
+            {network: 'Red Hip Hop', name: 'CORPORACION ARTES URBANAS CASA BEAT', project: 'Talleres de Formación', dates: 'Hasta 06/10/25', lat: 3.451, lng: -76.532, city: 'Cali'},
+            {network: 'Red Hip Hop', name: 'ASOSACION HIP HOP POR NUESTRA TIERRA', project: 'Fortalecimiento y Festival COMPAS', dates: 'Hasta 15/11/25', lat: 5.714, lng: -72.933, city: 'Sogamoso'},
+            {network: 'Red Hip Hop', name: 'COLECTIVO HIP HOP POR LA VIDA', project: 'Festival Hip Hop por la Vida', dates: 'Hasta 25/09/25', lat: 5.068, lng: -75.517, city: 'Manizales'},
+            {network: 'Red Hip Hop', name: 'LA CASITA DE COLORES JUNTA COMUNAL AGUA BONITA', project: 'Festival Georgina Ortiz', dates: 'Hasta 21/09/25', lat: 3.370, lng: -73.870, city: 'Vista Hermosa'},
+            {network: 'Organizaciones Emergentes', name: 'Fundación Cuna de Acordeones', project: 'Festival Cuna de Acordeones', dates: 'Hasta 20/09/25', lat: 10.609, lng: -72.981, city: 'Villanueva'},
+            {network: 'Organizaciones Emergentes', name: 'Fundación Sociocultural La Nana', project: 'XXVIII Festival Regional de Teatro', dates: 'Hasta 20/09/25', lat: 10.518, lng: -74.195, city: 'Plato'},
+            {network: 'Organizaciones Emergentes', name: 'ASOPAMURIMAJSA', project: 'Encuentro de intercambio artesanal', dates: 'Hasta 22/09/25', lat: 2.572, lng: -72.645, city: 'Mitú'},
+            {network: 'Organizaciones Emergentes', name: 'FUNDACION FESTIVAL DE CINE VERDE', project: '15° Festival de Cine Verde de Barichara', dates: 'Hasta 28/09/25', lat: 6.634, lng: -73.223, city: 'Barichara'},
+            {network: 'Organizaciones Emergentes', name: 'ASOMAUCOWOT', project: 'Revitalización de Saberes Ancestrales', dates: 'Hasta 20/09/25', lat: 2.572, lng: -72.645, city: 'Mitú'},
+            {network: 'Organizaciones Emergentes', name: 'Fundación La Concepción', project: 'VIII ENCUENTRO NACIONAL DE SEXTETO', dates: 'Hasta 19/09/25', lat: 8.761, lng: -76.529, city: 'Moñitos'},
+            {network: 'Organizaciones Emergentes', name: 'Corporación Sin Fronteras', project: 'BARRANCABERMEJA LE CANTA A LA PAZ', dates: 'Hasta 15/11/25', lat: 3.900, lng: -76.298, city: 'Guadalajara de Buga'},
+            {network: 'Organizaciones Emergentes', name: 'Corporación CORPACOROS', project: '30o. Encuentro de Música Coral', dates: '01/10/25 - 05/10/25', lat: 3.451, lng: -76.532, city: 'Cali'},
+            {network: 'Organizaciones Emergentes', name: 'Corporación CORARTE', project: 'Armonías de Buga', dates: 'Hasta 15/11/25', lat: 3.451, lng: -76.532, city: 'Cali'},
+            {network: 'Organizaciones Emergentes', name: 'Fundación Un Mar de Voces', project: 'ESCUELA CORAL UN MAR DE VOCES', dates: 'Hasta 22/11/25', lat: 11.000, lng: -74.958, city: 'Galapa'},
+            {network: 'Organizaciones Emergentes', name: 'Coral Santa María', project: 'CORO A LA PLAZA', dates: 'Hasta 15/11/25', lat: 5.068, lng: -75.517, city: 'Manizales'},
+            {network: 'Organizaciones Emergentes', name: 'Fundación Arte y Parte Julián Rodríguez', project: 'Espacios formativos', dates: 'Hasta 15/11/25', lat: 3.451, lng: -76.532, city: 'Cali'},
+            {network: 'Organizaciones Emergentes', name: 'Fundación Afroresilientes Colombianos', project: 'Espacios formativos Danza y Música', dates: 'Hasta 15/11/25', lat: 11.240, lng: -74.211, city: 'Santa Marta'},
             
-            // Efectos touch para móvil
-            const toggles = document.querySelectorAll('.session-toggle');
-            toggles.forEach(toggle => {
-                toggle.addEventListener('touchstart', () => {
-                    toggle.style.backgroundColor = 'rgba(0,0,0,0.05)';
-                });
-                
-                toggle.addEventListener('touchend', () => {
-                    setTimeout(() => {
-                        toggle.style.backgroundColor = '';
-                    }, 150);
+            // Nuevas organizaciones emergentes
+            {network: 'Organizaciones Emergentes', name: 'CORPORACIÓN ARTE Y POESÍA PROMETEO', project: 'PEDAGOGÍA POETICA PARA LA PAZ', dates: '05/07/25 - 12/07/25', lat: 6.244, lng: -75.581, city: 'Medellín'},
+            {network: 'Organizaciones Emergentes', name: 'FUNDACIÓN MUJERES INDEPENDIENTES Y EMPRENDEDORAS MIEN', project: 'En definición', dates: 'Por definir', lat: 4.620, lng: -74.172, city: 'Gutiérrez'},
+            {network: 'Organizaciones Emergentes', name: 'FUNDACIÓN UNIDOS POR EL DESARROLLO COMUNITARIO', project: 'En definición', dates: 'Por definir', lat: 9.340, lng: -75.837, city: 'San Pelayo'},
+            {network: 'Organizaciones Emergentes', name: 'FUNDACIÓN IDENTIDAD DESPIERTA DOUGLAS CASTELLANOS', project: 'En definición', dates: 'Por definir', lat: 11.544, lng: -72.907, city: 'Riohacha'},
+            {network: 'Organizaciones Emergentes', name: 'FUNDACIÓN PAZ Y RECONCILIACIÓN PARES', project: 'En definición', dates: 'Por definir', lat: 10.588, lng: -74.386, city: 'Aracataca'},
+            {network: 'Organizaciones Emergentes', name: 'FUNDACIÓN ACADEMICA DE MÚSICA CINTEMPORÁNEA Y SOCIAL DECUPLUM', project: 'En definición', dates: 'Por definir', lat: 10.464, lng: -73.253, city: 'Valledupar'},
+            {network: 'Organizaciones Emergentes', name: 'FUNDACIÓN PARA EL DESARROLLO DRÁMATICO Y ARTISTICO DEL MAGDALENA', project: 'En definición', dates: 'Por definir', lat: 11.240, lng: -74.211, city: 'Santa Marta'},
+            {network: 'Organizaciones Emergentes', name: 'FUNDACIÓN CARMEN MANTILLA', project: 'En definición', dates: 'Por definir', lat: 10.518, lng: -74.795, city: 'El Plato'},
+            {network: 'Organizaciones Emergentes', name: 'ASOCIACIÓN DE CABILDOS INDÍGENAS ZONA DE IPIALES', project: 'En definición', dates: 'Por definir', lat: 0.828, lng: -77.641, city: 'Ipiales'},
+            {network: 'Organizaciones Emergentes', name: 'CORPORACIÓN PRIVADA DE BENEFICIO SOCIAL L&M', project: 'En definición', dates: 'Por definir', lat: 5.784, lng: -73.684, city: 'Paipa'},
+            {network: 'Organizaciones Emergentes', name: 'MARCASHI GROUP SAS', project: 'En definición', dates: 'Por definir', lat: 4.711, lng: -74.072, city: 'Bogotá'},
+            {network: 'Organizaciones Emergentes', name: 'FUNDACIÓN TIERRA PAZIFICA', project: 'En definición', dates: 'Por definir', lat: 3.451, lng: -76.532, city: 'Cali'},
+            {network: 'Organizaciones Emergentes', name: 'CULTURA NATIVA SAS', project: 'En definición', dates: 'Por definir', lat: 4.711, lng: -74.072, city: 'Bogotá'},
+            {network: 'Organizaciones Emergentes', name: 'CORPORACIÓN PARA LA PROMOCIÓN DE LAS ARTES Y LAS LETRAS CORPOULRIKA', project: 'En definición', dates: 'Por definir', lat: 4.711, lng: -74.072, city: 'Bogotá'},
+            {network: 'Organizaciones Emergentes', name: 'FUNDACIÓN CULTURAL PARA LA TRANSFORMACIÓN SOCIAL', project: 'En definición', dates: 'Por definir', lat: 7.065, lng: -73.854, city: 'Barrancabermeja'},
+            {network: 'Organizaciones Emergentes', name: 'CORPORACIÓN LA ESQUINA DEL BARRIO', project: 'En definición', dates: 'Por definir', lat: 4.439, lng: -75.232, city: 'Ibagué'},
+            {network: 'Organizaciones Emergentes', name: 'FUNDACIÓN LA CONCEPCIÓN', project: 'En definición', dates: 'Por definir', lat: 8.878, lng: -76.111, city: 'San Juan de Urabá'},
+            {network: 'Organizaciones Emergentes', name: 'ASOCIACIÓN VICTIMAS NÚCLEO SANTIAGO PEREZ', project: 'En definición', dates: 'Por definir', lat: 3.618, lng: -75.390, city: 'Ataco'},
+            {network: 'Organizaciones Emergentes', name: 'CENTRO PERIFERIA', project: 'En definición', dates: 'Por definir', lat: 4.711, lng: -74.072, city: 'Bogotá'},
+            
+            {network: 'Red Intercultural Juvenil', name: 'ASOCIACION RESONANCIA MEDIOS ARTISTICOS', project: 'Mapeo y Redes que Fluyen', dates: 'Hasta 08/11/25', lat: 4.85, lng: -74.05, city: 'Chía'},
+            {network: 'Red Intercultural Juvenil', name: 'CORPORACION CULTURAL FAHRENHEIT 451', project: 'Desarrollando competencias ciudadanas', dates: 'Hasta 25/11/25', lat: 4.858, lng: -74.033, city: 'Chía'},
+            {network: 'Red Intercultural Juvenil', name: 'CORPORACION JUVENIL INFLUENCERS ETNICOS', project: 'ESCUELA DE FORMACION AUDIOVISUAL', dates: 'Hasta 04/11/25', lat: 10.297, lng: -75.122, city: 'San Basilio de Palenque'},
+            {network: 'Red Intercultural Juvenil', name: 'AMBIENTALISTAS DE CORAZÓN', project: 'FESTIVAL BIOCULTURAL ITINERANTE', dates: 'Hasta 07/11/25', lat: 4.966, lng: -73.965, city: 'La Calera'},
+            {network: 'Red Intercultural Juvenil', name: 'FUNDACIÓN RIMARTE', project: 'Mi Primera Canción', dates: 'Oct-Nov 2025', lat: 3.40, lng: -76.50, city: 'Cali'},
+            {network: 'Red Intercultural Juvenil', name: 'FUNDACIÓN "ALAS Y RAÍCES"', project: 'Muralismo La Belleza de Colombia', dates: 'Hasta 07/11/25', lat: 6.037, lng: -73.743, city: 'Cimitarra'},
+            {network: 'Red Intercultural Juvenil', name: 'FUNDACION NUEVO ESTILO DANCE', project: 'RUTA DEL RITMO', dates: 'Hasta 22/11/25', lat: 3.451, lng: -76.532, city: 'Cali'},
+            {network: 'Red Intercultural Juvenil', name: 'Guaque/Territorialidades S.A.S', project: 'QUYCAGUA: El Tejido de los Pueblos', dates: 'Hasta 16/11/25', lat: 4.908, lng: -73.938, city: 'Guatavita'},
+            {network: 'Red Intercultural Juvenil', name: 'FUNDACION FUTURO DE LA GUAJIRA', project: 'WAKÜAIPPA CULTURA POPULAR', dates: 'Hasta 08/11/25', lat: 11.35, lng: -72.90, city: 'Riohacha'},
+            {network: 'Red Intercultural Juvenil', name: 'Jóvenes Creadores del Chocó', project: 'Saberes que transforman', dates: 'Hasta 24/10/25', lat: 5.694, lng: -76.661, city: 'Quibdó'},
+            {network: 'Red Intercultural Juvenil', name: 'CORPORACIÓN CÓDIGO ESTILO CREW', project: 'EL PARCHE JUVENIL DEL QUINDIO', dates: '04/10/25 - 08/11/25', lat: 4.533, lng: -75.681, city: 'Armenia'},
+            {network: 'Red Intercultural Juvenil', name: 'CORPORACIÓN RED CEPELA', project: 'Circuito Cultural Danza Teatro', dates: 'Hasta 30/10/25', lat: 7.243, lng: -76.435, city: 'Mutatá'},
+            {network: 'Red Intercultural Juvenil', name: 'CORPORACION REY DE LA SELVA', project: 'FESTIVAL RUGIDO SOCIAL', dates: '01/10/25 - 15/11/25', lat: 5.694, lng: -76.661, city: 'Quibdó'},
+            {network: 'Red Intercultural Juvenil', name: 'Ecosistemas Culturales', project: 'Agenda de Impulso a las Artes', dates: 'Hasta 28/11/25', lat: 10.612, lng: -75.146, city: 'Luruaco'},
+            {network: 'Red Intercultural Juvenil', name: 'The Giants Community', project: 'Festival Juvenil de Arte Urbano', dates: '18/11/25 - 23/11/25', lat: 3.451, lng: -76.532, city: 'Cali'},
+            {network: 'Red Intercultural Juvenil', name: 'Corporación Emergiendo', project: 'NARRATIVAS URBANAS MANIZALES', dates: '04/10/25 - 26/10/25', lat: 5.068, lng: -75.517, city: 'Manizales'},
+            {network: 'Red Intercultural Juvenil', name: 'Corporacion La Tigra', project: 'Caravana Cuando el Río Suena', dates: 'Hasta 12/10/25', lat: 6.988, lng: -73.048, city: 'Piedecuesta'},
+            {network: 'Red Intercultural Juvenil', name: 'Red de danzantes', project: 'Janshan Por la Vida', dates: 'Hasta 08/11/25', lat: 1.205, lng: -76.920, city: 'Mocoa'},
+            {network: 'Red Intercultural Juvenil', name: 'KUAGRO RI JIP JOP PALENGE', project: 'Fortalecimiento Lengua Palenquera', dates: 'Oct-Nov 2025', lat: 10.297, lng: -75.122, city: 'San Basilio de Palenque'},
+            {network: 'Red Intercultural Juvenil', name: 'CORPORACION YUKUTA SONIDO NATIVO', project: 'Música, canto y Festival Yakaré', dates: '02/10/25 - 10/11/25', lat: 3.865, lng: -67.923, city: 'Inírida'},
+            {network: 'Red Intercultural Juvenil', name: 'Vida-Paz', project: 'CULTURA Y BIODIVERSIDAD', dates: 'Hasta 21/11/25', lat: 2.572, lng: -72.645, city: 'Mitú'},
+            {network: 'Red Intercultural Juvenil', name: 'ASOCIACION ARTE SHEMBASENG', project: 'El arte urbano como herramienta para la creatividad', dates: 'Sept-Oct 2025', lat: 1.205, lng: -76.920, city: 'Mocoa'},
+            {network: 'Red Intercultural Juvenil', name: 'Comunicación Visual sin Fronteras Amazonas', project: 'cosmovisión de la etnia Maguta', dates: '02/11/25 - 28/11/25', lat: -3.771, lng: -70.383, city: 'Puerto Nariño'},
+            {network: 'Red Intercultural Juvenil', name: 'D Three Studio Alternativo', project: 'Lenguajes Entrelazados (Quinta Edición: El Recreo)', dates: 'Oct-Nov 2025', lat: 4.711, lng: -74.072, city: 'Bogotá D.C.'},
+            {network: 'Red Intercultural Juvenil', name: 'FUNDACIÓN MANGLARIA DIVERSA', project: 'Red de Ritmos para la Paz: Juventudes Tejiendo Identidad y Convivencia', dates: '01/10/2025 - 31/10/2025', lat: 1.805, lng: -78.764, city: 'Tumaco'},
+            {network: 'Red Intercultural Juvenil', name: 'CORPORACION ARTISTICA RITMO EXTREMO REX - MEDANCE MD S.A.S.', project: 'JUVENTUDES EN MOVIMIENTO', dates: 'Oct-Nov 2025', lat: 6.244, lng: -75.574, city: 'Medellín'},
+            {network: 'Red Intercultural Juvenil', name: 'ESCUELA DE MUSICA LA ESFERA - FUNDACIÓN MUSIQULTURA', project: 'RESCATANDO LO NUESTRO', dates: '15/10/2025 - 30/11/2025', lat: 12.5847, lng: -81.7006, city: 'San Andrés Isla'},
+            {network: 'Red Intercultural Juvenil', name: 'Corporación Juvenil Arreglando el País - Nodo Macizo Arte y Cultura', project: 'Vientos del Macizo “Escuela de música tradicional"', dates: '15/10/2025 - 21/11/2025', lat: 1.853, lng: -76.048, city: 'Pitalito'},
+            {network: 'Red Intercultural Juvenil', name: 'CORPORACIÓN KHUYAY FESTIVAL PEREIRA QUERENDONA', project: 'Ciclo de formación, murales y foro', dates: 'Oct-Nov 2025', lat: 4.813, lng: -75.694, city: 'Pereira'},
+            
+            // Nuevas organizaciones Red Intercultural Juvenil
+            {network: 'Red Intercultural Juvenil', name: 'FUNDACION PACIFICA CULTURAL', project: 'Laboratorios de creación', dates: '03/11/25 - 24/11/25', lat: 3.451, lng: -76.532, city: 'Cali'},
+            {network: 'Red Intercultural Juvenil', name: 'CORPORACION CALINA CUMBAY', project: 'Talleres de Danza, Circo y Biocultura', dates: '13/10/25 - 29/11/25', lat: 5.030, lng: -74.883, city: 'Armero-Guayabal'},
+            {network: 'Red Intercultural Juvenil', name: 'LINDEROS DE PAZ', project: 'Sesiones Formativas Danza y Música', dates: '13/10/25 - 09/11/25', lat: 4.711, lng: -74.072, city: 'Bogotá'},
+            {network: 'Red Intercultural Juvenil', name: 'ASOCIACION PARCHEMOS POR YACOPI', project: 'Laboratorio de muralismo y Sancocho Master', dates: '23/10/25 - 02/11/25', lat: 5.456, lng: -74.348, city: 'Yacopí'},
+            {network: 'Red Intercultural Juvenil', name: 'ASOCIACION DE AUTORIDADES INDIGENAS ATICOYA', project: 'Talleres de historia Ticuna y danza', dates: '29/10/25 - 28/11/25', lat: -3.771, lng: -70.383, city: 'Puerto Nariño'},
+            {network: 'Red Intercultural Juvenil', name: 'CORPORACIÓN ARTÍSTICA Y CULTURAL HUELLAS DE MI TIERRA', project: 'Barirock Festival 2025', dates: '10/11/25 - 30/11/25', lat: 7.894, lng: -72.508, city: 'Cúcuta'},
+            {network: 'Red Intercultural Juvenil', name: 'FUNDACIÓN AMAHIA La Enredadera Colectiva', project: 'Talleres de arcilla, comunicación y muralismo', dates: 'Oct-Nov 2025', lat: 5.714, lng: -72.933, city: 'Sogamoso'},
+            {network: 'Red Intercultural Juvenil', name: 'CORPORACION CULTURAL Y ARTISTICA ELEMENTS', project: 'Actividades interdisciplinares', dates: 'Nov 2025', lat: 6.244, lng: -75.581, city: 'Medellín'},
+            {network: 'Red Intercultural Juvenil', name: 'DINASTÍA NEGRA', project: 'Talleres de Danza', dates: 'Nov 2025', lat: 8.878, lng: -76.111, city: 'San Juan de Urabá'},
+            
+            // Red de Mujeres - Nuevas organizaciones
+            {network: 'Red de Mujeres', name: 'Chaibá, Fundación para el desarrollo humano', project: 'Festival Titúa, tejiendo memorias y saberes', dates: '03/11/25 - 09/11/25', lat: 5.103, lng: -73.800, city: 'Suesca'},
+            {network: 'Red de Mujeres', name: 'FUNDACION CULTURAL KYNZA XIE', project: 'Escuela de Saberes Hilos de Luna_al AULA', dates: '21/11/25 - 22/11/25', lat: 4.858, lng: -74.033, city: 'Chía'},
+            {network: 'Red de Mujeres', name: 'Asociación de mujeres Wiwa Abudzibu Asomuwadzi', project: 'Encuentro intercultural de mujeres indígenas Wiwa', dates: '08/11/25', lat: 11.240, lng: -74.211, city: 'Santa Marta'},
+            {network: 'Red de Mujeres', name: 'ORGANIZACION DE MUJERES VICTIMAS DEL RIO IRO (ORVIEN)', project: 'RESCATE TRADICIONES Y COSTUMBRES ANSESTRALES', dates: '03/11/25 - 23/11/25', lat: 5.694, lng: -76.661, city: 'Río Iró'},
+            {network: 'Red de Mujeres', name: 'FUNDACION MICELIO TEJIENDO SABERES', project: 'I VERSION DEL FESTIVAL ANCESTRAL DE LA TRADICION ZENU', dates: '15/11/25 - 16/11/25', lat: 9.320, lng: -75.295, city: 'Corozal'},
+            {network: 'Red de Mujeres', name: 'Asociación COMPAÑÍA AMÉRICA DANZA', project: 'Danza, Movimientos y Emociones de Mujeres para Mujeres', dates: '10/11/25 - 16/11/25', lat: 4.588, lng: -74.208, city: 'Soacha'},
+            {network: 'Red de Mujeres', name: 'FUNDACION ACADEMICA DE MUSICA CONTEMPORANEA Y SOCIAL DECUPLUM', project: 'ENCUENTRO DE VOCES Y ACORDEONES FEMENINO - EVAFE 2025', dates: '29/09/25 - 05/10/25', lat: 10.464, lng: -73.253, city: 'Valledupar'}
+        ];
+        // Añadida la nueva red en el orden solicitado
+        const logoUrls = {
+            'Red Hip Hop': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/REDDEHIPHOP.png',
+            'Organizaciones Emergentes': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/ORGANIZACIONES%20EMERGENTES.png',
+            'Red Intercultural Juvenil': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/RED%20JUVENIL.png',
+            'Red de Mujeres': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/ORGANIZACIONES%20DE%20MUJERES.png'
+        };
+        const placeholderLogo = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><rect width='80' height='80' rx='12' fill='%2371717a'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='18' font-family='Arial'>LOGO</text></svg>";
+        const loadedLogos = {};
+        function preloadLogos(timeout = 2500){
+            const keys = Object.keys(logoUrls);
+            if (!keys.length) return Promise.resolve(loadedLogos);
+            const host = window.location.hostname;
+            const isLocal = host === '127.0.0.1' || host === 'localhost' || window.location.protocol === 'file:';
+            // Desactivado temporalmente para forzar carga de logos reales
+            // if (isLocal && !FORCE_USE_PRODUCTION_LOGOS) {
+            //     keys.forEach(k => { loadedLogos[k] = 'skipped-local'; logoUrls[k] = placeholderLogo; });
+            //     debugMsg('Entorno local detectado: saltando carga remota de logos y usando placeholder');
+            //     return Promise.resolve(loadedLogos);
+            // } else if (isLocal && FORCE_USE_PRODUCTION_LOGOS) {
+            //     debugMsg('Entorno local detectado: intentando cargar logos remotos (FORCE_USE_PRODUCTION_LOGOS=true)');
+            // }
+            debugMsg('Forzando carga de logos remotos desde GitHub');
+            return new Promise(resolve => {
+                let remaining = keys.length;
+                keys.forEach(key => {
+                    const img = new Image();
+                    img.onload = () => { loadedLogos[key] = 'ok'; remaining--; if (remaining === 0) resolve(loadedLogos); };
+                    img.onerror = () => { loadedLogos[key] = 'failed'; remaining--; if (remaining === 0) resolve(loadedLogos); };
+                    img.src = logoUrls[key];
+                    setTimeout(() => { if (!loadedLogos[key]) { loadedLogos[key] = 'unknown'; remaining--; if (remaining === 0) resolve(loadedLogos); } }, timeout);
                 });
             });
-        });
-
-        // Función del contador de visitantes con API
-        function initVisitorCounter() {
-            const counterElement = document.getElementById('visitorCount');
-            const API_URL = 'https://api.countapi.xyz/hit/artesparalapaz-talleres/visits';
-            
-            // Mostrar contador inicial
-            if (counterElement) {
-                counterElement.textContent = '...';
+        }
+        try {
+            if (typeof PREVIEW_ASSETS !== 'undefined' && PREVIEW_ASSETS) {
+                logoUrls['Red Hip Hop'] = previewLogos.hiphop;
+                logoUrls['Organizaciones Emergentes'] = previewLogos.emergentes;
+                logoUrls['Red Intercultural Juvenil'] = previewLogos.juvenil;
+                try { const a = document.querySelector('#link-artes img.header-logo'); if (a) a.src = previewLogos.aplp; } catch(e){}
+                try { const b = document.querySelector('#link-culturas img.header-logo-right'); if (b) b.src = previewLogos.culturas; } catch(e){}
+                debugMsg('PREVIEW_ASSETS activo: usando logos embebidos para vista previa local');
             }
-            
-            // Llamar a la API para incrementar y obtener el conteo
-            fetch(API_URL)
-                .then(response => response.json())
-                .then(data => {
-                    if (data && data.value && counterElement) {
-                        const currentCount = data.value;
-                        
-                        // Animar el contador
-                        animateCounter(counterElement, currentCount);
-                        
-                        // Efecto visual para nuevas visitas
-                        setTimeout(() => {
-                            counterElement.style.transform = 'scale(1.1)';
-                            counterElement.style.color = '#10b981';
-                            setTimeout(() => {
-                                counterElement.style.transform = 'scale(1)';
-                                counterElement.style.color = '';
-                            }, 500);
-                        }, 800);
-                    }
-                })
-                .catch(error => {
-                    console.log('Usando contador local como respaldo');
-                    // Fallback a localStorage si la API falla
-                    const localCount = parseInt(localStorage.getItem('artesparalapaz_local_count') || '0') + 1;
-                    localStorage.setItem('artesparalapaz_local_count', localCount.toString());
-                    
-                    if (counterElement) {
-                        animateCounter(counterElement, localCount);
+        } catch(e) { console.warn('Error applying preview assets', e); }
+        const networkCounts = organizations.reduce((acc, org) => {
+            acc[org.network] = (acc[org.network] || 0) + 1;
+            return acc;
+        }, {});
+        const selectedNetworks = new Set(Object.keys(logoUrls));
+    const initialView = { center: [4.5709, -74.2973], zoom: 6 };
+        function renderFilters(){
+            const filtersList = document.getElementById('filters-list');
+            filtersList.innerHTML = '';
+            for (const network in logoUrls) {
+                const item = document.createElement('div');
+                const cls = 'network-' + network.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                item.className = 'legend-item filter-option ' + cls + (selectedNetworks.has(network) ? ' active' : '');
+                const btn = document.createElement('button');
+                btn.className = 'filter-btn';
+                btn.type = 'button';
+                btn.setAttribute('aria-pressed', selectedNetworks.has(network) ? 'true' : 'false');
+                const count = networkCounts[network] || 0;
+                btn.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <img src="${logoUrls[network]}" class="legend-logo" alt="Logo de ${network}">
+                        <span>${network}</span>
+                    </div>
+                    <span class="network-count">${count}</span>
+                `;
+                btn.addEventListener('click', () => {
+                    if (selectedNetworks.has(network)) { selectedNetworks.delete(network); item.classList.remove('active'); btn.setAttribute('aria-pressed', 'false'); }
+                    else { selectedNetworks.add(network); item.classList.add('active'); btn.setAttribute('aria-pressed', 'true'); }
+                    updateMarkers(searchInput.value);
+                });
+                item.appendChild(btn);
+                filtersList.appendChild(item);
+            }
+            try { debugMsg('Filtros renderizados. Activos: ' + Array.from(selectedNetworks).join(', ')); } catch(e){}
+        }
+        const suggestionsEl = document.getElementById('search-suggestions');
+    let searchOverrideId = null;
+        function clearSuggestions(){ suggestionsEl.innerHTML = ''; suggestionsEl.style.display = 'none'; activeSuggestionIndex = -1; }
+        let activeSuggestionIndex = -1;
+        function updateSuggestionHighlight(){
+            const items = Array.from(suggestionsEl.querySelectorAll('.suggestion-item'));
+            items.forEach((it, i) => {
+                if (i === activeSuggestionIndex) { it.classList.add('highlight'); it.setAttribute('aria-selected','true'); try{ it.scrollIntoView({block:'nearest'});}catch(e){} }
+                else { it.classList.remove('highlight'); it.setAttribute('aria-selected','false'); }
+            });
+        }
+        function showSuggestions(matches){
+            suggestionsEl.innerHTML = '';
+            if (!matches.length) { clearSuggestions(); return; }
+            matches.forEach((m, idx) => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+                div.setAttribute('role','option');
+                div.setAttribute('data-index', String(idx));
+                div.setAttribute('tabindex','-1');
+                div.innerText = m.name;
+                div.addEventListener('pointerdown', (ev) => { ev.preventDefault(); performSearch(m); clearSuggestions(); });
+                suggestionsEl.appendChild(div);
+            });
+            suggestionsEl.style.display = 'block';
+            activeSuggestionIndex = -1; updateSuggestionHighlight();
+        }
+        function findMatches(q){
+            if (!q) return [];
+            const term = q.toLowerCase();
+            return organizations.filter(org => 
+                org.name.toLowerCase().includes(term) || 
+                org.project.toLowerCase().includes(term) ||
+                (org.city && org.city.toLowerCase().includes(term))
+            );
+        }
+        function performSearch(org){
+            let targetOrg = org;
+            if (typeof org === 'string') {
+                const matches = findMatches(org);
+                targetOrg = matches.length ? matches[0] : null;
+            }
+            if (!targetOrg) {
+                debugMsg('No se encontró la organización');
+                return;
+            }
+            const id = String(organizations.indexOf(targetOrg));
+            searchOverrideId = id;
+            try { searchInput.value = targetOrg.name; } catch(e){}
+            try { updateMarkers(searchInput.value); } catch(e) { console.warn('updateMarkers after performSearch', e); }
+            const marker = markersById.get(id);
+            if (marker) {
+                try { marker.openPopup(); marker.setZIndexOffset(1000); } catch(e){}
+                if (window.innerWidth <= 800) {
+                    panel.classList.remove('show');
+                }
+                try { map.setView(marker.getLatLng(), Math.max(map.getZoom(), 10), { animate: true }); } catch(e){}
+            } else {
+                setTimeout(() => {
+                    const m2 = markersById.get(id);
+                    if (m2) { try { m2.openPopup(); map.setView(m2.getLatLng(), Math.max(map.getZoom(), 10), { animate: true }); } catch(e){} }
+                }, 250);
+            }
+        }
+        const searchClearBtn = document.getElementById('search-clear-btn');
+        searchInput.addEventListener('input', (e) => {
+            const v = e.target.value;
+            if (!v) { 
+                searchOverrideId = null;
+                updateMarkers('');
+                clearSuggestions(); 
+                try {
+                    if (map && initialView) map.setView(initialView.center, initialView.zoom, { animate: true });
+                    debugMsg('Búsqueda borrada: restaurando vista inicial y marcadores segun filtros');
+                } catch(e){ console.warn('restore initial view', e); }
+                try { if (searchClearBtn) searchClearBtn.classList.remove('visible'); } catch(e){}
+                return; 
+            }
+            try { if (searchClearBtn) searchClearBtn.classList.add('visible'); } catch(e){}
+            const matches = findMatches(v).slice(0,6);
+            showSuggestions(matches);
+        });
+        searchInput.addEventListener('keydown', (e) => {
+            const items = Array.from(suggestionsEl.querySelectorAll('.suggestion-item'));
+            if (!items.length) return;
+            if (e.key === 'ArrowDown'){
+                e.preventDefault(); activeSuggestionIndex = Math.min(items.length - 1, activeSuggestionIndex + 1); updateSuggestionHighlight();
+            } else if (e.key === 'ArrowUp'){
+                e.preventDefault(); activeSuggestionIndex = Math.max(0, activeSuggestionIndex - 1); updateSuggestionHighlight();
+            } else if (e.key === 'Enter'){
+                if (activeSuggestionIndex >= 0 && items[activeSuggestionIndex]){
+                    e.preventDefault(); const idx = parseInt(items[activeSuggestionIndex].getAttribute('data-index'),10); const matches = findMatches(searchInput.value).slice(0,6); performSearch(matches[idx]); clearSuggestions();
+                }
+            } else if (e.key === 'Escape'){
+                clearSuggestions();
+            }
+        });
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter'){
+                e.preventDefault();
+                const q = searchInput.value.trim();
+                if (q) performSearch(q);
+                clearSuggestions();
+            }
+            if (e.key === 'Escape') clearSuggestions();
+        });
+        searchBtn.addEventListener('click', (e) => { const q = searchInput.value.trim(); if (q) performSearch(q); clearSuggestions(); });
+        if (searchClearBtn) {
+            searchClearBtn.addEventListener('click', (ev) => {
+                ev.preventDefault();
+                try { searchInput.value = ''; } catch(e){}
+                searchOverrideId = null;
+                updateMarkers('');
+                clearSuggestions();
+                try { searchClearBtn.classList.remove('visible'); } catch(e){}
+                try { if (map && initialView) map.setView(initialView.center, initialView.zoom, { animate: true }); } catch(e){}
+                debugMsg('Búsqueda borrada por X: restaurando vista inicial');
+            });
+        }
+        let map;
+        let dayTiles, nightTiles, currentBase;
+        function initMap() {
+            if(typeof L === 'undefined') return;
+            map = L.map('map', { zoomControl: false }).setView([4.5709, -74.2973], 6);
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+            dayTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; CARTO & OpenStreetMap contributors'
+            });
+            nightTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; CARTO & OpenStreetMap contributors'
+            });
+            if (document.body.classList.contains('dark-mode')) {
+                nightTiles.addTo(map);
+                currentBase = 'night';
+            } else {
+                dayTiles.addTo(map);
+                currentBase = 'day';
+                document.getElementById('map').classList.add('day-enhance');
+            }
+            setTimeout(() => { try { map.invalidateSize(); debugMsg('Mapa inicializado y redraw ejecutado'); } catch(e) { console.warn('invalidateSize falló', e); } }, 300);
+            window.addEventListener('resize', () => { try { map.invalidateSize(); showStatus(); } catch(e){} });
+            map.on('click', () => {
+                if (window.innerWidth <= 800 && panel.classList.contains('show')) {
+                    panel.classList.remove('show');
+                }
+            });
+            try { setupMarkers(); } catch(e){ console.warn('setupMarkers falló', e); }
+        }
+
+        function toggleDesktopPanel() {
+            appContainer.classList.toggle('panel-collapsed');
+            setTimeout(() => { try { map.invalidateSize(); } catch(e) { console.warn(e); } }, 350);
+        }
+        function toggleMobilePanel() { panel.classList.toggle('show'); }
+        desktopToggleButton.addEventListener('click', toggleDesktopPanel);
+        mobileToggleButton.addEventListener('click', toggleMobilePanel);
+        closeButton.addEventListener('click', toggleMobilePanel);
+
+        const ICON_MOON = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+        const ICON_SUN = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="4" stroke="white" stroke-width="1.6"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+        function setTheme(isDark, persist = false){
+            if (isDark) document.body.classList.add('dark-mode'); else document.body.classList.remove('dark-mode');
+            try{ document.getElementById('panel-theme-toggle-btn').innerHTML = isDark ? ICON_SUN : ICON_MOON; } catch(e){}
+            try{
+                if(isDark){ if(currentBase === 'day'){ map.removeLayer(dayTiles); nightTiles.addTo(map); currentBase = 'night'; } document.getElementById('map').classList.remove('day-enhance'); }
+                else { if(currentBase === 'night'){ map.removeLayer(nightTiles); dayTiles.addTo(map); currentBase = 'day'; } document.getElementById('map').classList.add('day-enhance'); }
+            }catch(e){ /* may run before map init */ }
+            document.querySelectorAll('.filter-btn').forEach(b => { if (isDark) b.classList.add('night-mode'); else b.classList.remove('night-mode'); });
+            // Se elimina la persistencia en localStorage para que el tema se base siempre en la hora
+        }
+
+        function initTheme(){
+            // Se elimina la lógica de localStorage para que el comportamiento por defecto sea siempre basado en la hora.
+            try{
+                const now = new Date();
+                const h = now.getHours();
+                const m = now.getMinutes();
+                let isNight;
+                // Regla específica: Nocturno es de 18:01 a 05:59. Diurno es de 06:00 a 18:00.
+                if (h < 6) { 
+                    isNight = true;
+                } else if (h >= 19) { 
+                    isNight = true;
+                } else if (h === 18 && m >= 1) { 
+                    isNight = true;
+                } else { // El resto es diurno (de 06:00 a 18:00 inclusive)
+                    isNight = false;
+                }
+                setTheme(isNight, false);
+            }catch(e){
+                // si la lógica de la hora falla, usa la preferencia del sistema como último recurso.
+                const mq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+                const systemDark = mq && mq.matches;
+                setTheme(!!systemDark, false);
+            }
+        }
+
+        try { initTheme(); } catch(e){}
+        try { document.getElementById('panel-theme-toggle-btn').addEventListener('click', () => { const isDark = !document.body.classList.contains('dark-mode'); setTheme(isDark, true); }); } catch(e){}
+
+        
+        let markers = null;
+        function updateMarkers(searchTerm = '') {
+            if (!markers) return;
+            markers.clearLayers();
+            markersById.clear();
+            let filteredOrgs = [];
+            if (searchOverrideId !== null) {
+                const idx = parseInt(searchOverrideId, 10);
+                if (!Number.isNaN(idx) && organizations[idx]) {
+                    filteredOrgs = [organizations[idx]];
+                }
+            } else {
+                const selected = Array.from(selectedNetworks);
+                filteredOrgs = organizations.filter(org => selected.includes(org.network));
+                if (searchTerm) {
+                    const term = searchTerm.toLowerCase();
+                    filteredOrgs = filteredOrgs.filter(org =>
+                        org.name.toLowerCase().includes(term) ||
+                        org.project.toLowerCase().includes(term) ||
+                        (org.city && org.city.toLowerCase().includes(term))
+                    );
+                }
+            }
+            filteredOrgs.forEach(org => {
+                const iconSize = 38;
+                const iconUrl = logoUrls[org.network] || placeholderLogo;
+                const customIcon = L.icon({
+                    iconUrl: iconUrl,
+                    iconSize: [iconSize, iconSize], iconAnchor: [iconSize / 2, iconSize], popupAnchor:  [0, -iconSize]
+                });
+                let popupHtml = `<div class="popup-content"><h5>${org.name}</h5><p><strong>Ciudad:</strong> ${org.city}</p><p><strong>Proyecto:</strong> ${org.project}</p><p><strong>Fechas:</strong> ${org.dates}</p>`;
+                if (org.link) popupHtml += `<p><a href="${org.link}" target="_blank">Más información</a></p>`;
+                if (org.image) popupHtml += `<img src="${org.image}" alt="Imagen" style="width:100%;margin-top:8px;border-radius:6px;">`;
+                popupHtml += '</div>';
+                const marker = L.marker([org.lat, org.lng], { icon: customIcon, network: org.network });
+                marker.bindTooltip(`${org.name} - ${org.city}`);
+                marker.bindPopup(popupHtml);
+                markers.addLayer(marker);
+                const id = organizations.indexOf(org);
+                markersById.set(String(id), marker);
+            });
+            try { debugMsg(`Marcadores mostrados: ${filteredOrgs.length} (override: ${searchOverrideId})`); } catch(e){}
+            setTimeout(() => { try { map.invalidateSize(); } catch(e){ console.warn('invalidate after markers', e); } }, 50);
+        }
+
+        function setupMarkers(){
+            const clusterAvailable = (typeof L.markerClusterGroup === 'function');
+            if(clusterAvailable){
+                markers = L.markerClusterGroup({
+                    zoomToBoundsOnClick: false,
+                    showCoverageOnHover: false,
+                    spiderfyOnMaxZoom: false,
+                    spiderfyDistanceMultiplier: 2.2,
+                    iconCreateFunction: function(cluster) {
+                        const children = cluster.getAllChildMarkers();
+                        const counts = {};
+                        let dominantNetwork = '';
+                        let maxCount = 0;
+                        children.forEach(marker => {
+                            const network = marker.options.network;
+                            counts[network] = (counts[network] || 0) + 1;
+                        });
+                        for (const network in counts) {
+                            if (counts[network] > maxCount) {
+                                maxCount = counts[network];
+                                dominantNetwork = network;
+                            }
+                        }
+                        let c = ' marker-cluster-';
+                        if (dominantNetwork === 'Red Hip Hop') c += 'hiphop';
+                        else if (dominantNetwork === 'Organizaciones Emergentes') c += 'emergentes';
+                        else if (dominantNetwork === 'Red Intercultural Juvenil') c += 'juvenil';
+                        else if (dominantNetwork === 'Red de Mujeres') c += 'mujeres'; // Añadido para la nueva red
+                        return new L.DivIcon({
+                            html: '<div><span>' + cluster.getChildCount() + '</span></div>',
+                            className: 'marker-cluster' + c, iconSize: new L.Point(40, 40)
+                        });
                     }
                 });
-        }
-        
-        // Función para animar el contador
-        function animateCounter(element, targetCount) {
-            let currentDisplay = 0;
-            const increment = Math.max(1, Math.ceil(targetCount / 30));
-            
-            const animation = setInterval(() => {
-                currentDisplay += increment;
-                if (currentDisplay >= targetCount) {
-                    currentDisplay = targetCount;
-                    clearInterval(animation);
-                }
-                element.textContent = currentDisplay.toLocaleString();
-            }, 50);
-        }
-    </script>
+                markers.on('clusterclick', function (a) {
+                    try{
+                        const z = map.getZoom();
+                        const minZ = 3; const maxZ = 13;
+                        const t = Math.max(0, Math.min(1, (z - minZ) / (maxZ - minZ)));
+                        const multiplier = 1.1 + t * (2.6 - 1.1);
+                        if (markers && markers.options) markers.options.spiderfyDistanceMultiplier = multiplier;
+                        debugMsg(`spiderfyMultiplier: ${multiplier.toFixed(2)} (zoom ${z})`);
+                        a.layer.spiderfy();
+                    }catch(e){ console.warn('clusterclick handler', e); }
+                });
+            } else {
+                console.warn('MarkerCluster no disponible, usando layerGroup como fallback');
+                markers = L.layerGroup();
+            }
 
+            map.addLayer(markers);
+            updateMarkers();
+            debugMsg('Marcadores inicializados (cluster: ' + clusterAvailable + ')');
+        }
+
+    });
+        (function(){
+            function createTooltip(text){
+                const tip = document.createElement('div');
+                tip.className = 'header-tooltip';
+                tip.setAttribute('role','status'); tip.setAttribute('aria-live','polite');
+                tip.textContent = text;
+                document.body.appendChild(tip);
+                return tip;
+            }
+            function positionTooltip(tip, anchor){
+                if(!tip || !anchor) return;
+                const rect = anchor.getBoundingClientRect();
+                const left = rect.left + rect.width / 2 - tip.offsetWidth / 2;
+                const top = rect.top - tip.offsetHeight - 8;
+                tip.style.left = Math.max(8, left) + 'px';
+                tip.style.top = Math.max(8, top) + 'px';
+            }
+            function attachTooltip(anchorId, text){
+                const anchor = document.getElementById(anchorId);
+                if(!anchor) return;
+                const tip = createTooltip(text);
+                let visibleTimeout = null;
+                function show(){ tip.classList.add('show'); positionTooltip(tip, anchor); clearTimeout(visibleTimeout); }
+                function hide(){ visibleTimeout = setTimeout(()=> tip.classList.remove('show'), 80); }
+                anchor.addEventListener('mouseenter', show);
+                anchor.addEventListener('focus', show);
+                anchor.addEventListener('mouseleave', hide);
+                anchor.addEventListener('blur', hide);
+                anchor.addEventListener('click', ()=>{ tip.classList.add('show'); positionTooltip(tip, anchor); setTimeout(()=> tip.classList.remove('show'), 800); });
+                window.addEventListener('resize', ()=> positionTooltip(tip, anchor));
+                window.addEventListener('scroll', ()=> positionTooltip(tip, anchor));
+            }
+            attachTooltip('link-artes', 'Volver a la página de Artes para la Paz');
+            attachTooltip('link-culturas', 'Ir al Ministerio de las Culturas, las Artes y los Saberes de Colombia');
+        })();
+    </script>
+    <!-- Código desarrollado por Felipe Camacho Otero, en colaboración con Gemini y Copilot -->
 </body>
 </html>
+
