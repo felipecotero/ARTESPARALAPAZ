@@ -498,7 +498,6 @@
         .tag-publico { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
         .tag-circulacion { background: #fce7f3; color: #be185d; border: 1px solid #fbcfe8; }
 
-
         #map-container {
             width: 100%; height: 100%; position: absolute; top: 0; left: 0; 
             transition: left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), width 0.3s;
@@ -577,13 +576,13 @@
 <body>
     <div id="main-header" tabindex="0">
         <a id="link-artes" class="header-logo-link" href="https://artesparalapaz.mincultura.gov.co/Paginas/index.aspx" target="_blank" rel="noopener noreferrer" title="Volver a la página de Artes para la Paz">
-            <img src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/APLP%20MORADO.png?v=2" alt="Logo Artes para la Paz" class="header-logo">
+            <img id="logo-artes" src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/APLP%20MORADO.png?v=2" alt="Logo Artes para la Paz" class="header-logo">
         </a>
         
         <h1>Redes y Procesos Artísticos y Comunitarios &bull; Artes para la Paz</h1>
         
         <a id="link-culturas" class="header-logo-link" href="https://www.mincultura.gov.co/" target="_blank" rel="noopener noreferrer" title="Ir al Ministerio de las Culturas, las Artes y los Saberes de Colombia">
-            <img src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/GRIS_CULTURAS.png?v=2" alt="Logo Culturas" class="header-logo-right" />
+            <img id="logo-culturas" src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/GRIS_CULTURAS.png?v=2" alt="Logo Culturas" class="header-logo-right" />
         </a>
     </div>
 
@@ -658,12 +657,24 @@
     <script>
     window.addEventListener('DOMContentLoaded', function() {
         
+        // URLs de Logos para los marcadores
         const logoUrls = {
             'Red Hip Hop': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/REDDEHIPHOP.png',
             'Organizaciones Emergentes': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/ORGANIZACIONES%20EMERGENTES.png',
             'Red Intercultural Juvenil': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/RED%20JUVENIL.png',
             'Red de Mujeres': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/ORGANIZACIONES%20DE%20MUJERES.png'
         };
+        
+        // URLs de Logos del Header (Día/Noche)
+        const headerLogos = {
+            day: {
+                right: 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/GRIS_CULTURAS.png?v=2'
+            },
+            night: {
+                right: 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/BLANCO_CULTURAS.png'
+            }
+        };
+        
         const placeholderLogo = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><rect width='80' height='80' rx='12' fill='%2371717a'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='18' font-family='Arial'>LOGO</text></svg>";
         const loadedLogos = {};
 
@@ -722,8 +733,9 @@
             'otro': 'Otro'
         };
 
+        // --- DATA COMPLETA DE TODAS LAS REDES ---
         const organizations = [
-            // --- RED DE MUJERES ---
+            // --- RED DE MUJERES (NUEVO) ---
             {
                 network: 'Red de Mujeres', name: 'Chaibá, Fundación para el desarrollo humano', city: 'Suesca', lat: 5.103, lng: -73.800,
                 events: [
@@ -1762,39 +1774,44 @@
             let dayTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' });
             let nightTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' });
             
-            // Lógica Automática de Tema basada en Horario (6 AM - 6 PM Diurno)
-            function initTheme() {
-                const now = new Date();
-                const hour = now.getHours();
-                const isNight = hour < 6 || hour >= 18;
-                
-                // Establecer clase en el body
-                if (isNight) {
+            // --- LOGICA DE TEMA AUTOMÁTICO (RESTAURADA) ---
+            function updateTheme(isDark) {
+                if (isDark) {
                     document.body.classList.add('dark-mode');
+                    if(map.hasLayer(dayTiles)) map.removeLayer(dayTiles);
+                    if(!map.hasLayer(nightTiles)) nightTiles.addTo(map);
+                    document.getElementById('map').classList.remove('day-enhance');
+                    
+                    // Update Logos (Solo el de culturas cambia)
+                    document.getElementById('logo-culturas').src = headerLogos.night.right;
+                    
+                    const btn = document.getElementById('panel-theme-toggle-btn');
+                    if(btn) btn.innerText = '☀️'; // Botón muestra sol para volver al día
+                    
                 } else {
                     document.body.classList.remove('dark-mode');
-                }
-                
-                // Actualizar icono del botón
-                const themeBtn = document.getElementById('panel-theme-toggle-btn');
-                if (themeBtn) {
-                    themeBtn.innerText = isNight ? '☀️' : '🌙';
-                }
-
-                // Añadir capas de mapa correspondientes
-                if (isNight) {
-                    nightTiles.addTo(map);
-                    // dayTiles.remove(); // Leaflet maneja esto si solo añades uno
-                    document.getElementById('map').classList.remove('day-enhance');
-                } else {
-                    dayTiles.addTo(map);
-                    // nightTiles.remove();
+                    if(map.hasLayer(nightTiles)) map.removeLayer(nightTiles);
+                    if(!map.hasLayer(dayTiles)) dayTiles.addTo(map);
                     document.getElementById('map').classList.add('day-enhance');
+                    
+                    // Update Logos (Solo el de culturas cambia)
+                    document.getElementById('logo-culturas').src = headerLogos.day.right;
+                    
+                    const btn = document.getElementById('panel-theme-toggle-btn');
+                    if(btn) btn.innerText = '🌙'; // Botón muestra luna para ir a noche
                 }
             }
 
-            // Ejecutar tema automático al inicio
-            initTheme();
+            // Inicialización Automática por Hora
+            function initThemeAuto() {
+                const now = new Date();
+                const hour = now.getHours();
+                // Noche: antes de las 6 AM o después de las 6 PM (18:00)
+                const isNightTime = hour < 6 || hour >= 18;
+                updateTheme(isNightTime);
+            }
+            
+            initThemeAuto();
 
             if(typeof L.markerClusterGroup === 'function'){
                 markers = L.markerClusterGroup({
@@ -1846,7 +1863,6 @@
                    panel.classList.toggle('show');
                 }
                 
-                // Alternar el icono (Hamburguesa <-> X)
                 const icon = toggleBtn.querySelector('.toggle-icon');
                 
                 let isOpen;
@@ -1882,18 +1898,9 @@
             const themeBtn = document.getElementById('panel-theme-toggle-btn');
             if(themeBtn){
                 themeBtn.addEventListener('click', () => {
-                    // Simplemente alterna la clase y la capa del mapa, anulando la lógica automática temporalmente
-                    const isDark = document.body.classList.toggle('dark-mode');
-                    themeBtn.innerText = isDark ? '☀️' : '🌙';
-                    if(isDark) { 
-                        map.removeLayer(dayTiles); 
-                        nightTiles.addTo(map); 
-                        document.getElementById('map').classList.remove('day-enhance'); 
-                    } else { 
-                        map.removeLayer(nightTiles); 
-                        dayTiles.addTo(map); 
-                        document.getElementById('map').classList.add('day-enhance'); 
-                    }
+                    // Al hacer clic, invertimos el estado actual
+                    const isCurrentlyDark = document.body.classList.contains('dark-mode');
+                    updateTheme(!isCurrentlyDark);
                 });
             }
         }
