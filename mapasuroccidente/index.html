@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -102,6 +102,19 @@
         }
         .header-logo-right:hover { transform: translateY(-2px); opacity: 1; }
         
+        /* AJUSTE VISUAL PARA IGUALAR LOGOS NOCTURNOS */
+        body.dark-mode #logo-somos {
+            /* Compensación visual: Aumenta ligeramente el tamaño del logo blanco 
+               para igualar el peso visual del negro si el archivo tiene márgenes */
+            transform: scale(1.15); 
+            transform-origin: center;
+        }
+        
+        /* El logo de culturas suele ser consistente, pero podemos ajustarlo si es necesario */
+        body.dark-mode #logo-culturas {
+            transform: scale(1.05);
+        }
+
         .header-logos-container {
             display: flex;
             align-items: center;
@@ -597,10 +610,10 @@
         
         <div class="header-logos-container">
             <a id="link-culturas" class="header-logo-link" href="https://www.mincultura.gov.co/" target="_blank" rel="noopener noreferrer" title="Ir al Ministerio de las Culturas, las Artes y los Saberes de Colombia">
-                <img src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/GRIS_CULTURAS.png?v=2" alt="Logo Culturas" class="header-logo-right" />
+                <img id="logo-culturas" src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/GRIS_CULTURAS.png?v=2" alt="Logo Culturas" class="header-logo-right" />
             </a>
-            <a id="link-somos" class="header-logo-link" href="#" title="Somos Cultura de Paz">
-                <img src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/logo_fucsia.png" alt="Logo Somos Cultura de Paz" class="header-logo-right" />
+            <a id="link-somos" class="header-logo-link" href="https://www.instagram.com/explore/search/keyword/?q=%23creamosculturadepaz" target="_blank" rel="noopener noreferrer" title="Somos Cultura de Paz">
+                <img id="logo-somos" src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/logo_fucsia.png" alt="Logo Somos Cultura de Paz" class="header-logo-right" />
             </a>
         </div>
     </div>
@@ -659,6 +672,26 @@
             crossorigin="" defer></script>
     <script>
     window.addEventListener('DOMContentLoaded', function() {
+        
+        // URLs dinámicas para los logos del header
+        const headerLogos = {
+            culturas: {
+                day: 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/GRIS_CULTURAS.png?v=2',
+                night: 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/BLANCO_CULTURAS.png'
+            },
+            somos: {
+                day: 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/logo_fucsia.png',
+                night: 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/logo_fucsia_blanco.png'
+            }
+        };
+
+        // Función para actualizar los logos del header según el tema
+        function updateHeaderLogos(isDark) {
+            const imgCulturas = document.getElementById('logo-culturas');
+            const imgSomos = document.getElementById('logo-somos');
+            if (imgCulturas) imgCulturas.src = isDark ? headerLogos.culturas.night : headerLogos.culturas.day;
+            if (imgSomos) imgSomos.src = isDark ? headerLogos.somos.night : headerLogos.somos.day;
+        }
         
         // URL de logos mapeados a las redes.
         // Se utilizan los PNGs originales para Hip Hop, Mujeres y Juvenil.
@@ -1141,6 +1174,9 @@
                     dayTiles.addTo(map);
                     document.getElementById('map').classList.add('day-enhance');
                 }
+                
+                // Actualizamos logos del header
+                updateHeaderLogos(isNight);
             }
 
             initTheme();
@@ -1228,6 +1264,8 @@
                         dayTiles.addTo(map); 
                         document.getElementById('map').classList.add('day-enhance'); 
                     }
+                    // Actualizar logos manualmente al hacer clic
+                    updateHeaderLogos(isDark);
                 });
             }
         }
