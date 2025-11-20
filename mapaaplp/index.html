@@ -1,0 +1,1903 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self'; 
+        script-src 'self' 'unsafe-inline' https://unpkg.com; 
+        style-src 'self' 'unsafe-inline' https://unpkg.com; 
+        img-src 'self' data: https://*.basemaps.cartocdn.com https://artesparalapaz.mincultura.gov.co https://raw.githubusercontent.com;
+        connect-src 'self' https://unpkg.com https://api.countapi.xyz ws://127.0.0.1:5500; 
+        font-src 'self' https://raw.githubusercontent.com;
+        object-src 'none';">
+
+    <title>Mapa Redes Culturales - Artes para la Paz</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css"
+          crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css"
+          crossorigin=""/>
+          
+    <style>
+        @font-face {
+            font-family: 'LanceAPLP';
+            src: url('https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/Lance-RegularAPLP.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        html, body {
+            height: 100%; width: 100%; margin: 0; padding: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(120deg, #f0f0f0 0%, #e0e7ff 100%);
+            color: #222;
+            transition: background 0.5s, color 0.3s;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+        body.dark-mode {
+            background: linear-gradient(120deg, #1a1a1a 0%, #312e81 100%);
+            color: #f0f0f0;
+        }
+        #main-header {
+            background: rgba(255,255,255,0.95);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            padding: 12px 24px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: relative; z-index: 1500;
+            transition: background 0.3s, color 0.3s;
+            flex-shrink: 0;
+        }
+        
+        .beneficiaries-badge {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end; 
+            justify-content: center;
+            line-height: 1;
+            box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            cursor: help;
+            min-width: 70px;
+            transition: all 0.3s ease;
+        }
+        .beneficiaries-badge:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+        .ben-number {
+            font-size: 1.1em;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        .ben-label {
+            font-size: 0.6em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.9;
+            margin-top: 2px;
+            font-weight: 600;
+        }
+
+        #main-header h1 {
+            font-family: 'LanceAPLP', sans-serif; 
+            font-size: 2.0em; 
+            margin: 0 15px; flex-grow: 1; text-align: center;
+            letter-spacing: 1px;
+            line-height: 1.1;
+        }
+        .header-logo {
+            height: 48px; width: auto; flex-shrink: 0;
+            transition: filter 0.3s;
+        }
+        .header-logo-right {
+            height: 60px; width: auto; flex-shrink: 0; margin-left: 12px; opacity: 0.95;
+            transition: transform 0.18s, opacity 0.2s;
+        }
+        .header-logo-right:hover { transform: translateY(-2px); opacity: 1; }
+        
+        @media (max-width: 800px) {
+            .header-logo-right { height: 40px; margin-left: 8px; }
+            .header-logo { height: 36px; }
+            #main-header h1 { font-size: 1.2em; margin: 0 8px; }
+            #main-header { padding: 10px; }
+        }
+
+        #theme-toggle-btn {
+            background: rgba(255,255,255,0.06); border: none; color: #ffffff;
+            width: 40px; height: 34px; display:flex; align-items:center; justify-content:center;
+            border-radius: 8px; cursor: pointer; transition: background 0.2s, transform 0.12s;
+            padding: 6px;
+        }
+        #theme-toggle-btn:hover { background: rgba(255,255,255,0.12); transform: translateY(-1px); }
+        
+        /* ESTILOS DE COLOR DEL HEADER */
+        body:not(.dark-mode) #main-header {
+            background: #ffdc4a; /* Amarillo */
+            color: #111; 
+        }
+        body:not(.dark-mode) #main-header h1 { 
+            color: #c026d3; /* Fucsia */
+            text-shadow: 0px 1px 0px rgba(255,255,255,0.4); 
+        }
+        body.dark-mode #main-header {
+            background: rgba(30,41,59,0.95); color: #fff;
+        }
+        
+        body:not(.dark-mode) #panel {
+            background: #2b8ec6;
+            color: #fff;
+        }
+        body.dark-mode #panel {
+            background: rgba(30,41,59,0.98); color: #f0f0f0;
+        }
+        body.dark-mode #theme-toggle-btn { color: #ffffff; }
+        
+        #app-container { flex-grow: 1; position: relative; overflow: hidden; min-height: 0; display: flex; }
+        
+        /* Panel de Control */
+        #panel {
+            background: rgba(255,255,255,0.98);
+            box-shadow: 2px 0 12px rgba(0,0,0,0.18);
+            color: #222;
+            position: absolute; 
+            top: 0; left: 0;
+            width: 420px; height: 100%; 
+            padding: 24px 54px 20px 20px; 
+            display: flex; flex-direction: column; overflow-y: auto;
+            z-index: 2000; 
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-sizing: border-box;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        #filters h2, #legend h2 {
+            border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 10px; color: inherit;
+        }
+        body.dark-mode #filters h2, body.dark-mode #legend h2 {
+            border-bottom: 1px solid #444;
+        }
+
+        /* --- BOTÓN TOGGLE FLOTANTE --- */
+        #main-toggle-btn {
+            position: absolute;
+            top: 12px; 
+            z-index: 4000; 
+            width: 32px; 
+            height: 32px;
+            background: #1e3a8a; 
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+            transition: left 0.3s ease, transform 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #main-toggle-btn:hover {
+            background: #172554;
+            transform: scale(1.05);
+        }
+
+        /* Icono Animado */
+        .toggle-icon {
+            width: 18px;
+            height: 14px;
+            position: relative;
+            transform: rotate(0deg);
+            transition: .4s ease-in-out;
+        }
+        .toggle-icon span {
+            display: block;
+            position: absolute;
+            height: 2px;
+            width: 100%;
+            background: #fff;
+            border-radius: 2px;
+            opacity: 1;
+            left: 0;
+            transform: rotate(0deg);
+            transition: .25s ease-in-out;
+        }
+
+        .toggle-icon span:nth-child(1) { top: 0px; }
+        .toggle-icon span:nth-child(2) { top: 6px; }
+        .toggle-icon span:nth-child(3) { top: 12px; }
+
+        .toggle-icon.open span:nth-child(1) {
+            top: 6px;
+            transform: rotate(135deg);
+        }
+        .toggle-icon.open span:nth-child(2) {
+            opacity: 0;
+            left: -60px;
+        }
+        .toggle-icon.open span:nth-child(3) {
+            top: 6px;
+            transform: rotate(-135deg);
+        }
+
+        /* Posicionamiento en Escritorio (Panel width 420px) */
+        @media (min-width: 801px) {
+            /* Panel Abierto */
+            #app-container:not(.panel-collapsed) #main-toggle-btn {
+                left: 380px; 
+            }
+            /* Panel Cerrado */
+            #app-container.panel-collapsed #main-toggle-btn {
+                left: 20px; 
+            }
+            #app-container.panel-collapsed #panel {
+                transform: translateX(-100%);
+            }
+            /* Mapa responsive al panel */
+            #app-container:not(.panel-collapsed) #map-container {
+                left: 420px; 
+                width: calc(100% - 420px);
+            }
+            #app-container.panel-collapsed #map-container {
+                left: 0; 
+                width: 100%;
+            }
+        }
+
+        /* Posicionamiento en Móvil (Panel width 85vw) */
+        @media (max-width: 800px) {
+            #panel {
+                width: 85vw; 
+                padding-right: 45px;
+                transform: translateX(-100%); 
+            }
+            /* Estado Abierto Móvil */
+            #panel.show {
+                transform: translateX(0);
+            }
+            /* Cuando el panel tiene la clase .show, el botón (hermano siguiente) se mueve */
+            #panel.show ~ #main-toggle-btn {
+                left: calc(85vw - 45px); /* Pegado a la esquina derecha del panel */
+            }
+            /* Estado Cerrado Móvil (Por defecto) */
+            #main-toggle-btn {
+                left: 15px; 
+            }
+            /* En móvil el mapa siempre ocupa el 100% */
+            #map-container {
+                left: 0 !important;
+                width: 100% !important;
+            }
+        }
+        
+        .filter-option label {
+            display: flex; align-items: center; cursor: pointer; padding: 6px 0;
+            transition: background 0.2s;
+        }
+        .filter-option label:hover {
+            background: #e0e7ff;
+        }
+        body.dark-mode .filter-option label:hover {
+            background: #312e81;
+        }
+        #search-box {
+            margin-bottom: 18px;
+            display: flex; align-items: center;
+            position: relative; 
+            width: 100%;
+        }
+        
+        :root { --search-clear-w: 34px; --search-btn-w: 40px; --search-gap: 8px; --filters-blue: #51cafc; --panel-theme-purple: #7c3aed; }
+        #search-input {
+            flex-grow: 1; 
+            padding: 7px 12px; border-radius: 6px; border: 1px solid #6366f1;
+            padding-right: 30px; 
+            font-size: 0.95em; outline: none; margin-right: 6px;
+            box-sizing: border-box; position: relative; z-index: 2500; background: #fff;
+            height: 36px;
+            -webkit-appearance: none;
+        }
+        #search-input:focus {
+            border-color: #fbbf24;
+        }
+        
+        #search-btn {
+            background: var(--filters-blue); color: #fff; border: none; border-radius: 6px;
+            width: var(--search-btn-w); height: 36px; cursor: pointer; font-size: 1em; 
+            display: inline-flex; align-items: center; justify-content: center;
+            transition: background 0.18s, transform 0.12s;
+            margin-right: 0; 
+            flex-shrink: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #search-btn:hover { filter: brightness(0.95); transform: scale(1.02); }
+        
+        #search-suggestions {
+            display: none; position: relative; width: 100%; margin-bottom: 8px; z-index: 2500;
+            max-height: 260px; overflow-y: auto; border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(16,24,40,0.12);
+        }
+        .suggestion-item {
+            padding: 10px 12px; background: rgba(255,255,255,0.98); cursor: pointer; border-bottom: 1px solid rgba(0,0,0,0.04);
+            color: #111; display: block;
+        }
+        .suggestion-item:last-child { border-bottom: none; }
+        .suggestion-item:hover, .suggestion-item:focus { background: #f3f4f6; outline: none; }
+        .suggestion-item.highlight { background: #eef2ff; }
+        body.dark-mode .suggestion-item { background: rgba(20,24,32,0.96); color: #fff; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        body.dark-mode .suggestion-item:hover, body.dark-mode .suggestion-item:focus { background: rgba(40,44,59,0.95); }
+        
+        /* Botón X pequeño dentro del input de búsqueda */
+        #search-clear-btn {
+            position: absolute; 
+            left: calc(100% - var(--search-btn-w) - 40px); 
+            top: 50%; transform: translateY(-50%);
+            width: 20px; height: 20px; border-radius: 50%; border: none; background: transparent;
+            display: none; align-items: center; justify-content: center; cursor: pointer; z-index: 2600;
+            font-size: 12px; color: #999; padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #search-clear-btn:hover { color: #333; background: #eee; }
+        body.dark-mode #search-clear-btn { color: #ccc; }
+        #search-clear-btn.visible { display: flex !important; }
+        
+        #legend .legend-item {
+            display: flex; align-items: center; margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+        .legend-logo {
+            width: 24px; height: 24px; margin-right: 10px;
+        }
+        
+        .filter-option.active { border-radius: 6px; }
+        .filter-option .filter-btn { 
+            display:flex; 
+            align-items:center; 
+            justify-content: space-between;
+            gap:8px; 
+            padding:6px 8px; 
+            cursor:pointer; 
+            background: transparent; 
+            border: none; 
+            width: 100%; 
+            text-align: left; 
+        }
+        .filter-option .filter-btn:focus { outline: 2px solid #fbbf24; }
+        .filter-btn.night-mode { opacity: 0.95; }
+        .filter-btn.night-mode:active, .filter-option.active .filter-btn.night-mode { background: rgba(255,255,255,0.04); }
+        .filter-btn div span { color: #111; }
+        .filter-option.active .filter-btn div span { color: #111; }
+        body.dark-mode .filter-option.active .filter-btn div span { color: #fff; }
+
+        .network-count {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            min-width: 20px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        body:not(.dark-mode) .network-count {
+            background-color: var(--blue-dark);
+            color: white;
+        }
+        body.dark-mode .network-count {
+            background-color: var(--blue-pastel);
+            color: var(--blue-dark);
+        }
+
+        .filters-card {
+            background: rgba(255,255,255,0.96);
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 6px 18px rgba(16,24,40,0.06);
+            margin-bottom: 12px;
+        }
+        #panel .filters-card h2 { margin: 0 0 8px 0; color: #111; font-size: 1.0em; font-weight: 700; }
+        .filters-card { background: #51cafc; }
+        body.dark-mode #panel .filters-card { background: rgba(20,24,32,0.82); box-shadow: 0 6px 18px rgba(0,0,0,0.45); }
+        body.dark-mode #panel .filters-card h2 { color: #fff; }
+
+        :root {
+            --blue-pastel: #d7f0ff;
+            --blue-dark: #063c6b;
+        }
+        .filters-card .filter-btn { background: transparent; border-radius: 8px; padding: 8px; display: flex; align-items: center; gap:8px; }
+        .filters-card .filter-btn .legend-logo { filter: none; }
+        body:not(.dark-mode) .filters-card .filter-btn div span { color: var(--blue-dark); }
+        body:not(.dark-mode) .filters-card .filter-option.active .filter-btn { background: var(--blue-pastel); }
+        body:not(.dark-mode) .filters-card .filter-option.active .filter-btn div span { color: var(--blue-dark); font-weight: 600; }
+        body.dark-mode .filters-card .filter-btn div span { color: #ffffff; }
+        body.dark-mode .filters-card .filter-option.active .filter-btn { background: var(--blue-pastel); }
+        body.dark-mode .filters-card .filter-option.active .filter-btn div span { color: var(--blue-dark); font-weight: 700; }
+
+        .activity-filters {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.3);
+        }
+        body.dark-mode .activity-filters { border-top: 1px solid rgba(255,255,255,0.1); }
+        .activity-filter-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        .activity-filter-item input { margin-right: 8px; }
+        
+        .popup-content details {
+            margin-top: 8px;
+            border: 1px solid #e0e7ff;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.5);
+        }
+        .popup-content summary {
+            padding: 6px 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9em;
+            color: #4338ca;
+            list-style: none; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .popup-content summary::-webkit-details-marker { display: none; }
+        .popup-content summary:after {
+            content: '+'; 
+            font-weight: bold;
+        }
+        .popup-content details[open] summary:after {
+            content: '-';
+        }
+        .popup-content details[open] summary {
+            border-bottom: 1px solid #e0e7ff;
+            background: #eef2ff;
+        }
+        .popup-content .event-details {
+            padding: 8px 10px;
+            font-size: 0.85em;
+            line-height: 1.4;
+        }
+        .popup-content .badge-beneficiarios {
+            display: inline-block;
+            background: #ecfdf5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .popup-content .event-tag {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            margin-right: 4px;
+            margin-bottom: 2px;
+            font-weight: 700;
+            min-width: 18px;
+            text-align: center;
+        }
+        .tag-formacion { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
+        .tag-publico { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+        .tag-circulacion { background: #fce7f3; color: #be185d; border: 1px solid #fbcfe8; }
+
+
+        #map-container {
+            width: 100%; height: 100%; position: absolute; top: 0; left: 0; 
+            transition: left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), width 0.3s;
+        }
+        #map { width: 100%; height: 100%; }
+        
+        #map.day-enhance { filter: saturate(1.15) contrast(1.05) hue-rotate(-6deg); }
+        body.dark-mode #map { filter: grayscale(0.15) contrast(0.9) brightness(0.9); }
+        
+        .header-tooltip {
+            position: absolute; transform: translateY(-8px); z-index: 5000; background: rgba(0,0,0,0.85); color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 13px; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.12s, transform 0.12s;
+        }
+        .header-tooltip.show { opacity: 1; transform: translateY(-12px); }
+        
+        .panel-theme-btn {
+            background: var(--panel-theme-purple); border: 1px solid rgba(0,0,0,0.06); padding: 8px 10px; border-radius: 8px; cursor: pointer;
+            color: #fff; display: inline-flex; align-items: center; justify-content: center;
+        }
+        body.dark-mode .panel-theme-btn { border-color: rgba(255,255,255,0.08); }
+        
+        .leaflet-tooltip {
+            background: rgba(99,102,241,0.85); color: #fff; border: 1px solid #6366f1;
+            border-radius: 5px; padding: 6px; font-size: 1em;
+        }
+        .leaflet-marker-icon {
+            filter: drop-shadow(0px 4px 8px rgba(99,102,241,0.8));
+            transition: filter 0.3s;
+        }
+        .leaflet-marker-icon:hover {
+            filter: drop-shadow(0px 6px 12px rgba(251,191,36,0.8));
+        }
+        
+        .marker-cluster div {
+            background: #cfe8ff; 
+            border-radius: 50%;
+            width: 46px; height: 46px;
+            display: flex; align-items: center; justify-content: center;
+            border: none;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.28);
+            color: #fff; font-weight: 700; font-size: 14px;
+        }
+        .marker-cluster span { line-height: 1; }
+        .marker-cluster.marker-cluster-hiphop div { background: #b91c1c; } 
+        .marker-cluster.marker-cluster-emergentes div { background: #059669; } 
+        .marker-cluster.marker-cluster-juvenil div { background: #7c3aed; } 
+        .marker-cluster.marker-cluster-mujeres div { background: #d946ef; } 
+        .marker-cluster .marker-cluster-1, .marker-cluster div.large { width: 56px; height: 56px; font-size: 16px; }
+
+        body.dark-mode .marker-cluster div { background: #23303a; color: #fff; box-shadow: 0 6px 18px rgba(0,0,0,0.45); }
+        body.dark-mode .marker-cluster.marker-cluster-hiphop div { background: #ff6b6b; }
+        body.dark-mode .marker-cluster.marker-cluster-emergentes div { background: #34d399; }
+        body.dark-mode .marker-cluster.marker-cluster-juvenil div { background: #a78bfa; }
+        body.dark-mode .marker-cluster.marker-cluster-mujeres div { background: #f472b6; } 
+
+        .tutorial-card {
+            background: #eef2ff;
+            border-radius: 12px;
+            padding: 12px 16px;
+            box-shadow: 0 6px 18px rgba(16,24,40,0.06);
+            margin-top: 20px;
+            max-height: 240px; 
+            overflow-y: auto; 
+        }
+        body:not(.dark-mode) .tutorial-card { color: #3730a3; }
+        body.dark-mode .tutorial-card { background: rgba(40,44,59,0.95); }
+        .tutorial-card h2 { margin: 0 0 10px 0; color: #111; font-size: 1.05em; font-weight: 700; }
+        body.dark-mode .tutorial-card h2 { color: #fff; }
+        .tutorial-card ul { list-style-type: none; padding-left: 0; margin: 0; }
+        .tutorial-card li { font-size: 0.85em; line-height: 1.5; margin-bottom: 10px; padding-right: 8px; }
+        .tutorial-card li:last-child { margin-bottom: 0; }
+        .tutorial-card strong { color: #6366f1; }
+        body.dark-mode .tutorial-card strong { color: #a78bfa; }
+
+    </style>
+</head>
+<body>
+    <div id="main-header" tabindex="0">
+        <a id="link-artes" class="header-logo-link" href="https://artesparalapaz.mincultura.gov.co/Paginas/index.aspx" target="_blank" rel="noopener noreferrer" title="Volver a la página de Artes para la Paz">
+            <img src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/APLP%20MORADO.png?v=2" alt="Logo Artes para la Paz" class="header-logo">
+        </a>
+        
+        <h1>Redes y Procesos Artísticos y Comunitarios &bull; Artes para la Paz</h1>
+        
+        <a id="link-culturas" class="header-logo-link" href="https://www.mincultura.gov.co/" target="_blank" rel="noopener noreferrer" title="Ir al Ministerio de las Culturas, las Artes y los Saberes de Colombia">
+            <img src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/GRIS_CULTURAS.png?v=2" alt="Logo Culturas" class="header-logo-right" />
+        </a>
+    </div>
+
+    <div id="app-container">
+        <!-- Importante: Botón DEBAJO del panel en el DOM para que CSS funcione correctamente en móvil -->
+        <div id="panel" tabindex="0">
+            <div id="search-box">
+                <input id="search-input" type="text" placeholder="Buscar organización, proyecto, ciudad..." aria-label="Buscar" tabindex="0">
+                <button id="search-clear-btn" title="Borrar búsqueda" aria-label="Borrar búsqueda" tabindex="0">✕</button>
+                <button id="search-btn" title="Buscar" tabindex="0">🔍</button>
+            </div>
+            <div id="search-suggestions" role="listbox" aria-label="Sugerencias de búsqueda"></div>
+            <div id="filters">
+                <div class="filters-card">
+                    <h2>Convenciones y Filtros</h2>
+                    <div id="filters-list"></div>
+                    
+                    <div class="activity-filters">
+                        <div style="font-weight: 700; margin-bottom: 8px; color: inherit;">Filtrar por Tipo de Actividad</div>
+                        <label class="activity-filter-item">
+                            <input type="checkbox" class="activity-check" value="formacion" checked> Formación
+                        </label>
+                        <label class="activity-filter-item">
+                            <input type="checkbox" class="activity-check" value="circulacion" checked> Circulación
+                        </label>
+                        <label class="activity-filter-item">
+                            <input type="checkbox" class="activity-check" value="publico" checked> Evento con Público
+                        </label>
+                        <label class="activity-filter-item">
+                            <input type="checkbox" class="activity-check" value="otro" checked> Otros / Sin Clasificar
+                        </label>
+                    </div>
+
+                    <div id="panel-theme-row" style="margin-top:10px; display:flex; align-items:center; justify-content: space-between;">
+                        <button id="panel-theme-toggle-btn" class="panel-theme-btn" title="Cambiar modo claro/oscuro" aria-pressed="false">🌙</button>
+                        <div id="beneficiaries-display" class="beneficiaries-badge" title="Total de beneficiarios estimados en todas las redes">
+                            <span class="ben-number" id="total-ben-count">0</span>
+                            <span class="ben-label">Beneficiarios</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="tutorial-panel" class="tutorial-card">
+                <h2>¿Cómo usar el mapa?</h2>
+                <ul>
+                    <li><strong>Explora:</strong> Acércate en el mapa para ver los puntos individuales.</li>
+                    <li><strong>Detalles:</strong> Haz clic en una organización y despliega los eventos para ver descripciones y beneficiarios.</li>
+                    <li><strong>Filtra:</strong> Usa los filtros de redes y ahora también por tipo de actividad (Formación, Circulación, etc.).</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- BOTÓN PRINCIPAL DE TOGGLE UNIFICADO -->
+        <button id="main-toggle-btn" aria-label="Alternar panel">
+            <div class="toggle-icon open">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </button>
+
+        <div id="map-container" tabindex="0">
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin="" defer></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"
+            crossorigin="" defer></script>
+    <script>
+    window.addEventListener('DOMContentLoaded', function() {
+        
+        const logoUrls = {
+            'Red Hip Hop': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/REDDEHIPHOP.png',
+            'Organizaciones Emergentes': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/ORGANIZACIONES%20EMERGENTES.png',
+            'Red Intercultural Juvenil': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/RED%20JUVENIL.png',
+            'Red de Mujeres': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/ORGANIZACIONES%20DE%20MUJERES.png'
+        };
+        const placeholderLogo = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><rect width='80' height='80' rx='12' fill='%2371717a'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='18' font-family='Arial'>LOGO</text></svg>";
+        const loadedLogos = {};
+
+        function preloadLogos(timeout = 2500){
+            const keys = Object.keys(logoUrls);
+            if (!keys.length) return Promise.resolve(loadedLogos);
+            return new Promise(resolve => {
+                let remaining = keys.length;
+                keys.forEach(key => {
+                    const img = new Image();
+                    img.onload = () => { loadedLogos[key] = 'ok'; remaining--; if (remaining === 0) resolve(loadedLogos); };
+                    img.onerror = () => { loadedLogos[key] = 'failed'; remaining--; if (remaining === 0) resolve(loadedLogos); };
+                    img.src = logoUrls[key];
+                    setTimeout(() => { if (!loadedLogos[key]) { loadedLogos[key] = 'unknown'; remaining--; if (remaining === 0) resolve(loadedLogos); } }, timeout);
+                });
+            });
+        }
+
+        const eventTypes = {
+            'FORMACION': 'formacion',
+            'FOMACIÓN': 'formacion',
+            'FORMACIÓN': 'formacion',
+            'EVENTO DE FORMACION': 'formacion',
+            'EVENTO DE FORMACIÓN': 'formacion',
+            'EVENTO FORMATIVO': 'formacion',
+            'CIRCULACION': 'circulacion',
+            'CIRCULACIÓN': 'circulacion',
+            'EVENTO DE CIRCULACION': 'circulacion',
+            'EVENTO DE CIRCULACIÓN': 'circulacion',
+            'EVENTO CON PUBLICO': 'publico',
+            'EVENTO CON PÚBLICO': 'publico',
+            'EVENTO DE CIRCULACION CON PUBLICO': 'publico',
+            'EVENTO DE CIRCULACIÓN CON PÚBLICO': 'publico',
+            'CIRCULACIÓN-FORMACIÓN': 'formacion',
+            'CIRCULACIÓN-CREACIÓN': 'circulacion',
+            'EVENTO DE ARTICULACIÓN': 'formacion',
+            'EVENTO DE ENCUENTRO': 'formacion', 
+            'EVENTO DE CREACIÓN COLECTIVA': 'formacion',
+            'ENCUENTRO BIOCULTURAL': 'circulacion',
+            'LABORATORIO DE CREACIÓN': 'formacion',
+            'GRABACIÓN MUSICAL': 'formacion',
+            'SABERES TRADICIONALES': 'formacion'
+        };
+        
+        const eventTypeLetters = {
+            'formacion': 'F',
+            'circulacion': 'C',
+            'publico': 'E',
+            'otro': '?'
+        };
+        
+        const eventTypeLabels = {
+            'formacion': 'Formación',
+            'circulacion': 'Circulación',
+            'publico': 'Evento Público',
+            'otro': 'Otro'
+        };
+
+        const organizations = [
+            // --- RED DE MUJERES ---
+            {
+                network: 'Red de Mujeres', name: 'Chaibá, Fundación para el desarrollo humano', city: 'Suesca', lat: 5.103, lng: -73.800,
+                events: [
+                    { name: 'Festival Titúa', type: 'CIRCULACIÓN', ben: 500, dates: '03/11/25 - 09/11/25', desc: 'Festival enfocado en la recuperación y difusión del Patrimonio Cultural Inmaterial cundiboyacense.' }
+                ]
+            },
+            {
+                network: 'Red de Mujeres', name: 'FUNDACION CULTURAL KYNZA XIE', city: 'Chía', lat: 4.858, lng: -74.033,
+                events: [
+                    { name: 'Muestra final Escuela Hilos de Luna', type: 'CIRCULACIÓN', ben: 25, dates: '21/11/25 - 22/11/25', desc: 'Jornada de cierre del proceso formativo de tejeduría artesanal.' }
+                ]
+            },
+            {
+                network: 'Red de Mujeres', name: 'Asociación de mujeres Wiwa Abudzibu Asomuwadzi', city: 'Santa Marta', lat: 11.240, lng: -74.199,
+                events: [
+                    { name: 'Encuentro intercultural Wiwa', type: 'CIRCULACIÓN', ben: 434, dates: '08/11/25', desc: 'Encuentro comunitario de danzas tradicionales y diálogo intergeneracional.' }
+                ]
+            },
+            {
+                network: 'Red de Mujeres', name: 'ORGANIZACION DE MUJERES VICTIMAS DEL RIO IRO (ORVIEN)', city: 'Río Iró', lat: 5.217, lng: -76.683,
+                events: [
+                    { name: 'Encuentro rescate de tradiciones', type: 'CIRCULACIÓN', ben: 2440, dates: '10/11/25 - 16/11/25', desc: 'Rescate de tradición: danza, literatura oral y música para evitar reclutamiento.' },
+                    { name: 'Conversatorios con comunidad', type: 'CIRCULACIÓN', dates: '03/11/25 - 09/11/25', desc: 'Espacios colectivos para reconstruir la tradición del territorio.' },
+                    { name: 'Encuentro de juegos tradicionales', type: 'CIRCULACIÓN', dates: '17/11/25 - 23/11/25', desc: 'Rescate de juegos tradicionales ante la pérdida de espacios.' },
+                    { name: 'Encuentro de sanadoras', type: 'CIRCULACIÓN', dates: '03/11/25 - 09/11/25', desc: 'Espacios de sanación espiritual desde costumbres propias.' }
+                ]
+            },
+            {
+                network: 'Red de Mujeres', name: 'FUNDACION MICELIO TEJIENDO SABERES', city: 'Corozal', lat: 9.316, lng: -75.294,
+                events: [
+                    { name: 'Festival Ancestral Zenú', type: 'CIRCULACIÓN', ben: 2050, dates: '16/11/25', desc: 'Encuentro de danzas ancestrales y juegos tradicionales de la etnia Zenú.' },
+                    { name: 'Conversatorio de saberes', type: 'CIRCULACIÓN', dates: '15/11/25', desc: 'Diálogo intergeneracional sobre mitos y prácticas espirituales.' }
+                ]
+            },
+            {
+                network: 'Red de Mujeres', name: 'Asociación COMPAÑÍA AMÉRICA DANZA', city: 'Soacha', lat: 4.580, lng: -74.217,
+                events: [
+                    { name: 'Feria Comunitaria', type: 'CIRCULACIÓN', ben: 987, dates: '10/11/25 - 16/11/25', desc: 'Cocreación de gesto artístico colectivo para la seguridad de las mujeres.' }
+                ]
+            },
+            {
+                network: 'Red de Mujeres', name: 'FUNDACION DECUPLUM', city: 'Valledupar', lat: 10.463, lng: -73.253,
+                events: [
+                    { name: 'Encuentro Vallenato Femenino EVAFE', type: 'CIRCULACIÓN', ben: 115, dates: '29/09/25 - 05/10/25', desc: 'Festival que visibiliza el papel de la mujer en la cultura vallenata.' }
+                ]
+            },
+
+            // --- RED INTERCULTURAL JUVENIL ---
+            {
+                network: 'Red Intercultural Juvenil', name: 'ASOCIACION RESONANCIA MEDIOS ARTISTICOS', city: 'Tocancipá', lat: 4.966, lng: -73.916,
+                events: [
+                    { name: 'Mapeo de organizaciones', type: 'Evento de articulación', dates: '10/09/25 - 29/09/25', desc: '4 jornadas de mapeo participativo en Tocancipá, Villapinzón, Chía y Cajicá.' },
+                    { name: 'Jornadas formativas', type: 'Evento de Formación', dates: '12/10/25 - 19/10/25', desc: 'Jornadas creativas con sabedores en Soacha, Cajicá y Villapinzón.' },
+                    { name: 'Redes que Fluyen', type: 'Evento de circulación', dates: '08/11/25', desc: 'Encuentro Biocultural por el Río Bogotá en Cajicá.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'CORPORACION CULTURAL FAHRENHEIT 451', city: 'Chía', lat: 4.858, lng: -74.058,
+                events: [
+                    { name: 'Talleres artísticos', type: 'Evento de Formación', dates: '09/09/25 - 19/11/25', desc: 'Talleres interdisciplinares en ritmo, voz y artes plásticas.' },
+                    { name: 'Pensamiento crítico', type: 'Evento de Formación', dates: '01/10/25 - 25/11/25', desc: 'Salidas de convivio cultural para 50 jóvenes.' },
+                    { name: 'Festival Arte Joven', type: 'Evento de circulación', dates: '18/11/25 - 20/11/25', desc: 'Programación artística y conversatorio de intercambio.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'CORPORACION JUVENIL INFLUENCERS ETNICOS', city: 'San Basilio de Palenque', lat: 10.105, lng: -75.198,
+                events: [
+                    { name: 'Escuela Audiovisual', type: 'Evento de Formación', dates: '15/09/25 - 19/09/25', desc: 'Módulos prácticos de guion, cámara y edición.' },
+                    { name: 'Laboratorios creativos', type: 'Evento de creación colectiva', dates: '22/09/25 - 24/09/25', desc: 'Diseño de ideas audiovisuales desde la identidad.' },
+                    { name: 'Circulación digital', type: 'Evento de circulación', dates: '06/10/25 - 09/10/25', desc: 'Distribución de contenidos en redes y medios comunitarios.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'AMBIENTALISTAS DE CORAZÓN', city: 'Tocancipá', lat: 4.966, lng: -73.916,
+                events: [
+                    { name: 'Festival Biohoty', type: 'Evento de Formación', dates: 'Sept-Oct 2025', desc: 'Talleres de comunicación comunitaria y diagnóstico del río Bogotá.' },
+                    { name: 'Comparsa y Ritual', type: 'Evento de circulación', dates: 'Oct 2025', desc: 'Comparsa y ritual de apertura del festival.' },
+                    { name: 'Muestras Artísticas', type: 'Evento con Público', dates: 'Oct 2025', desc: 'Shows de rock, circo y hip hop.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'FUNDACIÓN RIMARTE', city: 'Cali', lat: 3.451, lng: -76.532,
+                events: [
+                    { name: 'Mi Primera Canción', type: 'Evento de Formación', desc: 'Taller de iniciación y exploración instrumental.' },
+                    { name: 'Laboratorio creación', type: 'Evento de creación colectiva', desc: 'Composición colectiva y grabación en estudio.' },
+                    { name: 'Voces que nacen', type: 'Evento de circulación', desc: 'Evento comunitario de circulación musical.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'FUNDACIÓN ALAS Y RAÍCES', city: 'La Belleza', lat: 5.860, lng: -73.968,
+                events: [
+                    { name: 'Residencias y Muralismo', type: 'Evento de circulación', dates: 'Oct 2025', desc: 'Jornadas de muralismo y residencias artísticas.' },
+                    { name: 'Talleres Bioculturales', type: 'Encuentro de formación', dates: 'Sept-Nov 2025', desc: '24 jornadas creativas con niños y jóvenes.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'FUNDACION NUEVO ESTILO DANCE', city: 'Cali', lat: 3.451, lng: -76.532,
+                events: [
+                    { name: 'Ruta del Ritmo', type: 'Evento de Formación', dates: 'Sept-Oct 2025', desc: '30 talleres de danzas urbanas y gimnasia.' },
+                    { name: 'Ruta Turística', type: 'Evento con Público', dates: '08/11/25', desc: 'Rutas turísticas artísticas en Siloé.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'Guaque/Territorialidades S.A.S', city: 'Sopó', lat: 4.908, lng: -73.938,
+                events: [
+                    { name: 'Residencias Muralismo', type: 'Evento de circulación', dates: 'Sept-Oct 2025', desc: 'Residencias nacionales e internacionales de arte urbano.' },
+                    { name: 'Festival QUYCAGUA', type: 'Evento de circulación', dates: '09/11/25 - 16/11/25', desc: 'Intervención de 18 espacios públicos con muralismo.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'FUNDACION FUTURO DE LA GUAJIRA', city: 'Tomarrazón', lat: 11.400, lng: -72.950,
+                events: [
+                    { name: 'Talleres de Danza', type: 'Evento formativo', dates: 'Sept 2025', desc: 'Exploración de repertorios dancísticos en Tomarrazón.' },
+                    { name: 'Laboratorio Artístico', type: 'Evento formativo', dates: '26/10/25', desc: 'Creación colectiva integrando danza y memoria oral.' },
+                    { name: 'Exposición de cierre', type: 'Evento con Público', dates: '08/11/25', desc: 'Muestra final en Riohacha con 200 personas.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'Jóvenes Creadores del Chocó', city: 'Quibdó', lat: 5.694, lng: -76.661,
+                events: [
+                    { name: 'Formación en Danza', type: 'Evento de Formación', dates: 'Sept-Oct 2025', desc: '11 jornadas de formación y laboratorios de dramaturgia.' },
+                    { name: 'Comparsa San Pacho', type: 'Evento de circulación', dates: '20/09/25', desc: 'Salida de comparsa en las fiestas de San Pacho.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'CORPORACIÓN CÓDIGO ESTILO CREW', city: 'Armenia', lat: 4.533, lng: -75.681,
+                events: [
+                    { name: 'Parche de Juventudes', type: 'Evento de encuentro', dates: '25/10/25 - 26/10/25', desc: 'Encuentro de danza urbana, rap y break dance.' },
+                    { name: 'Caravana Juvenil', type: 'Evento de circulación', dates: '01/11/25', desc: 'Caravana artística en el municipio de Génova.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'RED CEPELA', city: 'Mutatá', lat: 7.243, lng: -76.436,
+                events: [
+                    { name: 'Festival Selva Adentro', type: 'Evento de circulación', dates: '08/10/25 - 12/10/25', desc: 'Presentaciones artísticas en el ETCR Silver Vidal Mora.' },
+                    { name: 'Talleres de Danza', type: 'Evento de Formación', dates: 'Sept-Oct 2025', desc: 'Exploración en danza-teatro con jóvenes.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'CORPORACION REY DE LA SELVA', city: 'Quibdó', lat: 5.694, lng: -76.661,
+                events: [
+                    { name: 'Semilleros Freestyle', type: 'Evento de Formación', dates: 'Oct 2025', desc: 'Ejecución de 7 semilleros con MCs formadores.' },
+                    { name: 'Festival Rugido Social', type: 'Evento de circulación', dates: 'Nov 2025', desc: 'Programación principal, premiación y transmisión en vivo.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'ECOSISTEMAS CULTURALES', city: 'Luruaco', lat: 10.612, lng: -75.146,
+                events: [
+                    { name: 'Talleres Economía/Gestión', type: 'Evento de Formación', dates: 'Oct-Nov 2025', desc: 'Formación en economía popular, turismo y gestión cultural.' },
+                    { name: 'Festival de Música', type: 'Evento de circulación', dates: '11/10/25', desc: 'Jornada artística musical.' },
+                    { name: 'Pick-Fest Vol. 4', type: 'Evento de circulación', dates: '16/11/25', desc: 'Festival Picotero.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'The Giants Community', city: 'Cali', lat: 3.451, lng: -76.532,
+                events: [
+                    { name: 'Encuentro de Danza', type: 'Evento de encuentro', dates: '18/11/25 - 23/11/25', desc: 'Reunión de colectivos de street dance.' },
+                    { name: 'Live Painting', type: 'Evento de creación colectiva', dates: 'Nov 2025', desc: 'Murales y graffiti en vivo.' },
+                    { name: 'Showcase Musical', type: 'Evento de circulación', dates: 'Nov 2025', desc: 'Presentaciones de rap y trap.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'Corporación Emergiendo', city: 'Manizales', lat: 5.068, lng: -75.517,
+                events: [
+                    { name: 'Intervenciones Murales', type: 'Evento de circulación', dates: 'Sept-Nov 2025', desc: 'Muralismo en Viterbo y Manizales.' },
+                    { name: 'Gestión Cultural', type: 'Evento de Formación', dates: '04/10/25 - 05/10/25', desc: 'Ciclo de formación en marketing cultural.' },
+                    { name: 'Exposición FNU', type: 'Evento de circulación', dates: 'Oct-Nov 2025', desc: 'Exposición de arte urbano en el Hospital de Caldas.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'Corporacion La Tigra', city: 'Piedecuesta', lat: 6.988, lng: -73.048,
+                events: [
+                    { name: 'Taller de Máscaras', type: 'Evento de Formación', dates: 'Sept 2025', desc: 'Creación de máscaras y cucambas.' },
+                    { name: 'Muralismo', type: 'Evento de circulación', dates: 'Sept-Oct 2025', desc: 'Intervención en Biblioteca La Bellecera y barrio Cabecera.' },
+                    { name: 'Festival La Tigra', type: 'Evento de circulación', dates: '09/10/25 - 12/10/25', desc: 'Shows de músicos locales y nacionales.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'Red de Danzantes Janshan', city: 'Sibundoy', lat: 1.205, lng: -76.920,
+                events: [
+                    { name: 'Evocar la palabra', type: 'Evento de encuentro', dates: '12/09/25 - 13/09/25', desc: 'Taller con mayoras en galería Benach.' },
+                    { name: 'Creación poética', type: 'Laboratorio de creación', dates: 'Oct 2025', desc: 'Laboratorios de poesía sonora en Maloka Mamá Señora.' },
+                    { name: 'Evento de cierre', type: 'Evento de circulación', dates: 'Nov 2025', desc: 'Jornada cultural pública y feria de economía.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'KUAGRO RI JIP JOP PALENGE', city: 'San Basilio de Palenque', lat: 10.105, lng: -75.198,
+                events: [
+                    { name: 'Música Palenquera', type: 'Evento de Formación', dates: 'Sept-Nov 2025', desc: '10 talleres de música tradicional.' },
+                    { name: 'Lengua Palenquera', type: 'Evento de Formación', dates: 'Sept-Nov 2025', desc: 'Aprender lengua cantando.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'CORPORACION YUKUTA SONIDO NATIVO', city: 'Inírida', lat: 3.865, lng: -67.923,
+                events: [
+                    { name: 'Música y Canto', type: 'Evento de Formación', dates: 'Oct 2025', desc: 'Talleres en Barrancominas e Inírida.' },
+                    { name: 'Producción Musical', type: 'Evento de producción', dates: 'Oct-Nov 2025', desc: 'Grabación de canciones en lenguas nativas.' },
+                    { name: 'Festival Yakaré V', type: 'Evento de circulación', dates: 'Nov 2025', desc: 'Festival de Hip Hop The King Yakaré.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'Vida-Paz', city: 'San José del Guaviare', lat: 2.572, lng: -72.645,
+                events: [
+                    { name: 'Talleres Bioculturales', type: 'Evento de Formación', dates: 'Sept-Oct 2025', desc: 'Reconocimiento del territorio y biodiversidad.' },
+                    { name: 'Diálogo de Saberes', type: 'Evento de encuentro', dates: 'Oct 2025', desc: 'Tradición oral campesina e indígena.' },
+                    { name: 'Evento de cierre', type: 'Evento de circulación', dates: '21/11/25', desc: 'Concierto por la biodiversidad y la paz.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'ASOCIACION ARTE SHEMBASENG', city: 'Sibundoy', lat: 1.205, lng: -76.920,
+                events: [
+                    { name: 'Charlas cultura Kamentsa', type: 'Evento de encuentro', dates: 'Oct 2025', desc: 'Símbolos de la faja, artesanías y medicina tradicional.' },
+                    { name: 'Arte Urbano', type: 'Evento de circulación', dates: 'Sept 2025', desc: 'Evento muralístico en Sibundoy.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'D Three Studio Alternativo', city: 'Bogotá', lat: 4.711, lng: -74.072,
+                events: [
+                    { name: 'Encuentro Cypher', type: 'Evento de circulación', dates: '10/09/25', desc: 'Espacio libre y colaborativo de danza.' },
+                    { name: 'Funciones', type: 'Evento de circulación', dates: '11/09/25 - 12/09/25', desc: 'Puestas en escena de corto formato.' },
+                    { name: 'Festival El Recreo', type: 'Evento de circulación', dates: '14/09/25', desc: 'Batallas Open Style y premiación.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'FUNDACIÓN MANGLARIA DIVERSA', city: 'Tumaco', lat: 1.805, lng: -78.764,
+                events: [
+                    { name: 'Talleres de Danza', type: 'Evento de Formación', dates: '2025', desc: 'Danza tradicional del Pacífico y música.' },
+                    { name: 'Encuentros Interculturales', type: 'Evento de circulación', dates: 'Oct 2025', desc: 'Encuentros en instituciones educativas.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'RITMO EXTREMO - MEDANCE', city: 'Medellín', lat: 6.244, lng: -75.574,
+                events: [
+                    { name: 'Laboratorios Danza', type: 'Evento de Formación', dates: 'Oct-Nov 2025', desc: '8 laboratorios en Medellín, Envigado y Urabá.' },
+                    { name: 'Encuentros de Cierre', type: 'Evento de circulación', dates: 'Nov 2025', desc: 'Muestras de trabajo en cada territorio.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'ESCUELA LA ESFERA', city: 'San Andrés', lat: 12.584, lng: -81.700,
+                events: [
+                    { name: 'Formación Orquestal', type: 'Evento de Formación', dates: 'Oct 2025', desc: 'Ensayos de obra y formación en San Andrés y Providencia.' },
+                    { name: 'Lanzamiento Video', type: 'Evento de circulación', dates: 'Nov 2025', desc: 'Lanzamiento de videoclip final en redes.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'Corporación Juvenil Arreglando el País', city: 'Pitalito', lat: 1.853, lng: -76.048,
+                events: [
+                    { name: 'Diplomado Vientos del Sur', type: 'Evento de Formación', dates: 'Oct-Nov 2025', desc: '15 clases y graduación.' },
+                    { name: 'Muestra Final', type: 'Evento de circulación', dates: '21/11/25', desc: 'Evento abierto a la ciudadanía.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'CORPORACIÓN KHUYAY', city: 'Pereira', lat: 4.813, lng: -75.694,
+                events: [
+                    { name: 'Festival Pereira Querendona', type: 'Evento de encuentro', dates: '25/10/25', desc: 'Graffiti, rap y break dance.' },
+                    { name: 'Murales', type: 'Evento de circulación', dates: 'Oct 2025', desc: '10 murales en espacio público.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'FUNDACION PACIFICA CULTURAL', city: 'Cali', lat: 3.451, lng: -76.532,
+                events: [
+                    { name: 'Laboratorios Creación', type: 'Laboratorio de creación', dates: 'Nov 2025', desc: 'Creación musical con comunidades.' },
+                    { name: 'Conciertos Cacerolazo', type: 'Circulación', dates: 'Nov 2025', desc: 'Conciertos en teatrino Comuna 16.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'CORPORACION CALINA CUMBAY', city: 'Armero-Guayabal', lat: 5.030, lng: -74.883,
+                events: [
+                    { name: 'PaZa la Danza', type: 'Evento de Formación', dates: 'Oct 2025', desc: 'Taller de danza folclórica.' },
+                    { name: 'Encuentros Bioculturales', type: 'Encuentro biocultural', dates: 'Oct-Nov 2025', desc: 'Circulación de productos artísticos.' },
+                    { name: 'Lagunilla Bio Fest', type: 'Evento de circulación', dates: 'Nov 2025', desc: 'Conmemoración 40 años de Armero.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'LINDEROS DE PAZ', city: 'Bogotá', lat: 4.550, lng: -74.150,
+                events: [
+                    { name: 'Formación Danza Pacífico', type: 'Evento de Formación', dates: 'Oct-Nov 2025', desc: 'Sesiones con jóvenes de Usme y Ciudad Bolívar.' },
+                    { name: 'Muestra Artística', type: 'Evento de circulación', dates: '09/11/25', desc: 'Presentación pública de creación colectiva.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'ASOCIACION PARCHEMOS POR YACOPI', city: 'Yacopí', lat: 5.456, lng: -74.348,
+                events: [
+                    { name: 'Muralismo', type: 'Evento de Formación', dates: 'Oct 2025', desc: 'Talleres de diseño y pintura de murales.' },
+                    { name: 'Sancocho Master', type: 'Evento de circulación', dates: '02/11/25', desc: 'Concurso gastronómico y muestra cultural.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'ASOCIACION ATICOYA', city: 'Puerto Nariño', lat: -3.774, lng: -70.383,
+                events: [
+                    { name: 'Historia Ticuna', type: 'Evento de Formación', dates: 'Oct 2025', desc: 'Taller de historia y tradición oral.' },
+                    { name: 'Tintes y Pintura', type: 'Evento de Formación', dates: 'Nov 2025', desc: 'Talleres de tintes vegetales.' },
+                    { name: 'Evento de Cierre', type: 'Evento de circulación', dates: '27/11/25', desc: 'Evento en cancha polideportiva.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'HUELLAS DE MI TIERRA', city: 'Cúcuta', lat: 7.893, lng: -72.507,
+                events: [
+                    { name: 'Bari Rock Fest', type: 'Evento de circulación', dates: 'Nov 2025', desc: 'Festival de rock local.' },
+                    { name: 'Actividades Académicas', type: 'Evento de Formación', dates: 'Nov 2025', desc: 'Jornadas de formación.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'FUNDACIÓN AMAHIA', city: 'Sogamoso', lat: 5.714, lng: -72.933,
+                events: [
+                    { name: 'Amuletos en Arcilla', type: 'Evento de Formación', desc: 'Taller de creación.' },
+                    { name: 'Jornadas Muralismo', type: 'Evento de circulación', desc: 'Intervención artística.' },
+                    { name: 'Ritualitos de Vida', type: 'Evento de circulación', desc: 'Fiesta para las infancias rurales.' }
+                ]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'ELEMENTS', city: 'Medellín', lat: 6.244, lng: -75.574,
+                events: [{ name: 'Actividades Interdisciplinares', type: 'Evento de Formación', desc: 'Actividades culturales.' }]
+            },
+            {
+                network: 'Red Intercultural Juvenil', name: 'DINASTÍA NEGRA', city: 'San Juan de Urabá', lat: 8.761, lng: -76.529,
+                events: [{ name: 'Danza', type: 'Evento de Formación', desc: 'Talleres de danza.' }]
+            },
+            
+            // --- RED HIP HOP (Data existente) ---
+            {
+                network: 'Red Hip Hop', 
+                name: 'FUNDACION CULTURAL Y SOCIAL 5TA CON 5TA CREW', 
+                city: 'Cúcuta', 
+                lat: 7.907, lng: -72.504,
+                events: [
+                    { name: 'Desarrollo del proceso pedagógico', type: 'FORMACION', ben: 1000, dates: '18/08/25 - 08/11/25', desc: 'Formación en los 4 elementos de Hip Hop (DJ, Rap, Grafiti, Breaking).' },
+                    { name: 'Cierre del proceso pedagógico', type: 'EVENTO CON PUBLICO', dates: '06/11/25', desc: 'Muestras artísticas proceso de formación.' },
+                    { name: 'Festival 5ta con 5ta', type: 'EVENTO DE CIRCULACION CON PUBLICO', dates: '08/11/25', desc: 'Concierto de presentaciones en San Juan de Rio Frio.' }
+                ]
+            },
+            {
+                network: 'Red Hip Hop', 
+                name: 'FUNDACION SURPRISE CITY', 
+                city: 'Pasto', 
+                lat: 1.213, lng: -77.281,
+                events: [
+                    { name: 'Talleres en Jamondino y cárcel', type: 'EVENTO DE FORMACION', ben: 3000, dates: '08/09/25 - 15/10/25', desc: 'Taller de formación a jóvenes del corregimiento Jamondino y jóvenes privados de la libertad.' },
+                    { name: 'Festival Encuentros Hip Hop por la paz', type: 'EVENTO DE CIRCULACION CON PUBLICO', dates: '01/11/25', desc: 'Festival tipo concierto para 1 mil personas en casco urbano.' }
+                ]
+            },
+            {
+                network: 'Red Hip Hop', 
+                name: 'FUNDACION HIP HOP PEÑA', 
+                city: 'Cali', 
+                lat: 3.451, lng: -76.532,
+                events: [
+                    { name: 'Encuentros Formativos', type: 'EVENTO DE FORMACION', ben: 100, dates: '11/08/25 - 14/10/25', desc: 'Taller de cualificación agentes del sector de Hip Hop de Cali.' },
+                    { name: 'Festival Cali Ciudad Hip Hop', type: 'EVENTO DE CIRCULACION CON PUBLICO', ben: 2000, dates: '16/11/25', desc: 'Festival de Hip Hop para 2 mil personas.' }
+                ]
+            },
+            {
+                network: 'Red Hip Hop', 
+                name: 'FUNDACION CULTURAL PAZ Y TERRITORIO', 
+                city: 'Ibagué', 
+                lat: 4.438, lng: -75.232,
+                events: [
+                    { name: 'Sesiones formativas', type: 'EVENTO DE FORMACION', ben: 100, dates: '01/11/25 - 20/11/25', desc: 'Proceso de formación en DJ, grafiti, breaking y rap a jóvenes de tres comunas.' },
+                    { name: 'Ibagué Hip Hop Fest', type: 'EVENTO CON PUBLICO', ben: 2000, dates: '27/09/25', desc: 'Festival tipo concierto para 1 mil personas en Ibagué.' }
+                ]
+            },
+            {
+                network: 'Red Hip Hop', 
+                name: 'CORPORACION CASA KOLACHO', 
+                city: 'Medellín', 
+                lat: 6.244, lng: -75.574,
+                events: [
+                    { name: 'Festival Manifiesto Fest', type: 'EVENTO CON PUBLICO', ben: 4000, dates: '28/11/25 - 29/11/25', desc: 'Festival en la Comuna 13, homenaje a jóvenes víctimas de la operación Orión.' },
+                    { name: 'Talleres Hip Hop Vida', type: 'EVENTO DE FORMACION', ben: 80, dates: '15/11/25', desc: 'Ponencias sobre construcción de paz y talleres en breaking, DJ, grafiti y rap.' }
+                ]
+            },
+            {
+                network: 'Red Hip Hop', 
+                name: 'ASOCIACION RAPJUDESCO', 
+                city: 'Bogotá D.C.', 
+                lat: 4.711, lng: -74.072,
+                events: [
+                    { name: 'Rap Literario', type: 'EVENTO DE FORMACION', ben: 30, dates: '12/08/25 - 15/10/25', desc: 'Talleres de escritura para composición musical.' },
+                    { name: 'Producción Musical', type: 'EVENTO DE FORMACION', ben: 30, dates: '15/09/25 - 05/11/25', desc: 'Taller de producción musical en estudio de grabación.' },
+                    { name: 'Actividades académicas', type: 'EVENTO DE FORMACION', ben: 100, dates: '01/11/25 - 18/11/25', desc: 'Taller de formación en DJ, rap, breaking y grafiti.' },
+                    { name: 'Festival Rap Judesco', type: 'EVENTO CON PUBLICO', ben: 4000, dates: '23/11/25', desc: 'Festival en Parque Olaya Herrera para 4 mil personas.' }
+                ]
+            },
+            {
+                network: 'Red Hip Hop', 
+                name: 'FUNDACION EL CIRCULO HIP HOP', 
+                city: 'Bogotá D.C.', 
+                lat: 4.711, lng: -74.072,
+                events: [
+                    { name: 'Talleres de Formación', type: 'EVENTO DE FORMACION', ben: 100, dates: '12/08/25 - 05/11/25', desc: '10 talleres de formación en breaking, rap, DJ y grafiti.' },
+                    { name: 'Festival Lil Concep', type: 'EVENTO CON PUBLICO', ben: 1000, dates: '16/11/25', desc: 'Festival Hip Hop con presentaciones artísticas de los 4 elementos.' }
+                ]
+            },
+            {
+                network: 'Red Hip Hop', 
+                name: 'FUNDACION TURA HIP HOP', 
+                city: 'Buenaventura', 
+                lat: 3.877, lng: -77.025,
+                events: [
+                    { name: 'Técnicas de composición lírica', type: 'EVENTO DE FORMACION', ben: 100, dates: '15/10/25 - 05/11/25', desc: 'Talleres de composición musical en Rap a jóvenes de tres comunas vulnerables.' }
+                ]
+            },
+            {
+                network: 'Red Hip Hop', 
+                name: 'CASA DEL BARDO', 
+                city: 'Medellín', 
+                lat: 6.244, lng: -75.574,
+                events: [
+                    { name: 'Proceso de Formación', type: 'EVENTO DE FORMACION', ben: 30, dates: '01/09/25 - 30/09/25', desc: 'Talleres de marketing, producción musical, salud mental y cartografía.' },
+                    { name: 'Circulación de Artistas', type: 'EVENTO DE CIRCULACION CON PUBLICO', ben: 100, dates: '20/11/25 - 27/11/25', desc: 'Miniconciertos en Comuna 13 e intercambio de conocimiento en Bogotá.' }
+                ]
+            },
+            {
+                network: 'Red Hip Hop', 
+                name: 'MONTAÑA RECORDS', 
+                city: 'Ocaña', 
+                lat: 8.237, lng: -73.355,
+                events: [
+                    { name: 'Talleres y sistematización', type: 'EVENTO DE FORMACION', ben: 100, dates: '01/09/25 - 05/11/25', desc: 'Talleres con enfoque de género y poblacional campesino.' },
+                    { name: 'Festival de Hip Hop Campesino', type: 'EVENTO CON PUBLICO', ben: 1000, dates: '11/10/25', desc: 'Espacio gratuito y abierto con los 4 elementos del Hip Hop.' }
+                ]
+            },
+            {
+                network: 'Red Hip Hop', 
+                name: 'COLECTIVO HIP HOP POR LA VIDA', 
+                city: 'Manizales', 
+                lat: 5.068, lng: -75.517,
+                events: [
+                    { name: 'Talleres de Creación', type: 'EVENTO DE FORMACION', ben: 100, dates: '23/08/25 - 30/09/25', desc: 'Sesiones con énfasis en salud mental, artes y marketing.' },
+                    { name: 'Festival Hip Hop por la Vida', type: 'EVENTO CON PUBLICO', ben: 2000, dates: '24/09/25 - 25/09/25', desc: 'Marcha por la vida y concierto de cierre.' }
+                ]
+            },
+            {
+                network: 'Red Hip Hop', 
+                name: 'EXPRESION TEJIDA Y NEWPAPER', 
+                city: 'Cartagena', 
+                lat: 10.393, lng: -75.482,
+                events: [
+                    { name: 'Proceso de formación integral', type: 'EVENTO DE FORMACION', ben: 100, dates: '25/08/25 - 30/09/25', desc: 'Talleres en breaking, DJ, grafiti, rap y marketing digital.' },
+                    { name: 'Encuentro Nacional de Hip Hop', type: 'EVENTO CON PUBLICO', ben: 500, dates: '17/10/25 - 18/10/25', desc: 'Encuentro de saberes y diálogos de paz mediante prácticas del Hip Hop.' }
+                ]
+            },
+            {
+                network: 'Red Hip Hop', 
+                name: 'FUNDACION HIP HOP IPIALES', 
+                city: 'Ipiales', 
+                lat: 0.828, lng: -77.641,
+                events: [
+                    { name: 'Proceso de formación', type: 'EVENTO DE FORMACION', ben: 100, dates: '25/08/25 - 04/11/25', desc: 'Proceso de formación en DJ, grafiti, breaking y rap.' },
+                    { name: 'Festival Binacional', type: 'EVENTO CON PUBLICO', ben: 2000, dates: '17/11/25', desc: 'Festival tradicional donde jóvenes muestran su talento.' }
+                ]
+            },
+            {
+                network: 'Red Hip Hop', 
+                name: 'CORPORACION ARTES URBANAS CASA BEAT', 
+                city: 'Cali', 
+                lat: 3.451, lng: -76.532,
+                events: [
+                    { name: 'Talleres de Formación', type: 'EVENTO DE FORMACION', ben: 100, dates: '07/09/25 - 06/10/25', desc: 'Talleres de formación en los 4 elementos.' },
+                    { name: 'Festival Cali Beat', type: 'EVENTO CON PUBLICO', ben: 3000, dates: '09/08/25 - 10/08/25', desc: 'Festival tipo concierto con franjas académicas y de negocios.' }
+                ]
+            },
+            {
+                network: 'Red Hip Hop', 
+                name: 'LA CASITA DE COLORES JUNTA COMUNAL AGUA BONITA', 
+                city: 'San Juan de Arama', 
+                lat: 3.370, lng: -73.870,
+                events: [
+                    { name: 'Experiencias Pedagógicas', type: 'EVENTO DE FORMACION', ben: 500, dates: '14/09/25 - 19/09/25', desc: 'Campamento de intercambio metodológico.' },
+                    { name: 'Festival Georgina Ortiz', type: 'EVENTO CON PUBLICO', ben: 1000, dates: '20/09/25 - 21/09/25', desc: 'Muestras artísticas formato concierto.' }
+                ]
+            },
+            {
+                network: 'Red Hip Hop', 
+                name: 'ASOSACION HIP HOP POR NUESTRA TIERRA', 
+                city: 'Sogamoso', 
+                lat: 5.714, lng: -72.933,
+                events: [
+                    { name: 'Proceso de Fortalecimiento', type: 'EVENTO DE FORMACION', ben: 200, dates: '01/09/25 - 15/11/25', desc: 'Fortalecimiento a espacios de diferentes municipios de Boyacá.' },
+                    { name: 'Festival COMPAS', type: 'EVENTO CON PUBLICO', ben: 2000, dates: '11/10/25 - 12/11/25', desc: 'Festival tipo concierto en Tunja.' }
+                ]
+            },
+            
+            // --- ORGANIZACIONES EMERGENTES (Data existente) ---
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Fundación Cuna de Acordeones',
+                city: 'Villanueva',
+                lat: 10.609, lng: -72.981,
+                events: [
+                    { name: 'Apoyo a premiaciones talentos', type: 'CIRCULACIÓN', ben: 4000, dates: '17/09/25 - 20/09/25', desc: 'Concursos de talento Vallenato en el marco del festival.' }
+                ]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Fundación Sociocultural La Nana',
+                city: 'Fundación',
+                lat: 10.521, lng: -74.186,
+                events: [
+                    { name: 'XXVIII FESTIVAL REGIONAL DEL TEATRO', type: 'CIRCULACIÓN', ben: 1000, dates: '15/09/25 - 20/09/25', desc: 'Presentación de 20 funciones teatrales nacionales e internacionales.' },
+                    { name: 'Formación talleres teatro, técnica mimo', type: 'FORMACIÓN', ben: 200, dates: '16/09/25 - 18/09/25', desc: 'Talleres de mimo para 100 estudiantes en Fundación y Aracataca.' }
+                ]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Asociación ASOPAMURIMAJSA',
+                city: 'San José del Guaviare',
+                lat: 2.573, lng: -72.641,
+                events: [
+                    { name: 'Foros de transmisión de saberes', type: 'FORMACIÓN', ben: 1000, dates: '21/09/25 - 22/09/25', desc: 'Diálogo entre ancianos sabedores y jóvenes sobre cestería Tukano.' },
+                    { name: 'Sesiones de muestra cooperativa', type: 'FORMACIÓN', ben: 100, dates: '21/09/25 - 22/09/25', desc: 'Creación de prototipos híbridos tradición + diseño.' },
+                    { name: 'Presentación de muestras artísticas', type: 'CIRCULACIÓN', ben: 1000, dates: '21/09/25 - 22/09/25', desc: 'Muestras de música, danza y gastronomía.' }
+                ]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'FUNDACION FESTIVAL DE CINE VERDE',
+                city: 'Barichara',
+                lat: 6.636, lng: -73.223,
+                events: [
+                    { name: '15° Festival de Cine Verde', type: 'CIRCULACIÓN', ben: 2500, dates: '25/09/25 - 28/09/25', desc: 'Proyecciones de cine ambiental en el parque principal.' },
+                    { name: 'Evento Campecine', type: 'CIRCULACIÓN', ben: 800, dates: '25/09/25 - 28/09/25', desc: 'Cine en veredas y municipios de la provincia Guanentina.' },
+                    { name: 'Agenda académica', type: 'FORMACIÓN', ben: 400, dates: '25/09/25 - 28/09/25', desc: '4 talleres y 6 conversatorios con temática audiovisual.' }
+                ]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Corporación Sin Fronteras',
+                city: 'Buga',
+                lat: 3.900, lng: -76.298,
+                events: [
+                    { name: 'Barrancabermeja le canta a la paz', type: 'FORMACIÓN', ben: 500, dates: '15/09/25 - 15/11/25', desc: 'Formación musical para 300-630 niños.' },
+                    { name: 'Primer Concierto', type: 'CIRCULACIÓN', ben: 600, dates: '20/09/25', desc: 'Concierto en Centro Comercial CPC.' },
+                    { name: 'Segundo Concierto', type: 'CIRCULACIÓN', ben: 600, dates: '30/10/25', desc: 'Lugar por definir.' },
+                    { name: 'Tercer Concierto', type: 'CIRCULACIÓN', ben: 600, dates: '13/11/25', desc: 'Lugar por definir.' }
+                ]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Corporación CORPACOROS',
+                city: 'Cali',
+                lat: 3.451, lng: -76.532,
+                events: [
+                    { name: '30o. Encuentro de Música Coral', type: 'CIRCULACIÓN', ben: 3000, dates: '01/10/25 - 05/10/25', desc: '12 conciertos con 7 coros nacionales y 2 locales.' },
+                    { name: 'Fortalecimiento procesos pedagógicos', type: 'FORMACIÓN', ben: 250, dates: '01/10/25 - 05/10/25', desc: 'Intercambio "Los coros cantan a los coros".' }
+                ]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Asociación ASOMAUCOWOT',
+                city: 'San José del Guaviare',
+                lat: 2.573, lng: -72.641,
+                events: [
+                    { name: 'Encuentro Interétnico', type: 'FORMACIÓN', ben: 750, dates: '20/09/25', desc: 'Tejiendo Saberes entre Hermanos en Maloca Central.' },
+                    { name: 'Transmisión de saberes', type: 'FORMACIÓN', ben: 100, dates: '09/09/25 - 11/09/25', desc: 'Taller de cestería y registro de relatos míticos.' }
+                ]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Corporación CORARTE',
+                city: 'Cali',
+                lat: 3.451, lng: -76.532,
+                events: [
+                    { name: 'Armonías de Buga', type: 'CIRCULACIÓN', ben: 1000, dates: '02/11/25', desc: 'Dos presentaciones artísticas públicas.' },
+                    { name: 'Espacios formativos', type: 'FOMACIÓN', ben: 300, dates: '15/09/25 - 15/11/25', desc: 'Formación en canto, música y danza para 50 personas.' }
+                ]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Fundación Un Mar de Voces',
+                city: 'Puerto Colombia',
+                lat: 10.988, lng: -74.958,
+                events: [
+                    { name: 'Concierto de Clausura', type: 'CIRCULACIÓN', ben: 780, dates: '22/11/25', desc: 'Concierto conmemoración 20 años de la Escuela Coral.' },
+                    { name: 'Espacios formativos', type: 'FORMACIÓN', ben: 113, dates: '15/09/25', desc: 'Talleres de formación coral para directores y niños.' }
+                ]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Fundación La Concepción',
+                city: 'San Juan de Urabá',
+                lat: 8.761, lng: -76.529,
+                events: [
+                    { name: 'VIII Encuentro Nacional de Sexteto', type: 'CIRCULACIÓN', ben: 1000, dates: '16/09/25 - 19/09/25', desc: 'Festival de Sextetos y presentaciones.' },
+                    { name: 'Espacios formativos', type: 'FORMACIÓN', ben: 130, dates: '16/09/25 - 19/09/25', desc: 'Talleres sobre sexteto del Caribe colombiano.' }
+                ]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Coral Santa María',
+                city: 'Manizales',
+                lat: 5.068, lng: -75.517,
+                events: [
+                    { name: 'Coro a la Plaza', type: 'CIRCULACIÓN', ben: 300, dates: '15/11/25 - 15/01/26', desc: 'Socializaciones y concierto didáctico.' },
+                    { name: 'Espacios formativos', type: 'FOMACIÓN', ben: 245, dates: '01/09/25 - 12/11/25', desc: 'Formación musical Coro infantil Plaza de Mercado.' }
+                ]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Fundación Arte y Parte Julián Rodríguez',
+                city: 'Cali',
+                lat: 3.451, lng: -76.532,
+                events: [
+                    { name: 'Socializaciones', type: 'CIRCULACIÓN', ben: 1500, dates: '01/11/25 - 15/01/26', desc: 'Cierre formativo con coral de 250 niñas.' },
+                    { name: 'Espacios formativos', type: 'FOMACIÓN', ben: 350, dates: '01/09/25 - 15/11/25', desc: 'Talleres de canto colectivo.' }
+                ]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Fundación Afroresilientes Colombianos',
+                city: 'Santa Marta',
+                lat: 11.240, lng: -74.211,
+                events: [
+                    { name: 'Espacios formativos', type: 'FOMACIÓN', ben: 40, dates: '15/09/25 - 15/11/25', desc: 'Música de tambora y danza afro para 30 jóvenes.' },
+                    { name: 'Muestras', type: 'CIRCULACIÓN', ben: 150, dates: '15/11/25', desc: 'Muestra artística de cierre.' }
+                ]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Corporación Arte y Poesía Prometeo',
+                city: 'Medellín',
+                lat: 6.244, lng: -75.581,
+                events: [
+                    { name: 'Pedagogía Poética para la Paz', type: 'CIRCULACIÓN-FORMACIÓN', ben: 3000, dates: '05/07/25 - 12/07/25', desc: 'Festival Internacional de Poesía de Medellín.' },
+                    { name: 'Espacios formativos', type: 'FORMACIÓN', ben: 1420, dates: '01/08/25 - 30/09/25', desc: 'Talleres y paneles temáticos.' }
+                ]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Banda Musical del Municipio de Gutiérrez',
+                city: 'Gutiérrez',
+                lat: 4.253, lng: -74.000,
+                events: [
+                    { name: 'Festival Internacional (España)', type: 'CIRCULACIÓN-FORMACIÓN', ben: 1200, dates: '23/06/25 - 25/07/25', desc: 'Participación en el XXVII Festival Internacional.' }
+                ]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Fundación Unidos por el Desarrollo Comunitario',
+                city: 'San Pelayo',
+                lat: 8.957, lng: -75.847,
+                events: [
+                    { name: 'Encuentro Municipal Soy Pelayero', type: 'CIRCULACIÓN-FORMACIÓN', ben: 600, dates: '01/07/25 - 29/07/25', desc: 'Fortalecimiento del Festival Nacional del Porro.' }
+                ]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Fundación Identidad Despierta',
+                city: 'Riohacha',
+                lat: 11.544, lng: -72.907,
+                events: [
+                    { name: 'Transformarte sin Barreras', type: 'CIRCULACIÓN-FORMACIÓN', ben: 700, dates: '01/07/25 - 29/07/25', desc: 'Visibilización LGBTIQ+ mediante arte.' }
+                ]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Fundación Paz y Reconciliación PARES',
+                city: 'Aracataca',
+                lat: 10.593, lng: -74.189,
+                events: [
+                    { name: 'Festival Macondo', type: 'CIRCULACIÓN', ben: 600, dates: '18/07/25 - 29/07/25', desc: 'Visibilización del legado de Gabo.' }
+                ]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Fundación Decuplum',
+                city: 'Valledupar',
+                lat: 10.464, lng: -73.253,
+                events: [
+                    { name: 'EVAFE 2025', type: 'CIRCULACIÓN-FORMACIÓN', ben: 5000, dates: '01/08/25 - 15/08/25', desc: 'Encuentro de Voces y Acordeones Femenino.' }
+                ]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Fundación Desarrollo Dramático del Magdalena',
+                city: 'Santa Marta',
+                lat: 11.240, lng: -74.211,
+                events: [
+                    { name: 'Proceso Teatral', type: 'CIRCULACIÓN-FORMACIÓN', desc: 'Actividades teatrales.' }
+                ]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Fundación Carmen Mantilla',
+                city: 'El Plato',
+                lat: 10.230, lng: -74.783,
+                events: [{ name: 'Actividades Musicales', type: 'CIRCULACIÓN', desc: 'Evento musical.' }]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Asociación de Cabildos Indígenas Ipiales',
+                city: 'Ipiales',
+                lat: 0.828, lng: -77.641,
+                events: [{ name: 'Encuentro Musical', type: 'CIRCULACIÓN', desc: 'Evento musical indígena.' }]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Corporación L&M',
+                city: 'Paipa',
+                lat: 5.784, lng: -73.117,
+                events: [{ name: 'Danza', type: 'CIRCULACIÓN-FORMACIÓN', desc: 'Actividades de danza.' }]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Marcashi Group SAS',
+                city: 'Bogotá',
+                lat: 4.711, lng: -74.072,
+                events: [{ name: 'Música', type: 'CIRCULACIÓN', desc: 'Evento musical.' }]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Fundación Tierra Pazífica',
+                city: 'Cali',
+                lat: 3.451, lng: -76.532,
+                events: [{ name: 'Música y Formación Política', type: 'CIRCULACIÓN-FORMACIÓN', desc: 'Actividades formativas.' }]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Cultura Nativa SAS',
+                city: 'Bogotá',
+                lat: 4.711, lng: -74.072,
+                events: [{ name: 'Teatro, Música, Danza', type: 'CIRCULACIÓN-FORMACIÓN', desc: 'Actividades multidisciplinares.' }]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Corporación CORPOULRIKA',
+                city: 'Bogotá',
+                lat: 4.711, lng: -74.072,
+                events: [{ name: 'Literatura', type: 'CIRCULACIÓN-CREACIÓN', desc: 'Actividades literarias.' }]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Fundación Cultural Transformación Social',
+                city: 'Barrancabermeja',
+                lat: 7.065, lng: -73.854,
+                events: [{ name: 'Danza', type: 'CIRCULACIÓN-FORMACIÓN', desc: 'Actividades de danza.' }]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Corporación La Esquina del Barrio',
+                city: 'Ibagué',
+                lat: 4.439, lng: -75.232,
+                events: [{ name: 'Música y Danza', type: 'CIRCULACIÓN', desc: 'Actividades artísticas.' }]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Asociación Víctimas Santiago Pérez',
+                city: 'Ataco',
+                lat: 3.581, lng: -75.390,
+                events: [{ name: 'Actividad Cultural', type: 'CIRCULACIÓN', desc: 'Evento cultural.' }]
+            },
+            {
+                network: 'Organizaciones Emergentes',
+                name: 'Centro Periferia',
+                city: 'Bogotá',
+                lat: 4.711, lng: -74.072,
+                events: [{ name: 'Danza', type: 'CIRCULACIÓN-CREACIÓN', desc: 'Actividades de danza.' }]
+            }
+        ];
+
+        // Cálculo de Beneficiarios Totales
+        const totalBeneficiaries = organizations.reduce((acc, org) => {
+            if (!org.events) return acc;
+            const orgTotal = org.events.reduce((sum, event) => sum + (event.ben || 0), 0);
+            return acc + orgTotal;
+        }, 0);
+        
+        const totalBenElement = document.getElementById('total-ben-count');
+        if(totalBenElement) {
+            totalBenElement.textContent = totalBeneficiaries.toLocaleString('es-CO');
+        }
+
+        preloadLogos().then(result => {
+            for (const k in result) {
+                if (result[k] === 'failed' || result[k] === 'unknown') logoUrls[k] = placeholderLogo;
+            }
+            renderFilters();
+            initMap();
+        }).catch(e => { renderFilters(); initMap(); });
+
+        const appContainer = document.getElementById('app-container');
+        const panel = document.getElementById('panel');
+        const toggleBtn = document.getElementById('main-toggle-btn');
+        const searchInput = document.getElementById('search-input');
+        const searchBtn = document.getElementById('search-btn');
+        const markersById = new Map();
+
+        const networkCounts = organizations.reduce((acc, org) => {
+            acc[org.network] = (acc[org.network] || 0) + 1;
+            return acc;
+        }, {});
+        
+        const selectedNetworks = new Set(Object.keys(logoUrls));
+        const initialView = { center: [4.5709, -74.2973], zoom: 6 };
+
+        document.addEventListener('change', function(e) {
+            if(e.target.classList.contains('activity-check')) {
+                updateMarkers(searchInput.value);
+            }
+        });
+
+        function renderFilters(){
+             const filtersList = document.getElementById('filters-list');
+             filtersList.innerHTML = '';
+             for (const network in logoUrls) {
+                const item = document.createElement('div');
+                const cls = 'network-' + network.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                item.className = 'legend-item filter-option ' + cls + (selectedNetworks.has(network) ? ' active' : '');
+                const btn = document.createElement('button');
+                btn.className = 'filter-btn';
+                btn.type = 'button';
+                btn.setAttribute('aria-pressed', selectedNetworks.has(network) ? 'true' : 'false');
+                const count = networkCounts[network] || 0;
+                btn.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <img src="${logoUrls[network]}" class="legend-logo" alt="Logo de ${network}">
+                        <span>${network}</span>
+                    </div>
+                    <span class="network-count">${count}</span>
+                `;
+                btn.addEventListener('click', () => {
+                    if (selectedNetworks.has(network)) { selectedNetworks.delete(network); item.classList.remove('active'); btn.setAttribute('aria-pressed', 'false'); }
+                    else { selectedNetworks.add(network); item.classList.add('active'); btn.setAttribute('aria-pressed', 'true'); }
+                    updateMarkers(searchInput.value);
+                });
+                item.appendChild(btn);
+                filtersList.appendChild(item);
+            }
+        }
+
+        let map, markers;
+        let searchOverrideId = null;
+
+        const suggestionsEl = document.getElementById('search-suggestions');
+        function clearSuggestions(){ suggestionsEl.innerHTML = ''; suggestionsEl.style.display = 'none'; }
+        
+        function findMatches(q){
+            if (!q) return [];
+            const term = q.toLowerCase();
+            return organizations.filter(org => 
+                org.name.toLowerCase().includes(term) || 
+                (org.project && org.project.toLowerCase().includes(term)) ||
+                (org.events && org.events.some(e => e.name.toLowerCase().includes(term))) ||
+                (org.city && org.city.toLowerCase().includes(term))
+            );
+        }
+
+        function performSearch(org){
+            let targetOrg = org;
+            if (typeof org === 'string') {
+                const matches = findMatches(org);
+                targetOrg = matches.length ? matches[0] : null;
+            }
+            if (!targetOrg) return;
+            const id = String(organizations.indexOf(targetOrg));
+            searchOverrideId = id;
+            searchInput.value = targetOrg.name;
+            updateMarkers(targetOrg.name);
+            const marker = markersById.get(id);
+            if (marker) {
+                marker.openPopup();
+                if (window.innerWidth <= 800 && panel.classList.contains('show')) {
+                    togglePanel(); 
+                }
+                map.setView(marker.getLatLng(), Math.max(map.getZoom(), 10), { animate: true });
+            }
+        }
+
+        // Eventos Touch para compatibilidad móvil en búsqueda
+        function handleSearchInput(e) {
+            const v = e.target.value;
+            if (!v) { 
+                searchOverrideId = null;
+                updateMarkers('');
+                clearSuggestions(); 
+                if (map) map.setView([4.5709, -74.2973], 6, { animate: true });
+                document.getElementById('search-clear-btn').classList.remove('visible');
+                return; 
+            }
+            document.getElementById('search-clear-btn').classList.add('visible');
+            const matches = findMatches(v).slice(0,6);
+            suggestionsEl.innerHTML = '';
+            matches.forEach((m, idx) => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+                div.innerText = m.name;
+                // Usar pointerdown para mejor respuesta en móvil
+                div.addEventListener('pointerdown', (ev) => { 
+                    ev.preventDefault(); // Prevenir blur del input
+                    performSearch(m); 
+                    clearSuggestions(); 
+                });
+                suggestionsEl.appendChild(div);
+            });
+            if(matches.length) suggestionsEl.style.display = 'block'; else clearSuggestions();
+        }
+
+        searchInput.addEventListener('input', handleSearchInput);
+        
+        // Compatibilidad adicional para Safari iOS
+        searchInput.addEventListener('focus', () => {
+            if(searchInput.value) handleSearchInput({target: searchInput});
+        });
+
+        document.getElementById('search-clear-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            searchInput.value = '';
+            searchOverrideId = null;
+            updateMarkers('');
+            clearSuggestions();
+            document.getElementById('search-clear-btn').classList.remove('visible');
+            if (map) map.setView([4.5709, -74.2973], 6, { animate: true });
+        });
+
+        function updateMarkers(searchTerm = '') {
+             if (!markers) return;
+             markers.clearLayers();
+             markersById.clear();
+
+             const activityChecks = document.querySelectorAll('.activity-check:checked');
+             const activeTypes = Array.from(activityChecks).map(c => c.value);
+
+             let filteredOrgs = [];
+
+             if (searchOverrideId !== null) {
+                 const idx = parseInt(searchOverrideId, 10);
+                 if (organizations[idx]) filteredOrgs = [organizations[idx]];
+             } else {
+                 const selected = Array.from(selectedNetworks);
+                 filteredOrgs = organizations.filter(org => selected.includes(org.network));
+                 
+                 if (searchTerm) {
+                     const term = searchTerm.toLowerCase();
+                     filteredOrgs = filteredOrgs.filter(org =>
+                         org.name.toLowerCase().includes(term) ||
+                         (org.project && org.project.toLowerCase().includes(term)) ||
+                         (org.events && org.events.some(e => e.name.toLowerCase().includes(term))) ||
+                         (org.city && org.city.toLowerCase().includes(term))
+                     );
+                 }
+
+                 filteredOrgs = filteredOrgs.filter(org => {
+                     if (org.events) {
+                         return org.events.some(e => {
+                             const rawType = e.type || '';
+                             const mapped = eventTypes[rawType.toUpperCase()] || 'otro';
+                             return activeTypes.includes(mapped);
+                         });
+                     } else {
+                         return activeTypes.includes('otro');
+                     }
+                 });
+             }
+
+             let dynamicTotalBen = 0;
+
+             filteredOrgs.forEach(org => {
+                 const iconSize = 38;
+                 const iconUrl = logoUrls[org.network] || placeholderLogo;
+                 const customIcon = L.icon({
+                     iconUrl: iconUrl,
+                     iconSize: [iconSize, iconSize], iconAnchor: [iconSize / 2, iconSize], popupAnchor: [0, -iconSize]
+                 });
+
+                 let popupHtml = `<div class="popup-content"><h5>${org.name}</h5>`;
+                 popupHtml += `<p><strong>Ciudad:</strong> ${org.city}</p>`;
+
+                 let orgFilteredBen = 0;
+                 if (org.events) {
+                     org.events.forEach(e => {
+                         const rawType = e.type || '';
+                         const mapped = eventTypes[rawType.toUpperCase()] || 'otro';
+                         if (activeTypes.includes(mapped)) {
+                              if(e.ben) orgFilteredBen += e.ben;
+                         }
+                     });
+                 }
+                 dynamicTotalBen += orgFilteredBen;
+
+                 if (orgFilteredBen > 0) {
+                     popupHtml += `<div class="badge-beneficiarios">👥 ${orgFilteredBen.toLocaleString()} Beneficiarios</div>`;
+                 }
+
+                 if (org.events && org.events.length > 0) {
+                     org.events.forEach(e => {
+                         const typeClass = eventTypes[(e.type || '').toUpperCase()] || 'otro';
+                         const typeLetter = eventTypeLetters[typeClass] || '?';
+                         const typeLabel = eventTypeLabels[typeClass] || (e.type || 'Evento');
+                         
+                         let tagClass = '';
+                         if (typeClass === 'formacion') tagClass = 'tag-formacion';
+                         else if (typeClass === 'publico') tagClass = 'tag-publico';
+                         else if (typeClass === 'circulacion') tagClass = 'tag-circulacion';
+
+                         popupHtml += `<details>`;
+                         popupHtml += `<summary>
+                                         <span>${e.name.substring(0, 25)}${e.name.length>25?'...':''}</span>
+                                         <span class="event-tag ${tagClass}" title="${typeLabel}">${typeLetter}</span>
+                                       </summary>`;
+                         popupHtml += `<div class="event-details">
+                                         <div style="margin-bottom:4px;"><strong>${e.name}</strong></div>
+                                         <div style="margin-bottom:4px;"><span class="event-tag ${tagClass}" style="padding:2px 8px; width:auto; display:inline-block;">${typeLabel}</span></div>
+                                         <div style="font-size:0.9em; color:#555;">📅 ${e.dates || 'Fechas por definir'}</div>`;
+                         
+                         if (e.ben) popupHtml += `<div style="font-size:0.9em; color:#059669;">👥 ${e.ben} personas</div>`;
+                         if (e.desc) popupHtml += `<div style="margin-top:6px; font-style:italic;">${e.desc}</div>`;
+                         
+                         popupHtml += `</div></details>`;
+                     });
+                 } else if (org.project) {
+                     popupHtml += `<p><strong>Proyecto:</strong> ${org.project}</p>`;
+                     if (org.dates) popupHtml += `<p><strong>Fechas:</strong> ${org.dates}</p>`;
+                 }
+
+                 popupHtml += '</div>';
+
+                 const marker = L.marker([org.lat, org.lng], { icon: customIcon, network: org.network });
+                 marker.bindTooltip(`${org.name} - ${org.city}`);
+                 marker.bindPopup(popupHtml);
+                 markers.addLayer(marker);
+                 const id = organizations.indexOf(org);
+                 markersById.set(String(id), marker);
+             });
+             
+             const totalBenElement = document.getElementById('total-ben-count');
+             if(totalBenElement) {
+                 totalBenElement.textContent = dynamicTotalBen.toLocaleString('es-CO');
+             }
+        }
+
+        function initMap() {
+            if(typeof L === 'undefined') return;
+            map = L.map('map', { zoomControl: false }).setView([4.5709, -74.2973], 6);
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+            
+            let dayTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' });
+            let nightTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' });
+            
+            // Lógica Automática de Tema basada en Horario (6 AM - 6 PM Diurno)
+            function initTheme() {
+                const now = new Date();
+                const hour = now.getHours();
+                const isNight = hour < 6 || hour >= 18;
+                
+                // Establecer clase en el body
+                if (isNight) {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+                
+                // Actualizar icono del botón
+                const themeBtn = document.getElementById('panel-theme-toggle-btn');
+                if (themeBtn) {
+                    themeBtn.innerText = isNight ? '☀️' : '🌙';
+                }
+
+                // Añadir capas de mapa correspondientes
+                if (isNight) {
+                    nightTiles.addTo(map);
+                    // dayTiles.remove(); // Leaflet maneja esto si solo añades uno
+                    document.getElementById('map').classList.remove('day-enhance');
+                } else {
+                    dayTiles.addTo(map);
+                    // nightTiles.remove();
+                    document.getElementById('map').classList.add('day-enhance');
+                }
+            }
+
+            // Ejecutar tema automático al inicio
+            initTheme();
+
+            if(typeof L.markerClusterGroup === 'function'){
+                markers = L.markerClusterGroup({
+                    showCoverageOnHover: false,
+                    spiderfyDistanceMultiplier: 2.2,
+                    iconCreateFunction: function(cluster) {
+                        const children = cluster.getAllChildMarkers();
+                        let dominantNetwork = children[0].options.network; 
+                        let c = ' marker-cluster-';
+                        if (dominantNetwork === 'Red Hip Hop') c += 'hiphop';
+                        else if (dominantNetwork === 'Organizaciones Emergentes') c += 'emergentes';
+                        else if (dominantNetwork === 'Red Intercultural Juvenil') c += 'juvenil';
+                        else if (dominantNetwork === 'Red de Mujeres') c += 'mujeres';
+                        return new L.DivIcon({ html: '<div><span>' + cluster.getChildCount() + '</span></div>', className: 'marker-cluster' + c, iconSize: new L.Point(40, 40) });
+                    }
+                });
+            } else {
+                markers = L.layerGroup();
+            }
+            map.addLayer(markers);
+            updateMarkers();
+            
+            // Lógica de Auto-Pan Inteligente para Popups
+            map.on('popupopen', function(e) {
+                const contentNode = e.popup._contentNode;
+                contentNode.addEventListener('toggle', function(event) {
+                    if (event.target.tagName.toLowerCase() === 'details' && event.target.open) {
+                        setTimeout(() => {
+                            const popupRect = contentNode.getBoundingClientRect();
+                            const headerRect = document.getElementById('main-header').getBoundingClientRect();
+                            const padding = 20; 
+                            if (popupRect.top < headerRect.bottom + padding) {
+                                const offsetY = (headerRect.bottom + padding) - popupRect.top;
+                                map.panBy([0, -offsetY]);
+                            }
+                        }, 100); 
+                    }
+                }, true); 
+            });
+
+            // Lógica Centralizada del Botón Toggle
+            function togglePanel() {
+                const isDesktop = window.innerWidth > 800;
+                
+                if (isDesktop) {
+                   appContainer.classList.toggle('panel-collapsed');
+                } else {
+                   // En móvil usamos clase 'show' en el panel
+                   panel.classList.toggle('show');
+                }
+                
+                // Alternar el icono (Hamburguesa <-> X)
+                const icon = toggleBtn.querySelector('.toggle-icon');
+                
+                let isOpen;
+                if(isDesktop) {
+                    isOpen = !appContainer.classList.contains('panel-collapsed');
+                } else {
+                    isOpen = panel.classList.contains('show');
+                }
+
+                if(isOpen) {
+                    icon.classList.add('open');
+                } else {
+                    icon.classList.remove('open');
+                }
+                
+                setTimeout(() => map.invalidateSize(), 300);
+            }
+            
+            toggleBtn.addEventListener('click', togglePanel);
+            
+            window.addEventListener('resize', () => {
+                 const icon = toggleBtn.querySelector('.toggle-icon');
+                 const isDesktop = window.innerWidth > 800;
+                 let isOpen;
+                 if(isDesktop) isOpen = !appContainer.classList.contains('panel-collapsed');
+                 else isOpen = panel.classList.contains('show');
+                 
+                 if(isOpen) icon.classList.add('open');
+                 else icon.classList.remove('open');
+            });
+
+            // Funcionalidad del botón manual de tema
+            const themeBtn = document.getElementById('panel-theme-toggle-btn');
+            if(themeBtn){
+                themeBtn.addEventListener('click', () => {
+                    // Simplemente alterna la clase y la capa del mapa, anulando la lógica automática temporalmente
+                    const isDark = document.body.classList.toggle('dark-mode');
+                    themeBtn.innerText = isDark ? '☀️' : '🌙';
+                    if(isDark) { 
+                        map.removeLayer(dayTiles); 
+                        nightTiles.addTo(map); 
+                        document.getElementById('map').classList.remove('day-enhance'); 
+                    } else { 
+                        map.removeLayer(nightTiles); 
+                        dayTiles.addTo(map); 
+                        document.getElementById('map').classList.add('day-enhance'); 
+                    }
+                });
+            }
+        }
+    });
+    </script>
+</body>
+</html>
