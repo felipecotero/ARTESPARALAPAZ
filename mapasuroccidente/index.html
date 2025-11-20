@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self'; 
+        script-src 'self' 'unsafe-inline' https://unpkg.com; 
+        style-src 'self' 'unsafe-inline' https://unpkg.com; 
+        img-src 'self' data: https://*.basemaps.cartocdn.com https://artesparalapaz.mincultura.gov.co https://raw.githubusercontent.com;
+        connect-src 'self' https://unpkg.com https://api.countapi.xyz ws://127.0.0.1:5500; 
+        font-src 'self' https://raw.githubusercontent.com;
+        object-src 'none';">
+
+    <title>Mapa Encuentro de Redes - Artes para la Paz</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" crossorigin=""/>
+           
+    <style>
+        @font-face {
+            font-family: 'LanceAPLP';
+            src: url('https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/Lance-RegularAPLP.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        html, body {
+            height: 100%; width: 100%; margin: 0; padding: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(120deg, #f0f0f0 0%, #e0e7ff 100%);
+            color: #222;
+            transition: background 0.5s, color 0.3s;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+        body.dark-mode {
+            background: linear-gradient(120deg, #1a1a1a 0%, #312e81 100%);
+            color: #f0f0f0;
+        }
+        #main-header {
+            background: rgba(255,255,255,0.95);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            padding: 12px 24px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: relative; z-index: 1500;
+            transition: background 0.3s, color 0.3s;
+            flex-shrink: 0;
+        }
+        
+        .beneficiaries-badge {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end; 
+            justify-content: center;
+            line-height: 1;
+            box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            cursor: help;
+            min-width: 70px;
+            transition: all 0.3s ease;
+        }
+        .beneficiaries-badge:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+        .ben-number {
+            font-size: 1.1em;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        .ben-label {
+            font-size: 0.6em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.9;
+            margin-top: 2px;
+            font-weight: 600;
+        }
+
+        #main-header h1 {
+            font-family: 'LanceAPLP', sans-serif; 
+            font-size: 2.0em; 
+            margin: 0 15px; flex-grow: 1; text-align: center;
+            letter-spacing: 1px;
+            line-height: 1.1;
+        }
+        .header-logo {
+            height: 48px; width: auto; flex-shrink: 0;
+            transition: filter 0.3s;
+        }
+        .header-logo-right {
+            height: 60px; width: auto; flex-shrink: 0; margin-left: 12px; opacity: 0.95;
+            transition: transform 0.18s, opacity 0.2s;
+        }
+        .header-logo-right:hover { transform: translateY(-2px); opacity: 1; }
+        
+        .header-logos-container {
+            display: flex;
+            align-items: center;
+        }
+
+        @media (max-width: 800px) {
+            .header-logo-right { height: 34px; margin-left: 6px; }
+            .header-logo { height: 36px; }
+            #main-header h1 { font-size: 1.1em; margin: 0 8px; line-height: 1.2; }
+            #main-header { padding: 8px 12px; }
+        }
+
+        #theme-toggle-btn {
+            background: rgba(255,255,255,0.06); border: none; color: #ffffff;
+            width: 40px; height: 34px; display:flex; align-items:center; justify-content:center;
+            border-radius: 8px; cursor: pointer; transition: background 0.2s, transform 0.12s;
+            padding: 6px;
+        }
+        #theme-toggle-btn:hover { background: rgba(255,255,255,0.12); transform: translateY(-1px); }
+        
+        /* ESTILOS DE COLOR DEL HEADER */
+        body:not(.dark-mode) #main-header {
+            background: #ffdc4a; /* Amarillo */
+            color: #111; 
+        }
+        body:not(.dark-mode) #main-header h1 { 
+            color: #c026d3; /* Fucsia */
+            text-shadow: 0px 1px 0px rgba(255,255,255,0.4); 
+        }
+        body.dark-mode #main-header {
+            background: rgba(30,41,59,0.95); color: #fff;
+        }
+        
+        body:not(.dark-mode) #panel {
+            background: #2b8ec6;
+            color: #fff;
+        }
+        body.dark-mode #panel {
+            background: rgba(30,41,59,0.98); color: #f0f0f0;
+        }
+        body.dark-mode #theme-toggle-btn { color: #ffffff; }
+        
+        #app-container { flex-grow: 1; position: relative; overflow: hidden; min-height: 0; display: flex; }
+        
+        /* Panel de Control */
+        #panel {
+            background: rgba(255,255,255,0.98);
+            box-shadow: 2px 0 12px rgba(0,0,0,0.18);
+            color: #222;
+            position: absolute; 
+            top: 0; left: 0;
+            width: 420px; height: 100%; 
+            padding: 24px 54px 20px 20px; 
+            display: flex; flex-direction: column; overflow-y: auto;
+            z-index: 2000; 
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-sizing: border-box;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        #filters h2, #legend h2 {
+            border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 10px; color: inherit;
+        }
+        body.dark-mode #filters h2, body.dark-mode #legend h2 {
+            border-bottom: 1px solid #444;
+        }
+
+        /* --- BOTÓN TOGGLE FLOTANTE --- */
+        #main-toggle-btn {
+            position: absolute;
+            top: 12px; 
+            z-index: 4000; 
+            width: 32px; 
+            height: 32px;
+            background: #1e3a8a; 
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+            transition: left 0.3s ease, transform 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #main-toggle-btn:hover {
+            background: #172554;
+            transform: scale(1.05);
+        }
+
+        /* Icono Animado */
+        .toggle-icon {
+            width: 18px;
+            height: 14px;
+            position: relative;
+            transform: rotate(0deg);
+            transition: .4s ease-in-out;
+        }
+        .toggle-icon span {
+            display: block;
+            position: absolute;
+            height: 2px;
+            width: 100%;
+            background: #fff;
+            border-radius: 2px;
+            opacity: 1;
+            left: 0;
+            transform: rotate(0deg);
+            transition: .25s ease-in-out;
+        }
+
+        .toggle-icon span:nth-child(1) { top: 0px; }
+        .toggle-icon span:nth-child(2) { top: 6px; }
+        .toggle-icon span:nth-child(3) { top: 12px; }
+
+        .toggle-icon.open span:nth-child(1) {
+            top: 6px;
+            transform: rotate(135deg);
+        }
+        .toggle-icon.open span:nth-child(2) {
+            opacity: 0;
+            left: -60px;
+        }
+        .toggle-icon.open span:nth-child(3) {
+            top: 6px;
+            transform: rotate(-135deg);
+        }
+
+        /* Posicionamiento en Escritorio (Panel width 420px) */
+        @media (min-width: 801px) {
+            /* Panel Abierto */
+            #app-container:not(.panel-collapsed) #main-toggle-btn {
+                left: 380px; 
+            }
+            /* Panel Cerrado */
+            #app-container.panel-collapsed #main-toggle-btn {
+                left: 20px; 
+            }
+            #app-container.panel-collapsed #panel {
+                transform: translateX(-100%);
+            }
+            /* Mapa responsive al panel */
+            #app-container:not(.panel-collapsed) #map-container {
+                left: 420px; 
+                width: calc(100% - 420px);
+            }
+            #app-container.panel-collapsed #map-container {
+                left: 0; 
+                width: 100%;
+            }
+        }
+
+        /* Posicionamiento en Móvil (Panel width 85vw) */
+        @media (max-width: 800px) {
+            #panel {
+                width: 85vw; 
+                padding-right: 45px;
+                transform: translateX(-100%); 
+            }
+            /* Estado Abierto Móvil */
+            #panel.show {
+                transform: translateX(0);
+            }
+            /* Cuando el panel tiene la clase .show, el botón (hermano siguiente) se mueve */
+            #panel.show ~ #main-toggle-btn {
+                left: calc(85vw - 45px); /* Pegado a la esquina derecha del panel */
+            }
+            /* Estado Cerrado Móvil (Por defecto) */
+            #main-toggle-btn {
+                left: 15px; 
+            }
+            /* En móvil el mapa siempre ocupa el 100% */
+            #map-container {
+                left: 0 !important;
+                width: 100% !important;
+            }
+        }
+        
+        .filter-option label {
+            display: flex; align-items: center; cursor: pointer; padding: 6px 0;
+            transition: background 0.2s;
+        }
+        .filter-option label:hover {
+            background: #e0e7ff;
+        }
+        body.dark-mode .filter-option label:hover {
+            background: #312e81;
+        }
+        #search-box {
+            margin-bottom: 18px;
+            display: flex; align-items: center;
+            position: relative; 
+            width: 100%;
+        }
+        
+        :root { --search-clear-w: 34px; --search-btn-w: 40px; --search-gap: 8px; --filters-blue: #51cafc; --panel-theme-purple: #7c3aed; }
+        #search-input {
+            flex-grow: 1; 
+            padding: 7px 12px; border-radius: 6px; border: 1px solid #6366f1;
+            padding-right: 30px; 
+            font-size: 0.95em; outline: none; margin-right: 6px;
+            box-sizing: border-box; position: relative; z-index: 2500; background: #fff;
+            height: 36px;
+            -webkit-appearance: none;
+        }
+        #search-input:focus {
+            border-color: #fbbf24;
+        }
+        
+        #search-btn {
+            background: var(--filters-blue); color: #fff; border: none; border-radius: 6px;
+            width: var(--search-btn-w); height: 36px; cursor: pointer; font-size: 1em; 
+            display: inline-flex; align-items: center; justify-content: center;
+            transition: background 0.18s, transform 0.12s;
+            margin-right: 0; 
+            flex-shrink: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #search-btn:hover { filter: brightness(0.95); transform: scale(1.02); }
+        
+        #search-suggestions {
+            display: none; position: relative; width: 100%; margin-bottom: 8px; z-index: 2500;
+            max-height: 260px; overflow-y: auto; border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(16,24,40,0.12);
+        }
+        .suggestion-item {
+            padding: 10px 12px; background: rgba(255,255,255,0.98); cursor: pointer; border-bottom: 1px solid rgba(0,0,0,0.04);
+            color: #111; display: block;
+        }
+        .suggestion-item:last-child { border-bottom: none; }
+        .suggestion-item:hover, .suggestion-item:focus { background: #f3f4f6; outline: none; }
+        .suggestion-item.highlight { background: #eef2ff; }
+        body.dark-mode .suggestion-item { background: rgba(20,24,32,0.96); color: #fff; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        body.dark-mode .suggestion-item:hover, body.dark-mode .suggestion-item:focus { background: rgba(40,44,59,0.95); }
+        
+        /* Botón X pequeño dentro del input de búsqueda */
+        #search-clear-btn {
+            position: absolute; 
+            left: calc(100% - var(--search-btn-w) - 40px); 
+            top: 50%; transform: translateY(-50%);
+            width: 20px; height: 20px; border-radius: 50%; border: none; background: transparent;
+            display: none; align-items: center; justify-content: center; cursor: pointer; z-index: 2600;
+            font-size: 12px; color: #999; padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #search-clear-btn:hover { color: #333; background: #eee; }
+        body.dark-mode #search-clear-btn { color: #ccc; }
+        #search-clear-btn.visible { display: flex !important; }
+        
+        #legend .legend-item {
+            display: flex; align-items: center; margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+        .legend-logo {
+            width: 24px; height: 24px; margin-right: 10px;
+        }
+        
+        .filter-option.active { border-radius: 6px; }
+        .filter-option .filter-btn { 
+            display:flex; 
+            align-items:center; 
+            justify-content: space-between;
+            gap:8px; 
+            padding:6px 8px; 
+            cursor:pointer; 
+            background: transparent; 
+            border: none; 
+            width: 100%; 
+            text-align: left; 
+        }
+        .filter-option .filter-btn:focus { outline: 2px solid #fbbf24; }
+        .filter-btn.night-mode { opacity: 0.95; }
+        .filter-btn.night-mode:active, .filter-option.active .filter-btn.night-mode { background: rgba(255,255,255,0.04); }
+        .filter-btn div span { color: #111; }
+        .filter-option.active .filter-btn div span { color: #111; }
+        body.dark-mode .filter-option.active .filter-btn div span { color: #fff; }
+
+        .network-count {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            min-width: 20px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        body:not(.dark-mode) .network-count {
+            background-color: var(--blue-dark);
+            color: white;
+        }
+        body.dark-mode .network-count {
+            background-color: var(--blue-pastel);
+            color: var(--blue-dark);
+        }
+
+        .filters-card {
+            background: rgba(255,255,255,0.96);
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 6px 18px rgba(16,24,40,0.06);
+            margin-bottom: 12px;
+        }
+        
+        /* AJUSTE: Caja de filtros con scroll y altura limitada */
+        #filters-list {
+            max-height: 35vh; /* Ocupa aprox el 35% de la altura de la pantalla */
+            overflow-y: auto; /* Barra de desplazamiento vertical */
+            padding-right: 5px; /* Espacio para el scrollbar */
+        }
+        
+        /* Estilo para scrollbar más elegante */
+        #filters-list::-webkit-scrollbar { width: 6px; }
+        #filters-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); border-radius: 3px; }
+        #filters-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 3px; }
+        #filters-list::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.3); }
+        
+        #panel .filters-card h2 { margin: 0 0 8px 0; color: #111; font-size: 1.0em; font-weight: 700; }
+        .filters-card { background: #51cafc; }
+        body.dark-mode #panel .filters-card { background: rgba(20,24,32,0.82); box-shadow: 0 6px 18px rgba(0,0,0,0.45); }
+        body.dark-mode #panel .filters-card h2 { color: #fff; }
+
+        :root {
+            --blue-pastel: #d7f0ff;
+            --blue-dark: #063c6b;
+        }
+        .filters-card .filter-btn { background: transparent; border-radius: 8px; padding: 8px; display: flex; align-items: center; gap:8px; }
+        .filters-card .filter-btn .legend-logo { filter: none; }
+        body:not(.dark-mode) .filters-card .filter-btn div span { color: var(--blue-dark); }
+        body:not(.dark-mode) .filters-card .filter-option.active .filter-btn { background: var(--blue-pastel); }
+        body:not(.dark-mode) .filters-card .filter-option.active .filter-btn div span { color: var(--blue-dark); font-weight: 600; }
+        body.dark-mode .filters-card .filter-btn div span { color: #ffffff; }
+        body.dark-mode .filters-card .filter-option.active .filter-btn { background: var(--blue-pastel); }
+        body.dark-mode .filters-card .filter-option.active .filter-btn div span { color: var(--blue-dark); font-weight: 700; }
+
+        .popup-content details {
+            margin-top: 8px;
+            border: 1px solid #e0e7ff;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.95);
+        }
+        .popup-content summary {
+            padding: 6px 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9em;
+            color: #4338ca;
+            list-style: none; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .popup-content summary::-webkit-details-marker { display: none; }
+        .popup-content summary:after {
+            content: '+'; 
+            font-weight: bold;
+        }
+        .popup-content details[open] summary:after {
+            content: '-';
+        }
+        .popup-content details[open] summary {
+            border-bottom: 1px solid #e0e7ff;
+            background: #eef2ff;
+        }
+        .popup-content .event-details {
+            padding: 8px 10px;
+            font-size: 0.85em;
+            line-height: 1.4;
+            color: #333;
+        }
+        .popup-content .badge-beneficiarios {
+            display: inline-block;
+            background: #ecfdf5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        /* Estilos para badges de rol */
+        .role-badge {
+             display: inline-block;
+             padding: 2px 8px;
+             border-radius: 4px;
+             font-size: 0.75em;
+             font-weight: 700;
+             text-transform: uppercase;
+             margin-bottom: 4px;
+        }
+        .role-badge.despacho { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
+        .role-badge.artes { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+        .role-badge.museo { background: #fce7f3; color: #be185d; border: 1px solid #fbcfe8; }
+        .role-badge.poblaciones { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+
+        #map-container {
+            width: 100%; height: 100%; position: absolute; top: 0; left: 0; 
+            transition: left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), width 0.3s;
+        }
+        #map { width: 100%; height: 100%; }
+        
+        #map.day-enhance { filter: saturate(1.15) contrast(1.05) hue-rotate(-6deg); }
+        body.dark-mode #map { filter: grayscale(0.15) contrast(0.9) brightness(0.9); }
+        
+        .panel-theme-btn {
+            background: var(--panel-theme-purple); border: 1px solid rgba(0,0,0,0.06); padding: 8px 10px; border-radius: 8px; cursor: pointer;
+            color: #fff; display: inline-flex; align-items: center; justify-content: center;
+        }
+        body.dark-mode .panel-theme-btn { border-color: rgba(255,255,255,0.08); }
+        
+        .leaflet-tooltip {
+            background: rgba(99,102,241,0.85); color: #fff; border: 1px solid #6366f1;
+            border-radius: 5px; padding: 6px; font-size: 1em;
+        }
+        .leaflet-marker-icon {
+            filter: drop-shadow(0px 4px 8px rgba(99,102,241,0.8));
+            transition: filter 0.3s;
+        }
+        .leaflet-marker-icon:hover {
+            filter: drop-shadow(0px 6px 12px rgba(251,191,36,0.8));
+        }
+        
+        /* AUMENTO DE TAMAÑO DE CLUSTERS (De 46px a 60px) */
+        .marker-cluster div {
+            background: #cfe8ff; 
+            border-radius: 50%;
+            width: 60px; height: 60px; /* AUMENTADO */
+            display: flex; align-items: center; justify-content: center;
+            border: none;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.28);
+            color: #fff; font-weight: 700; font-size: 16px;
+        }
+        .marker-cluster span { line-height: 1; }
+        /* Cluster Colors based on Networks */
+        .marker-cluster.marker-cluster-hiphop div { background: #b91c1c; } 
+        .marker-cluster.marker-cluster-juvenil div { background: #7c3aed; } 
+        .marker-cluster.marker-cluster-mujeres div { background: #d946ef; } 
+        .marker-cluster.marker-cluster-museos div { background: #0ea5e9; }
+        .marker-cluster.marker-cluster-pacifico div { background: #f59e0b; }
+        .marker-cluster.marker-cluster-otras div { background: #64748b; }
+        
+        .marker-cluster .marker-cluster-1, .marker-cluster div.large { width: 70px; height: 70px; font-size: 18px; } /* AUMENTADO */
+
+        body.dark-mode .marker-cluster div { background: #23303a; color: #fff; box-shadow: 0 6px 18px rgba(0,0,0,0.45); }
+        
+        .tutorial-card {
+            background: #eef2ff;
+            border-radius: 12px;
+            padding: 12px 16px;
+            box-shadow: 0 6px 18px rgba(16,24,40,0.06);
+            margin-top: 20px;
+            max-height: 240px; 
+            overflow-y: auto; 
+        }
+        body:not(.dark-mode) .tutorial-card { color: #3730a3; }
+        body.dark-mode .tutorial-card { background: rgba(40,44,59,0.95); }
+        .tutorial-card h2 { margin: 0 0 10px 0; color: #111; font-size: 1.05em; font-weight: 700; }
+        body.dark-mode .tutorial-card h2 { color: #fff; }
+        .tutorial-card ul { list-style-type: none; padding-left: 0; margin: 0; }
+        .tutorial-card li { font-size: 0.85em; line-height: 1.5; margin-bottom: 10px; padding-right: 8px; }
+        .tutorial-card li:last-child { margin-bottom: 0; }
+        .tutorial-card strong { color: #6366f1; }
+        body.dark-mode .tutorial-card strong { color: #a78bfa; }
+        
+        .private-data {
+            background: #fff1f2;
+            border: 1px solid #fecdd3;
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 5px;
+            font-size: 0.85em;
+            color: #881337;
+        }
+        .private-label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 2px;
+            color: #9f1239;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="main-header" tabindex="0">
+        <a id="link-artes" class="header-logo-link" href="https://artesparalapaz.mincultura.gov.co/Paginas/index.aspx" target="_blank" rel="noopener noreferrer" title="Volver a la página de Artes para la Paz">
+            <img src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/APLP%20MORADO.png?v=2" alt="Logo Artes para la Paz" class="header-logo">
+        </a>
+        
+        <h1>A Red Junte del Sur Occidente - En Clave de Cultura de Paz</h1>
+        
+        <div class="header-logos-container">
+            <a id="link-culturas" class="header-logo-link" href="https://www.mincultura.gov.co/" target="_blank" rel="noopener noreferrer" title="Ir al Ministerio de las Culturas, las Artes y los Saberes de Colombia">
+                <img src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/GRIS_CULTURAS.png?v=2" alt="Logo Culturas" class="header-logo-right" />
+            </a>
+            <a id="link-somos" class="header-logo-link" href="#" title="Somos Cultura de Paz">
+                <img src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/logo_fucsia.png" alt="Logo Somos Cultura de Paz" class="header-logo-right" />
+            </a>
+        </div>
+    </div>
+
+    <div id="app-container">
+        <!-- Importante: Botón DEBAJO del panel en el DOM para que CSS funcione correctamente en móvil -->
+        <div id="panel" tabindex="0">
+            <div id="search-box">
+                <input id="search-input" type="text" placeholder="Buscar participante, organización..." aria-label="Buscar" tabindex="0">
+                <button id="search-clear-btn" title="Borrar búsqueda" aria-label="Borrar búsqueda" tabindex="0">✕</button>
+                <button id="search-btn" title="Buscar" tabindex="0">🔍</button>
+            </div>
+            <div id="search-suggestions" role="listbox" aria-label="Sugerencias de búsqueda"></div>
+            <div id="filters">
+                <div class="filters-card">
+                    <h2>Redes Participantes</h2>
+                    <div id="filters-list"></div>
+                    
+                    <div id="panel-theme-row" style="margin-top:10px; display:flex; align-items:center; justify-content: space-between;">
+                        <button id="panel-theme-toggle-btn" class="panel-theme-btn" title="Cambiar modo claro/oscuro" aria-pressed="false">🌙</button>
+                        <div id="beneficiaries-display" class="beneficiaries-badge" title="Total de participantes listados">
+                            <span class="ben-number" id="total-ben-count">0</span>
+                            <span class="ben-label">Participantes</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="tutorial-panel" class="tutorial-card">
+                <h2>Guía del Encuentro</h2>
+                <ul>
+                    <li><strong>Participantes:</strong> Cada punto representa un delegado. Haz clic para ver su ficha técnica.</li>
+                    <li><strong>Detalles:</strong> En el popup encontrarás la organización, contacto y detalles logísticos (desplegables).</li>
+                    <li><strong>Filtros:</strong> Usa los botones de colores arriba para filtrar por Red Cultural.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- BOTÓN PRINCIPAL DE TOGGLE UNIFICADO -->
+        <button id="main-toggle-btn" aria-label="Alternar panel">
+            <div class="toggle-icon open">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </button>
+
+        <div id="map-container" tabindex="0">
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin="" defer></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"
+            crossorigin="" defer></script>
+    <script>
+    window.addEventListener('DOMContentLoaded', function() {
+        
+        // URL de logos mapeados a las redes.
+        // Se utilizan los PNGs originales para Hip Hop, Mujeres y Juvenil.
+        // Se utiliza el logo "Organizaciones Emergentes" para redes regionales y gestores.
+        // Se utilizan los iconos CCDP para redes temáticas específicas.
+        const logoUrls = {
+            // 1. REDES CON LOGOS ORIGINALES (Restaurados)
+            'RED INTERCULTURAL JUVENIL': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/RED%20JUVENIL.png',
+            'RED COMUNITARIA DE HIP HOP': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/REDDEHIPHOP.png',
+            'RED DE MUJERES ARTISTAS': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/ORGANIZACIONES%20DE%20MUJERES.png',
+            'JUNTANZA DE JÓVENES DE LA MINGA SUREOCCIDENTE': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/RED%20JUVENIL.png', // Asumo que esta también es Juvenil
+
+            // 2. REDES EMERGENTES Y GESTORES (Usan el logo de "Organizaciones Emergentes")
+            'RED DEL PACIFICO NARIÑENSE POR LA PAZ': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/ORGANIZACIONES%20EMERGENTES.png',
+            'RED DE GESTORES CULTURALES DEL PACIFICO MEDIO': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/ORGANIZACIONES%20EMERGENTES.png',
+            'RED DE GESTORES ARTÍSTICOS Y CULTURALES DE SUBREGIÓN PDET ALTO PATÍA NORTE DEL CAUCA': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/ORGANIZACIONES%20EMERGENTES.png',
+            'RED PACIFICO MEDIO - ARTISTAS Y GESTORES CULTURALES DEL PACIFICO MEDIO': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/ORGANIZACIONES%20EMERGENTES.png',
+            'ASONAM-V': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/ORGANIZACIONES%20EMERGENTES.png',
+            'ASOWAKAS LAS ÁNIMAS': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/ORGANIZACIONES%20EMERGENTES.png',
+
+            // 3. REDES TEMÁTICAS ESPECÍFICAS (Iconos CCDP)
+            'RED DE MUSEOS DEL VALLE DE CAUCA - MUVAC': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/iconos/CCDP_Icono_Edificios.png',
+            'RED DE MUSEOS DE PASTO': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/iconos/CCDP_Icono_Edificios.png',
+            'RED DE MUSEOS DE NARIÑO': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/iconos/CCDP_Icono_Edificios.png',
+            
+            'VIGIAS DEL PATRIMONIO': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/iconos/CCDP_Icono_Arbol.png',
+            
+            'RED NACIONAL DE BILIOTECAS COMUNITARIAS POPULARES E ITINERANTES': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/iconos/CCDP_Icono_Asterisco.png',
+            
+            'RED DE EMISORAS COMUNITARIAS DEL CHOCO BARULE - LLORO STEREO': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/iconos/CCDP_Icono_Camara.png',
+            
+            'RED DE CANTADORAS DEL PACIFICO SUR': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/iconos/CCDP_Icono_Fuego.png',
+            
+            'RED DE PARTERIA TRADICIONAL CAMPESINA DE NARIÑO': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/iconos/CCDP_Icono_Corazon.png',
+            
+            'REDAN': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/iconos/CCDP_Icono_Cometa.png',
+            'RED DE ESCUELAS TIPO': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/iconos/CCDP_Icono_Cometa.png',
+            'RED ESCUELAS TALLER DE COLOMBIA': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/iconos/CCDP_Icono_Cometa.png',
+            'RED DE COROS INFANTILES': 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/iconos/CCDP_Icono_Cometa.png'
+        };
+        
+        // Logo de respaldo PRINCIPAL (El logo morado de APLP)
+        const placeholderLogo = "https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/APLP%20MORADO.png?v=2";
+        const loadedLogos = {};
+
+        // DATA UNIFICADA
+        const peopleData = [
+            {
+                id: 1, name: "Ana Luar Guerrero Chindoy", role: "DESPACHO", org: "Fundación Artistica y Cultural la Minga Muralista kamentsa", 
+                network: "RED INTERCULTURAL JUVENIL", email: "analuarguerrerochindoy@gmail.com", phone: "3132074732",
+                lat: 1.150, lng: -76.950, city: "Sibundoy (Aprox)", // Putumayo/Sibundoy por Kamentsa
+                emer: { contact: "Jorge David Morales Benavides", phone: "3108723916", rel: "Pareja", eps: "Nueva EPS", rh: "o+" }
+            },
+            {
+                id: 2, name: "Andrea Erira", role: "DIRECCION ARTES", org: "Red de danzantes de los pueblos originarios REDAN", 
+                network: "REDAN", email: "andreaerira@gmail.com", phone: "315 8357091",
+                lat: 0.828, lng: -77.641, city: "Ipiales (Aprox)", // Ipiales/Nariño zona común REDAN
+                emer: { contact: "Jonathan Dejoy", phone: "3112007631", rel: "Pareja", eps: "Mallamas", rh: "O+" }
+            },
+            {
+                id: 3, name: "Ashlee Samantha Tejedor Cabrera", role: "DESPACHO", org: "Macizo Arte y Cultura", 
+                network: "RED INTERCULTURAL JUVENIL", email: "5ashleetc@gmail.com", phone: "3223460590",
+                lat: 1.900, lng: -76.500, city: "Macizo Colombiano (Aprox)",
+                emer: { contact: "René Rodríguez", phone: "3222410834", rel: "Novio", eps: "Salud Total", rh: "A+", diet: "No consumo pescado", health: "Tenosinovitis" }
+            },
+            {
+                id: 4, name: "Brayan Muñoz", role: "DESPACHO", org: "Fundación Surprise City", 
+                network: "RED COMUNITARIA DE HIP HOP", email: "fundacionsurprisecity@gmail.com", phone: "3152165227",
+                lat: 1.213, lng: -77.281, city: "Pasto",
+                emer: { contact: "Alix Muñoz", phone: "3178508181", rel: "Mamá", eps: "Nueva EPS", rh: "O+" }
+            },
+            {
+                id: 5, name: "Carlos Héctor Pay Mosquera", role: "DIRECCION ARTES", org: "asociacion red del pacifico nariñense por la paz", 
+                network: "RED DEL PACIFICO NARIÑENSE POR LA PAZ", email: "carlos.pay1993@gmail.com", phone: "3108300732",
+                lat: 1.805, lng: -78.764, city: "Tumaco/Nariño (Aprox)",
+                emer: { contact: "lenis mosquera marquinez", phone: "3136124786", rel: "Madre", eps: "emssanar", rh: "0+" }
+            },
+            {
+                id: 6, name: "Carolina Jaramillo", role: "MUSEO NACIONAL", org: "Red MUVAC", 
+                network: "RED DE MUSEOS DEL VALLE DE CAUCA - MUVAC", email: "caolinaj@gmail.com", phone: "3154019552",
+                lat: 3.451, lng: -76.532, city: "Cali (Valle)",
+                emer: { contact: "Ximena Jaramillo", phone: "+57 (317) 404-4590", rel: "Hermana", eps: "Sura", rh: "O+", meds: "Eutirox 180, calciteiol 0.5, citragel" }
+            },
+            {
+                id: 7, name: "Daniel Andres Fuelpaz Narvaez", role: "DESPACHO", org: "Fundación Surprise City", 
+                network: "RED COMUNITARIA DE HIP HOP", email: "daniel18and@gmail.com", phone: "3233445964",
+                lat: 1.210, lng: -77.275, city: "Pasto",
+                emer: { contact: "Angélica Lozano Porras", phone: "3106882524", rel: "Esposa", eps: "Aliansalud", rh: "AB+", diet: "Carnes Rojas y embutidos" }
+            },
+            {
+                id: 8, name: "Danny Vallecilla Grueso", role: "DIRECCION ARTES", org: "Red de gestores culturales del pacifico medio", 
+                network: "RED DE GESTORES CULTURALES DEL PACIFICO MEDIO", email: "sofia.vallecilla@hotmail.com", phone: "3145733605",
+                lat: 3.890, lng: -77.050, city: "Pacífico Medio (Aprox)",
+                emer: { contact: "Rocio torres", phone: "3159285867", rel: "pareja", eps: "sanitas", rh: "o+" }
+            },
+            {
+                id: 9, name: "Edier Betancourt Méndez", role: "DESPACHO", org: "Maloca Comunitaria Nicolás Guerrero", 
+                network: "RED NACIONAL DE BILIOTECAS COMUNITARIAS POPULARES E ITINERANTES", email: "zumbambicolee@gmail.com", phone: "3154000611",
+                lat: 3.430, lng: -76.500, city: "Cali (Aprox)",
+                emer: { contact: "Jeison Gerardo Obregon", phone: "3177271129", rel: "conyugue", eps: "Comfenalco Valle", rh: "O+" }
+            },
+            {
+                id: 10, name: "Fanny Garzón Lozano", role: "DIRECCION ARTES", org: "Representante de RED DE GESTORES ARTÍSTICOS Y CULTURALES", 
+                network: "RED DE GESTORES ARTÍSTICOS Y CULTURALES DE SUBREGIÓN PDET ALTO PATÍA NORTE DEL CAUCA", email: "fangalo@hotmail.com", phone: "3218365776",
+                lat: 2.100, lng: -77.100, city: "Alto Patía (Aprox)",
+                emer: { contact: "Violeta Betancourt", phone: "316 3437122", rel: "Hija", eps: "Sura", rh: "O+" }
+            },
+            {
+                id: 11, name: "Guillermo Renteria Hurtado", role: "DIRECCION ARTES", org: "Pacífico Medio", 
+                network: "RED PACIFICO MEDIO - ARTISTAS Y GESTORES CULTURALES DEL PACIFICO MEDIO", email: "culturaetnia@gmail.com", phone: "Guillermo",
+                lat: 3.950, lng: -77.100, city: "Pacífico Medio (Aprox)",
+                emer: { contact: "JOSE ERNEY GONZALEZ COLLAZOS", phone: "3137199591", rel: "ESPOSO", eps: "Nueva EPS", rh: "AB-" }
+            },
+            {
+                id: 12, name: "Jekssy Mary Perea Ramírez", role: "POBLACIONES", org: "ASONAM-V", 
+                network: "ASONAM-V", email: "jemarira8@gmail.com", phone: "3122807206",
+                lat: 3.870, lng: -76.800, city: "Valle (Aprox)",
+                emer: { contact: "Juana Renteria", phone: "3147914508", rel: "Contacto", eps: "Nueva Eps", rh: "B+" }
+            },
+            {
+                id: 13, name: "Jhoanna Andrea Lora Aguirre", role: "DESPACHO", org: "The Giants Community", 
+                network: "RED INTERCULTURAL JUVENIL", email: "comercial@thegiantsco.com", phone: "3007293940",
+                lat: 3.440, lng: -76.540, city: "Cali",
+                emer: { contact: "Jikssely Milena Galindo Perea", phone: "3103012674", rel: "Hija", eps: "Sumimedical", rh: "B" }
+            },
+            {
+                id: 14, name: "JHON FREDY GUERRERO DE LA CRUZ", role: "DESPACHO", org: "FUNDACION MOVIMIENTO HIP HOP IPIALES", 
+                network: "RED COMUNITARIA DE HIP HOP", email: "guerrerodelacruzjhonfredy@gmail.com", phone: "3174536297",
+                lat: 0.825, lng: -77.640, city: "Ipiales",
+                emer: { contact: "Alba Luz Aguirre", phone: "3203098839", rel: "Madre", eps: "SOS COMFANDI", rh: "A+" }
+            },
+            {
+                id: 15, name: "John Lee Muñoz", role: "MUSEO NACIONAL", org: "Museo Juan Lorenzo Lucero", 
+                network: "RED DE MUSEOS DE PASTO", email: "john.lm1300@gmail.com", phone: "3043606192",
+                lat: 1.213, lng: -77.281, city: "Pasto",
+                emer: { contact: "WILSON FIGUEROA", phone: "1085735343", rel: "AMIGO", eps: "MALLAMAS", rh: "o+" }
+            },
+            {
+                id: 16, name: "Jorge Montenegro", role: "DEDE", org: "Observatorio de Cultura de Pasto", 
+                network: "RED DE MUSEOS DE PASTO", email: "jorgemonalcaldia@gmail.com", phone: "3003165425",
+                lat: 1.215, lng: -77.285, city: "Pasto",
+                emer: { contact: "Sandra Burgos", phone: "3043606192", rel: "Madre", eps: "Sanitas", rh: "O+" }
+            },
+            {
+                id: 17, name: "Julian Rodriguez Granada", role: "POBLACIONES", org: "Fundación Arte y Parte", 
+                network: "RED DE COROS INFANTILES", email: "julianrodriguezmusica@gmail.com", phone: "3105930811",
+                lat: 3.460, lng: -76.550, city: "Cali",
+                emer: { contact: "Juan Montenegro", phone: "3137790235", rel: "hermano", eps: "nuieva eps", rh: "a+" }
+            },
+            {
+                id: 18, name: "JUVERTH MORENO AYALA", role: "DACMI", org: "RED DE EMISORAS COMUNITARIAS DEL CHOCO BARULE", 
+                network: "RED DE EMISORAS COMUNITARIAS DEL CHOCO BARULE - LLORO STEREO", email: "redchoco.barule@gmail.com", phone: "3206155600",
+                lat: 5.510, lng: -76.545, city: "Lloró/Chocó",
+                emer: { contact: "Marcela Lopez Pineda", phone: "3117026033", rel: "Pareja", eps: "Sanitas", rh: "A+" }
+            },
+            {
+                id: 19, name: "Leany Mislena Laulate Castillo", role: "DESPACHO", org: "Comunicación Visual Sin Fronteras Amazonas", 
+                network: "RED INTERCULTURAL JUVENIL", email: "lealau0402@gmail.com", phone: "3108037794",
+                lat: -4.210, lng: -69.940, city: "Amazonas/Leticia (Aprox)",
+                emer: { contact: "JAZMIN WALDO SANCHEZ", phone: "3206272579", rel: "ESPOSA", eps: "NUEVA EPS", rh: "A POSITIVO" }
+            },
+            {
+                id: 20, name: "Margarita Camacho Araque", role: "DIRECCION ARTES", org: "Red de Escuelas Tipo", 
+                network: "RED DE ESCUELAS TIPO", email: "margarita@bandolitis.com", phone: "3102754217",
+                lat: 4.711, lng: -74.072, city: "Bogotá (Aprox)",
+                emer: { contact: "Flor del carmen Ahuanary Coelo", phone: "332661950", rel: "Familiar", eps: "Nueva Eps", rh: "O+" }
+            },
+            {
+                id: 21, name: "Mario andres Cortes rincon", role: "DESPACHO", org: "Raiz afropacifico", 
+                network: "RED COMUNITARIA DE HIP HOP", email: "colectivoafroandino@gmail.com", phone: "3159681448",
+                lat: 3.420, lng: -76.510, city: "Cali (Aprox)",
+                emer: { contact: "Ingrid Rivas", phone: "3156881380", rel: "Madre", eps: "Comfenalco Valle", rh: "A+" }
+            },
+            {
+                id: 22, name: "Mauricio Hernan Figueroa Narvaez", role: "ICANH", org: "asociacion Agropecuaria y Ecoturistica el Gran Paraiso", 
+                network: "VIGIAS DEL PATRIMONIO", email: "mauriciofigueroan@gmail.com", phone: "3126152577",
+                lat: 1.500, lng: -77.000, city: "Nariño (Aprox)",
+                emer: { contact: "Maria Araque", phone: "3102754217", rel: "Mamá", eps: "Compensar", rh: "A+" }
+            },
+            {
+                id: 23, name: "Monica Casas Cabrera", role: "DEDE", org: "Escuela Taller de Cali", 
+                network: "RED ESCUELAS TALLER DE COLOMBIA", email: "monica.casas@escuelatallercali.org", phone: "3155550402",
+                lat: 3.455, lng: -76.535, city: "Cali",
+                emer: { contact: "Ariadna Rosero", phone: "1085333871", rel: "Pareja", eps: "Nueva eps", rh: "O+" }
+            },
+            {
+                id: 24, name: "Nielsen Garcia", role: "DESPACHO", org: "Fundación Manglaria Diversa", 
+                network: "RED INTERCULTURAL JUVENIL", email: "nilsencito458@gmail.com", phone: "3204481854",
+                lat: 1.800, lng: -78.760, city: "Tumaco",
+                emer: { contact: "Ruth Guerrero", phone: "3178803957", rel: "Conyuge", eps: "Sanitas", rh: "0+" }
+            },
+            {
+                id: 25, name: "Paola Andrea Navia Casanova", role: "DIRECCION ARTES", org: "Fundación Canapavi - Red de Cantadoras del Pacífico Sur", 
+                network: "RED DE CANTADORAS DEL PACIFICO SUR", email: "fundacioncanapavi@gmail.com", phone: "3103577989",
+                lat: 2.500, lng: -78.000, city: "Pacífico Sur (Aprox)",
+                emer: { contact: "Ana Milena Casas", phone: "3154780360", rel: "Prima", eps: "S.O.S.", rh: "A+" }
+            },
+            {
+                id: 26, name: "Pedro Luis Solarte Gamboa", role: "DESPACHO", org: "Fundación Surprise City", 
+                network: "RED COMUNITARIA DE HIP HOP", email: "sespryhiphop08@gmail.com", phone: "3177359632",
+                lat: 1.220, lng: -77.290, city: "Pasto",
+                emer: { contact: "LENNY YORATNE Garcia", phone: "3143030297", rel: "Hermana", eps: "Nueva EPS", rh: "B+" }
+            },
+            {
+                id: 27, name: "Raúl Ernesto Solarte Cabrera", role: "ICANH", org: "ASOWAKAS LAS ÁNIMAS", 
+                network: "ASOWAKAS LAS ÁNIMAS", email: "antroposraulcab@gmail.com", phone: "3147870465",
+                lat: 1.600, lng: -77.500, city: "Nariño/Putumayo (Aprox)",
+                emer: { contact: "Iván Banguera", phone: "3103577989", rel: "Esposo", eps: "NUEVA EPS", rh: "O+", diet: "No harinas/lacteos/fritos", meds: "Daplaglifloxina, Ibersartan" }
+            },
+            {
+                id: 28, name: "Rubén Dario Romero Paz", role: "DESPACHO", org: "Casa Occio", 
+                network: "RED COMUNITARIA DE HIP HOP", email: "reddecinecomunitariocolombia@gmail.com", phone: "3006931127", // Inferred network based on context or other
+                lat: 4.600, lng: -74.100, city: "Bogotá (Aprox)",
+                emer: { contact: "Sebastián Gómez", phone: "3167368277", rel: "Hermano", eps: "Nueva EPS", rh: "O+" }
+            },
+            {
+                id: 29, name: "Rubén Darío Cuarán", role: "DEDE", org: "Cocha Travel", 
+                network: "RED DE MUSEOS DE NARIÑO", email: "cochatravel@gmail.com", phone: "3113521757",
+                lat: 1.100, lng: -77.150, city: "La Cocha/Nariño",
+                emer: { contact: "Rosa Cabrera", phone: "3157611069", rel: "Mamá", eps: "Sanitas", rh: "A+" }
+            },
+            {
+                id: 30, name: "SANDRA PATRICIA SALAZAR MELENDEZ", role: "DESPACHO", org: "DELEGADA ASOCIACION DE MUJERES ANDINIMAZONICAS", 
+                network: "RED DE MUJERES ARTISTAS", email: "pattysalazarm19@gmail.com", phone: "3209197628",
+                lat: 1.120, lng: -76.980, city: "Putumayo (Aprox)",
+                emer: { contact: "Alejandra Arias", phone: "3004634650", rel: "Esposa", eps: "Sanitas", rh: "o+", diet: "Leche y Lácteos" }
+            },
+            {
+                id: 31, name: "Sara Gaviria Guerrero", role: "DESPACHO", org: "Centro de altos estudios (CENAE)", 
+                network: "RED INTERCULTURAL JUVENIL", email: "saritagaviriaguerrero@gmail.com", phone: "3163225311",
+                lat: 3.470, lng: -76.520, city: "Cali (Aprox)",
+                emer: { contact: "Daniela Jojoa", phone: "3136956801", rel: "esposa", eps: "mallamas", rh: "o+" }
+            },
+            {
+                id: 32, name: "Seres Rizo - Sergio Stebab Marin Gutierrez", role: "DESPACHO", org: "Violeta en Momiviento - Venus Fest", 
+                network: "RED DE MUJERES ARTISTAS", email: "violetaenmovimiento@gmail.com", phone: "3237518519",
+                lat: 4.650, lng: -74.090, city: "Bogotá (Aprox)",
+                emer: { contact: "JOHAN ARTEGA", phone: "3223540938", rel: "HIJO", eps: "ENSSANAR", rh: "O+" }
+            },
+            {
+                id: 33, name: "SONIA PATIÑO", role: "MUSEO NACIONAL", org: "Fundación Museo Taminango", 
+                network: "RED DE MUSEOS DE NARIÑO", email: "ssllorena@yahoo.com", phone: "3002814883",
+                lat: 1.225, lng: -77.285, city: "Pasto",
+                emer: { contact: "Laura Diaz García", phone: "3203337320", rel: "esposa", eps: "Sanitas", rh: "A+" }
+            },
+            {
+                id: 34, name: "Ximena Ordoñez Rosero", role: "POBLACIONES", org: "Red de partería tradicional campesina de Nariño", 
+                network: "RED DE PARTERIA TRADICIONAL CAMPESINA DE NARIÑO", email: "alquimiasnaturalespasto@gmail.com", phone: "3178939408",
+                lat: 1.300, lng: -77.300, city: "Nariño (Aprox)",
+                emer: { contact: "Silvia Gisela Guerrero Amador", phone: "3163248825", rel: "Madre", eps: "Sura", rh: "O+" }
+            },
+            {
+                id: 35, name: "Yiner Hernan Quiguantar Cortes", role: "POBLACIONES", org: "Juntanza de jovenes de la Minga Suroccidente", 
+                network: "JUNTANZA DE JÓVENES DE LA MINGA SUREOCCIDENTE", email: "yinerquiguantar@gmail.com", phone: "3226870655",
+                lat: 2.450, lng: -76.600, city: "Cauca (Aprox)",
+                emer: { contact: "William Quilindo", phone: "3001255617", rel: "Guardia seguridad", eps: "AIC", rh: "O+", diet: "Alergia al mani" }
+            }
+        ];
+
+        function preloadLogos(timeout = 2500){
+            const keys = Object.keys(logoUrls);
+            if (!keys.length) return Promise.resolve(loadedLogos);
+            return new Promise(resolve => {
+                let remaining = keys.length;
+                keys.forEach(key => {
+                    const img = new Image();
+                    img.onload = () => { loadedLogos[key] = 'ok'; remaining--; if (remaining === 0) resolve(loadedLogos); };
+                    img.onerror = () => { loadedLogos[key] = 'failed'; remaining--; if (remaining === 0) resolve(loadedLogos); };
+                    img.src = logoUrls[key];
+                    setTimeout(() => { if (!loadedLogos[key]) { loadedLogos[key] = 'unknown'; remaining--; if (remaining === 0) resolve(loadedLogos); } }, timeout);
+                });
+            });
+        }
+        
+        const totalBenElement = document.getElementById('total-ben-count');
+        if(totalBenElement) {
+            totalBenElement.textContent = peopleData.length;
+        }
+
+        preloadLogos().then(result => {
+            for (const k in result) {
+                // Si falla la carga del icono, usamos el placeholder (Logo APLP)
+                if (result[k] === 'failed' || result[k] === 'unknown') logoUrls[k] = placeholderLogo;
+            }
+            renderFilters();
+            initMap();
+        }).catch(e => { renderFilters(); initMap(); });
+
+        const appContainer = document.getElementById('app-container');
+        const panel = document.getElementById('panel');
+        const toggleBtn = document.getElementById('main-toggle-btn');
+        const searchInput = document.getElementById('search-input');
+        const searchBtn = document.getElementById('search-btn');
+        const markersById = new Map();
+
+        const networkCounts = peopleData.reduce((acc, p) => {
+            acc[p.network] = (acc[p.network] || 0) + 1;
+            return acc;
+        }, {});
+        
+        // Asegurar que todas las redes en peopleData tengan una entrada en logoUrls (aunque sea fallback)
+        const uniqueNetworks = [...new Set(peopleData.map(p => p.network))];
+        uniqueNetworks.forEach(net => {
+            if(!logoUrls[net]) logoUrls[net] = placeholderLogo;
+        });
+
+        const selectedNetworks = new Set(uniqueNetworks);
+
+        function renderFilters(){
+             const filtersList = document.getElementById('filters-list');
+             filtersList.innerHTML = '';
+             
+             uniqueNetworks.forEach(network => {
+                const item = document.createElement('div');
+                const cls = 'network-' + network.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                item.className = 'legend-item filter-option ' + cls + (selectedNetworks.has(network) ? ' active' : '');
+                const btn = document.createElement('button');
+                btn.className = 'filter-btn';
+                btn.type = 'button';
+                btn.setAttribute('aria-pressed', selectedNetworks.has(network) ? 'true' : 'false');
+                const count = networkCounts[network] || 0;
+                // Use placeholder if url not defined
+                const url = logoUrls[network] || placeholderLogo;
+                
+                btn.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <img src="${url}" class="legend-logo" alt="Logo de ${network}">
+                        <span style="font-size:0.9em; line-height:1.1;">${network}</span>
+                    </div>
+                    <span class="network-count">${count}</span>
+                `;
+                btn.addEventListener('click', () => {
+                    if (selectedNetworks.has(network)) { selectedNetworks.delete(network); item.classList.remove('active'); btn.setAttribute('aria-pressed', 'false'); }
+                    else { selectedNetworks.add(network); item.classList.add('active'); btn.setAttribute('aria-pressed', 'true'); }
+                    updateMarkers(searchInput.value);
+                });
+                item.appendChild(btn);
+                filtersList.appendChild(item);
+             });
+        }
+
+        let map, markers;
+        let searchOverrideId = null;
+
+        const suggestionsEl = document.getElementById('search-suggestions');
+        function clearSuggestions(){ suggestionsEl.innerHTML = ''; suggestionsEl.style.display = 'none'; }
+        
+        function findMatches(q){
+            if (!q) return [];
+            const term = q.toLowerCase();
+            return peopleData.filter(p => 
+                p.name.toLowerCase().includes(term) || 
+                p.org.toLowerCase().includes(term) ||
+                p.network.toLowerCase().includes(term)
+            );
+        }
+
+        function performSearch(person){
+            let target = person;
+            if (typeof person === 'string') {
+                const matches = findMatches(person);
+                target = matches.length ? matches[0] : null;
+            }
+            if (!target) return;
+            const id = String(target.id);
+            searchOverrideId = id;
+            searchInput.value = target.name;
+            updateMarkers(target.name);
+            const marker = markersById.get(id);
+            if (marker) {
+                marker.openPopup();
+                if (window.innerWidth <= 800 && panel.classList.contains('show')) {
+                    togglePanel(); 
+                }
+                map.setView(marker.getLatLng(), Math.max(map.getZoom(), 10), { animate: true });
+            }
+        }
+
+        function handleSearchInput(e) {
+            const v = e.target.value;
+            if (!v) { 
+                searchOverrideId = null;
+                updateMarkers('');
+                clearSuggestions(); 
+                if (map) map.setView([4.5709, -74.2973], 6, { animate: true });
+                document.getElementById('search-clear-btn').classList.remove('visible');
+                return; 
+            }
+            document.getElementById('search-clear-btn').classList.add('visible');
+            const matches = findMatches(v).slice(0,6);
+            suggestionsEl.innerHTML = '';
+            matches.forEach((m, idx) => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+                div.innerHTML = `<strong>${m.name}</strong><br><small>${m.org}</small>`;
+                div.addEventListener('pointerdown', (ev) => { 
+                    ev.preventDefault(); 
+                    performSearch(m); 
+                    clearSuggestions(); 
+                });
+                suggestionsEl.appendChild(div);
+            });
+            if(matches.length) suggestionsEl.style.display = 'block'; else clearSuggestions();
+        }
+
+        searchInput.addEventListener('input', handleSearchInput);
+        searchInput.addEventListener('focus', () => {
+            if(searchInput.value) handleSearchInput({target: searchInput});
+        });
+
+        document.getElementById('search-clear-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            searchInput.value = '';
+            searchOverrideId = null;
+            updateMarkers('');
+            clearSuggestions();
+            document.getElementById('search-clear-btn').classList.remove('visible');
+            if (map) map.setView([4.5709, -74.2973], 6, { animate: true });
+        });
+
+        function updateMarkers(searchTerm = '') {
+             if (!markers) return;
+             markers.clearLayers();
+             markersById.clear();
+
+             let filtered = [];
+
+             if (searchOverrideId !== null) {
+                 filtered = peopleData.filter(p => String(p.id) === searchOverrideId);
+             } else {
+                 const selected = Array.from(selectedNetworks);
+                 filtered = peopleData.filter(p => selected.includes(p.network));
+                 
+                 if (searchTerm) {
+                     const term = searchTerm.toLowerCase();
+                     filtered = filtered.filter(p =>
+                         p.name.toLowerCase().includes(term) ||
+                         p.org.toLowerCase().includes(term) ||
+                         p.network.toLowerCase().includes(term)
+                     );
+                 }
+             }
+
+             filtered.forEach(p => {
+                 const iconSize = 50; // AUMENTADO A 50px (Aprox 30% mas que 38)
+                 // LOGICA DE ICONO: Si existe en loadedLogos y está OK, úsalo. Si no, placeholder.
+                 let iconUrl = logoUrls[p.network];
+                 if (!iconUrl || loadedLogos[p.network] === 'failed') {
+                     iconUrl = placeholderLogo;
+                 }
+                 
+                 const customIcon = L.icon({
+                     iconUrl: iconUrl,
+                     iconSize: [iconSize, iconSize], iconAnchor: [iconSize / 2, iconSize], popupAnchor: [0, -iconSize]
+                 });
+
+                 let roleClass = '';
+                 if(p.role.includes('DESPACHO')) roleClass = 'despacho';
+                 if(p.role.includes('ARTES')) roleClass = 'artes';
+                 if(p.role.includes('MUSEO')) roleClass = 'museo';
+                 if(p.role.includes('POBLACIONES')) roleClass = 'poblaciones';
+
+                 let popupHtml = `<div class="popup-content">`;
+                 popupHtml += `<h5>${p.name}</h5>`;
+                 popupHtml += `<span class="role-badge ${roleClass}">${p.role}</span>`;
+                 popupHtml += `<p style="margin:4px 0; font-size:0.9em;"><strong>Org:</strong> ${p.org}</p>`;
+                 popupHtml += `<p style="margin:4px 0; font-size:0.85em; color:#555;">📍 ${p.city}</p>`;
+                 
+                 // Contacto
+                 popupHtml += `<div style="margin-top:8px; font-size:0.85em;">`;
+                 if(p.email) popupHtml += `<div>📧 ${p.email}</div>`;
+                 if(p.phone) popupHtml += `<div>📱 ${p.phone}</div>`;
+                 popupHtml += `</div>`;
+
+                 // Info Privada Desplegable
+                 if(p.emer) {
+                     popupHtml += `<details><summary>Info Logística y Salud</summary>`;
+                     popupHtml += `<div class="event-details">`;
+                     
+                     popupHtml += `<div class="private-data">`;
+                     popupHtml += `<span class="private-label">🏥 Salud</span>`;
+                     popupHtml += `EPS: ${p.emer.eps || 'N/A'} (${p.emer.rh || '?'})<br>`;
+                     if(p.emer.meds) popupHtml += `Meds: ${p.emer.meds}<br>`;
+                     if(p.emer.health) popupHtml += `Condición: ${p.emer.health}`;
+                     popupHtml += `</div>`;
+
+                     if(p.emer.diet) {
+                         popupHtml += `<div class="private-data" style="background:#fffbeb; border-color:#fde68a; color:#92400e;">`;
+                         popupHtml += `<span class="private-label" style="color:#b45309;">🥗 Alimentación</span>`;
+                         popupHtml += `${p.emer.diet}`;
+                         popupHtml += `</div>`;
+                     }
+
+                     popupHtml += `<div class="private-data" style="background:#eff6ff; border-color:#bfdbfe; color:#1e3a8a;">`;
+                     popupHtml += `<span class="private-label" style="color:#1e40af;">🆘 Emergencia</span>`;
+                     popupHtml += `${p.emer.contact}<br>`;
+                     popupHtml += `${p.emer.rel} - ${p.emer.phone}`;
+                     popupHtml += `</div>`;
+
+                     popupHtml += `</div></details>`;
+                 }
+
+                 popupHtml += '</div>';
+
+                 const marker = L.marker([p.lat, p.lng], { icon: customIcon, network: p.network });
+                 marker.bindTooltip(`${p.name} - ${p.org}`);
+                 marker.bindPopup(popupHtml);
+                 markers.addLayer(marker);
+                 markersById.set(String(p.id), marker);
+             });
+             
+             const totalBenElement = document.getElementById('total-ben-count');
+             if(totalBenElement) {
+                 totalBenElement.textContent = filtered.length;
+             }
+        }
+
+        function initMap() {
+            if(typeof L === 'undefined') return;
+            map = L.map('map', { zoomControl: false }).setView([4.5709, -74.2973], 6);
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+            
+            let dayTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' });
+            let nightTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' });
+            
+            function initTheme() {
+                const now = new Date();
+                const hour = now.getHours();
+                const isNight = hour < 6 || hour >= 18;
+                if (isNight) {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+                const themeBtn = document.getElementById('panel-theme-toggle-btn');
+                if (themeBtn) {
+                    themeBtn.innerText = isNight ? '☀️' : '🌙';
+                }
+                if (isNight) {
+                    nightTiles.addTo(map);
+                    document.getElementById('map').classList.remove('day-enhance');
+                } else {
+                    dayTiles.addTo(map);
+                    document.getElementById('map').classList.add('day-enhance');
+                }
+            }
+
+            initTheme();
+
+            if(typeof L.markerClusterGroup === 'function'){
+                markers = L.markerClusterGroup({
+                    showCoverageOnHover: false,
+                    spiderfyDistanceMultiplier: 2.2,
+                    iconCreateFunction: function(cluster) {
+                        const children = cluster.getAllChildMarkers();
+                        let dominantNetwork = children[0].options.network; 
+                        let c = ' marker-cluster-';
+                        // Mapeo de colores para las nuevas redes (Agrupadas por tipo para simplificar CSS)
+                        if (dominantNetwork.includes('HIP HOP')) c += 'hiphop';
+                        else if (dominantNetwork.includes('MUJERES')) c += 'mujeres';
+                        else if (dominantNetwork.includes('JUVENIL')) c += 'juvenil';
+                        else if (dominantNetwork.includes('MUSEO') || dominantNetwork.includes('MUVAC')) c += 'museos';
+                        else if (dominantNetwork.includes('PACIFICO')) c += 'pacifico';
+                        else c += 'otras';
+                        
+                        // AUMENTADO ICON SIZE EN CLUSTERS TAMBIEN PARA MANTENER PROPORCION
+                        return new L.DivIcon({ html: '<div><span>' + cluster.getChildCount() + '</span></div>', className: 'marker-cluster' + c, iconSize: new L.Point(60, 60) });
+                    }
+                });
+            } else {
+                markers = L.layerGroup();
+            }
+            map.addLayer(markers);
+            updateMarkers();
+            
+            map.on('popupopen', function(e) {
+                const contentNode = e.popup._contentNode;
+                contentNode.addEventListener('toggle', function(event) {
+                    if (event.target.tagName.toLowerCase() === 'details' && event.target.open) {
+                        setTimeout(() => {
+                            const popupRect = contentNode.getBoundingClientRect();
+                            const headerRect = document.getElementById('main-header').getBoundingClientRect();
+                            const padding = 20; 
+                            if (popupRect.top < headerRect.bottom + padding) {
+                                const offsetY = (headerRect.bottom + padding) - popupRect.top;
+                                map.panBy([0, -offsetY]);
+                            }
+                        }, 100); 
+                    }
+                }, true); 
+            });
+
+            function togglePanel() {
+                const isDesktop = window.innerWidth > 800;
+                if (isDesktop) {
+                   appContainer.classList.toggle('panel-collapsed');
+                } else {
+                   panel.classList.toggle('show');
+                }
+                const icon = toggleBtn.querySelector('.toggle-icon');
+                let isOpen;
+                if(isDesktop) isOpen = !appContainer.classList.contains('panel-collapsed');
+                else isOpen = panel.classList.contains('show');
+                if(isOpen) icon.classList.add('open'); else icon.classList.remove('open');
+                setTimeout(() => map.invalidateSize(), 300);
+            }
+            
+            toggleBtn.addEventListener('click', togglePanel);
+            
+            window.addEventListener('resize', () => {
+                 const icon = toggleBtn.querySelector('.toggle-icon');
+                 const isDesktop = window.innerWidth > 800;
+                 let isOpen;
+                 if(isDesktop) isOpen = !appContainer.classList.contains('panel-collapsed');
+                 else isOpen = panel.classList.contains('show');
+                 if(isOpen) icon.classList.add('open'); else icon.classList.remove('open');
+            });
+
+            const themeBtn = document.getElementById('panel-theme-toggle-btn');
+            if(themeBtn){
+                themeBtn.addEventListener('click', () => {
+                    const isDark = document.body.classList.toggle('dark-mode');
+                    themeBtn.innerText = isDark ? '☀️' : '🌙';
+                    if(isDark) { 
+                        map.removeLayer(dayTiles); 
+                        nightTiles.addTo(map); 
+                        document.getElementById('map').classList.remove('day-enhance'); 
+                    } else { 
+                        map.removeLayer(nightTiles); 
+                        dayTiles.addTo(map); 
+                        document.getElementById('map').classList.add('day-enhance'); 
+                    }
+                });
+            }
+        }
+    });
+    </script>
+</body>
+</html>
