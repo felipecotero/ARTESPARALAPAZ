@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="es" class="dark"> <!-- Inicia en modo oscuro por defecto -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan de Movilidad Creativa - Santa Marta</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Carga de Font Awesome (para iconos) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Carga de Leaflet CSS (Usando CDNJS) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    
+    <!-- Carga de Leaflet Routing Machine CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+            
+    <style>
+        /* Fuente principal del plan */
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Estilo personalizado para las tarjetas de flujo */
+        .flujo-card {
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+        }
+        .flujo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
+        }
+
+        /* --- Estilos de Popups del Mapa --- */
+        /* Modo Oscuro (Default) */
+        .dark .leaflet-popup-content-wrapper,
+        .dark .leaflet-popup-tip {
+            background: #1f2937; /* bg-gray-800 */
+            color: #f3f4f6; /* text-gray-100 */
+        }
+        /* Modo Claro */
+        .leaflet-popup-content-wrapper,
+        .leaflet-popup-tip {
+            background: #ffffff;
+            color: #111827;
+        }
+        .leaflet-popup-content a {
+            color: #60a5fa; /* text-blue-400 */
+        }
+        
+        /* Ocultar el panel de instrucciones de leaflet-routing-machine */
+        .leaflet-routing-container {
+            display: none !important;
+        }
+        
+        /* Estilo para la duración de la ruta en la leyenda */
+        .duracion-ruta {
+            font-weight: bold;
+            color: #facc15; /* text-yellow-400 */
+            background-color: rgba(0,0,0,0.3);
+            padding: 0 5px;
+            border-radius: 4px;
+        }
+
+        /* Estilos para IMPRESIÓN (Exportar a PDF) */
+        @media print {
+            /* Ocultar botones de interfaz */
+            #theme-toggle, #print-btn {
+                display: none !important;
+            }
+            /* Forzar fondo blanco y texto negro */
+            body {
+                background-color: white !important;
+                color: black !important;
+            }
+            /* Ajustar el mapa para impresión */
+            #mapa-real {
+                height: 400px !important; /* Un poco más pequeño para que quepa */
+                border: 1px solid #ccc;
+            }
+            /* Asegurar que los colores de fondo se impriman (en navegadores modernos) */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            /* Evitar saltos de página dentro de tarjetas */
+            .flujo-card, article {
+                break-inside: avoid;
+            }
+             /* Forzar modo claro en impresión */
+            .dark .leaflet-popup-content-wrapper {
+                 background: #ffffff !important;
+                 color: #000 !important;
+            }
+        }
+
+    </style>
+    
+    <!-- Script de Configuración de Tailwind para modo oscuro -->
+    <script>
+      tailwind.config = {
+        darkMode: 'class', // Habilita el modo oscuro basado en una clase en <html>
+      }
+    </script>
+</head>
+<body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-4 md:p-8">
+
+    <!-- Botonera Superior -->
+    <div class="absolute top-4 right-4 z-[1000] flex gap-2">
+        <!-- Botón PDF / Imprimir -->
+        <button id="print-btn" onclick="window.print()" class="p-2 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-200 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" title="Exportar a PDF / Imprimir">
+            <i class="fas fa-print"></i>
+        </button>
+
+        <!-- Botón TEMA (Día/Noche) -->
+        <button id="theme-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" title="Cambiar Modo Día/Noche">
+            <i class="fas fa-sun block dark:hidden"></i>
+            <i class="fas fa-moon hidden dark:block"></i>
+        </button>
+    </div>
+
+    <div class="max-w-7xl mx-auto">
+
+        <!-- 1. TÍTULO Y MISIÓN -->
+        <header class="text-center mb-12 pt-8 md:pt-0">
+            <h1 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-500 mb-4">
+                Plan de Movilidad Creativa
+            </h1>
+            <p class="text-xl text-gray-700 dark:text-gray-300">Operación Logística: Santa Marta (7-9 Noviembre)</p>
+        </header>
+
+        <!-- 2. PILARES DE LA GESTIÓN (Flota y Equipo) -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+
+            <!-- Columna de Flota -->
+            <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-xl">
+                <h2 class="text-3xl font-semibold mb-6 border-b border-purple-500 pb-3 flex items-center">
+                    <i class="fas fa-bus-alt text-purple-400 mr-3"></i>Nuestra Flota
+                </h2>
+                <p class="text-gray-700 dark:text-gray-300 mb-6">Reducimos la flota a **50 buses** (47 + 3 de reserva), cambiando a un **"modelo de flujo constante"** con rutas circulares.</p>
+                
+                <div class="space-y-4">
+                    <!-- Flota Cultural -->
+                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                        <h3 class="text-xl font-bold text-blue-500 dark:text-blue-400">12 Buses (Flota Cultural)</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mt-1"><i class="fas fa-user-tie mr-2"></i>**Misión:** Transporte dedicado para los 330 asistentes académicos. Flota fija para recoger en municipios y asegurar la salida de menores.</p>
+                    </div>
+                    
+                    <!-- Flota Creativa -->
+                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                        <h3 class="text-xl font-bold text-orange-500 dark:text-orange-400">38 Buses (Flota Creativa)</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mt-1"><i class="fas fa-sync-alt mr-2"></i>**Misión:** Flota circular para los flujos artísticos. Mueve al público entre barrios y tarimas. Clave para mover 3,000 personas en 3 horas.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna de Equipo -->
+            <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-xl">
+                <h2 class="text-3xl font-semibold mb-6 border-b border-green-500 pb-3 flex items-center">
+                    <i class="fas fa-users text-green-400 mr-3"></i>Nuestro Equipo (5 Enlaces)
+                </h2>
+                <p class="text-gray-700 dark:text-gray-300 mb-6">El equipo no gestiona buses, gestiona los 5 flujos. Somos un centro de coordinación, no de supervisión de conductores.</p>
+                
+                <div class="space-y-3 text-sm text-gray-800 dark:text-gray-200">
+                    <p><i class="fas fa-brain text-green-400 w-6 text-center"></i> <strong class="text-lg">1. Enlace General ("El Director"):</strong> Tu rol. Lidera al equipo, toma decisiones estratégicas.</p>
+                    <p><i class="fas fa-headset text-green-400 w-6 text-center"></i> <strong class="text-lg">2. Enlace de Flota ("El Productor"):</strong> Coordina los 50 buses. Despacha, controla frecuencias y resuelve averías.</p>
+                    <p><i class="fas fa-university text-green-400 w-6 text-center"></i> <strong class="text-lg">3. Enlace Cultural (Eje 1):</strong> Dueño de la Flota Cultural (12 buses). Gestiona listas y salida puntual de académicos.</p>
+                    <p><i class="fas fa-map-marker-alt text-green-400 w-6 text-center"></i> <strong class="text-lg">4. Enlace de Origen (Eje 2):</strong> Dueño de Puntos de Encuentro (Pescadito, Gaira, Mamatoco). Gestiona filas y carga.</p>
+                    <p><i class="fas fa-music text-green-400 w-6 text-center"></i> <strong class="text-lg">5. Enlace de Destino (Eje 3):</strong> Dueño de Escenarios (Tarimas, Teatro). Gestiona la descarga y la rotación ágil.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. TEATRO DE OPERACIONES (El Mapa) -->
+        <section class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-xl mb-12">
+            <h2 class="text-3xl font-semibold mb-6 border-b border-gray-400 dark:border-gray-500 pb-3">Teatro de Operaciones: Santa Marta</h2>
+            
+            <!-- Leyenda del Mapa -->
+            <div class="flex flex-col md:flex-row flex-wrap gap-x-6 gap-y-2 mb-4 text-sm text-gray-700 dark:text-gray-300">
+                <div class="flex-shrink-0">
+                    <span><i class="fas fa-map-marker-alt text-green-500"></i> Punto de Encuentro</span>
+                    <span class="ml-4"><i class="fas fa-university text-blue-500"></i> Escenario Cultural</span>
+                    <span class="ml-4"><i class="fas fa-music text-purple-500"></i> Escenario Artístico</span>
+                </div>
+                <div class="flex-grow">
+                    <!-- Leyenda de Rutas -->
+                    <span><i class="fas fa-route text-orange-400"></i> Pescadito (Ida: <span id="duracion-pescadito" class="duracion-ruta">...</span>)</span>
+                    <span class="ml-4"><i class="fas fa-route text-cyan-400"></i> Gaira (Ida: <span id="duracion-gaira" class="duracion-ruta">...</span>)</span>
+                    <span class="ml-4"><i class="fas fa-route text-lime-400"></i> Mamatoco (Ida: <span id="duracion-mamatoco" class="duracion-ruta">...</span>)</span>
+                    <span class="ml-4" style="opacity: 0.7;"><i class="fas fa-ellipsis-h text-gray-500"></i> (Línea Punteada: Ruta de Regreso)</span>
+                </div>
+            </div>
+            
+            <!-- Direcciones Específicas de Puntos de Encuentro -->
+            <div class="bg-gray-100 dark:bg-gray-900 p-4 rounded-md mb-4 text-sm text-gray-700 dark:text-gray-300">
+                <h4 class="font-bold text-gray-900 dark:text-gray-100 text-base mb-2">Puntos de Encuentro (Barrios) - Zonas de Carga:</h4>
+                <ul class="list-disc list-inside space-y-1">
+                    <li><strong class="text-orange-500 dark:text-orange-400">PESCADITO:</strong> Cancha La Castellana (Cra. 7 con Cll. 9).</li>
+                    <li><strong class="text-cyan-600 dark:text-cyan-400">GAIRA:</strong> Parque Central de Gaira (Cra. 14 con Cll. 6).</li>
+                    <li><strong class="text-lime-600 dark:text-lime-400">MAMATOCO:</strong> Glorieta de Mamatoco (Sobre la vía / Av. Libertador).</li>
+                </ul>
+            </div>
+
+            <!-- Contenedor del Mapa -->
+            <div id="mapa-real" class="w-full h-[500px] bg-gray-200 dark:bg-gray-900 rounded-lg shadow-lg">
+                <div class="p-4 text-center text-gray-500 dark:text-gray-400">Cargando mapa y calculando rutas...</div>
+            </div>
+        </section>
+
+
+        <!-- 4. PARTITURA DE MOVIMIENTOS (Planes por Día) - ACTUALIZADO -->
+        <section>
+            <h2 class="text-3xl md:text-4xl font-semibold text-center mb-8">Partitura de Movimientos (Actualizada)</h2>
+            <div class="space-y-12">
+
+                <!-- ====================================================== -->
+                <!--                       VIERNES 7                          -->
+                <!-- ====================================================== -->
+                <article>
+                    <h3 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-6">DÍA 1: VIERNES 7</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        
+                        <div class="flujo-card border-blue-500 p-5 bg-white dark:bg-gray-800">
+                            <h4 class="text-xl font-bold mb-2">Flujo 1: Encuentro Cultural</h4>
+                            <p class="text-sm mb-3"><span class="font-bold text-blue-600 dark:text-blue-300">FLOTA:</span> 12 Buses (Dedicada)</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">Eventos de 3:00 PM a 7:00 PM (Sala Alterna & ICANH).</p>
+                            <ul class="text-sm space-y-2 list-disc list-inside text-gray-700 dark:text-gray-300">
+                                <li><strong>1:00 PM:</strong> Recogida en municipios.</li>
+                                <li><strong>2:30 PM:</strong> Llegada a ICANH / Teatro.</li>
+                                <li><strong class="text-red-500 dark:text-red-400">7:00 PM (CRÍTICO):</strong> Salida puntual de académicos/menores.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="flujo-card border-orange-500 p-5 bg-white dark:bg-gray-800">
+                            <h4 class="text-xl font-bold mb-2">Flujo 2: Flujo Constante (Tarde)</h4>
+                            <p class="text-sm mb-3"><span class="font-bold text-orange-600 dark:text-orange-300">FLOTA:</span> 38 Buses (Circulares)</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">Eventos inician: 4:00 PM (Pescadito), 5:00 PM (Gaira), 5:00 PM (Tarimas Centro).</p>
+                            <ul class="text-sm space-y-2 list-disc list-inside text-gray-700 dark:text-gray-300">
+                                <li><strong>3:00 PM:</strong> Inicia flujo constante desde barrios (Pescadito, Gaira, Mamatoco) hacia *todos* los escenarios.</li>
+                                <li><strong>3:00 PM - 8:00 PM:</strong> Rotación continua.</li>
+                            </ul>
+                        </div>
+
+                        <div class="flujo-card border-purple-500 p-5 bg-white dark:bg-gray-800">
+                            <h4 class="text-xl font-bold mb-2">Flujo 3: El Éxodo (Noche)</h4>
+                            <p class="text-sm mb-3"><span class="font-bold text-purple-600 dark:text-purple-300">FLOTA:</span> 38 Buses (Circulares)</p>
+                             <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">Cierres: 7:00 PM (Pescadito), 8:00 PM (Gaira-Cine), 12:00 AM (T. Artes), 1:00 AM (T. Paz).</p>
+                            <ul class="text-sm space-y-2 list-disc list-inside text-gray-700 dark:text-gray-300">
+                                <li><strong>7:00 PM:</strong> Primer pulso de evacuación (Pescadito).</li>
+                                <li><strong>8:00 PM:</strong> Segundo pulso (Gaira).</li>
+                                <li><strong>12:00 AM:</strong> Tercer pulso (T. Artes).</li>
+                                <li><strong>1:00 AM - 2:00 AM:</strong> Evacuación final (T. Paz) a barrios.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- ====================================================== -->
+                <!--                       SÁBADO 8                           -->
+                <!-- ====================================================== -->
+                <article>
+                    <h3 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-6">DÍA 2: SÁBADO 8</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        
+                        <div class="flujo-card border-blue-500 p-5 bg-white dark:bg-gray-800">
+                            <h4 class="text-xl font-bold mb-2">Flujo 1: Encuentro Cultural</h4>
+                            <p class="text-sm mb-3"><span class="font-bold text-blue-600 dark:text-blue-300">FLOTA:</span> 12 Buses (Dedicada)</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">Eventos de 11:00 AM a 7:00 PM (Sala Alterna & ICANH).</p>
+                            <ul class="text-sm space-y-2 list-disc list-inside text-gray-700 dark:text-gray-300">
+                                <li><strong>9:00 AM:</strong> Recogida en municipios.</li>
+                                <li><strong>10:30 AM:</strong> Llegada a ICANH / Teatro.</li>
+                                <li><strong class="text-red-500 dark:text-red-400">7:00 PM (CRÍTICO):</strong> Salida puntual de académicos/menores.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="flujo-card border-orange-500 p-5 bg-white dark:bg-gray-800">
+                            <h4 class="text-xl font-bold mb-2">Flujo 2: El Gran Flujo (Pico)</h4>
+                            <p class="text-sm mb-3"><span class="font-bold text-orange-600 dark:text-orange-300">FLOTA:</span> 38 Buses (Circulares)</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">Misión: Mover 3.000+ personas. Eventos inician 2:00 PM (Tarimas) y 3:00 PM (Barrios).</p>
+                            <ul class="text-sm space-y-2 list-disc list-inside text-gray-700 dark:text-gray-300">
+                                <li><strong>1:00 PM:</strong> Inicia operación en barrios.</li>
+                                <li><strong>1:00 PM - 4:00 PM:</strong> 3 horas de rotación constante para el pico de 3,000 personas.</li>
+                            </ul>
+                        </div>
+
+                        <div class="flujo-card border-purple-500 p-5 bg-white dark:bg-gray-800">
+                            <h4 class="text-xl font-bold mb-2">Flujo 3: El Éxodo (Escalonado)</h4>
+                            <p class="text-sm mb-3"><span class="font-bold text-purple-600 dark:text-purple-300">FLOTA:</span> 38 Buses (Circulares)</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">Cierres: ~6:00 PM (Pescadito), ~5:00 PM (Gaira-Act. Gastronómica), ~11:00 PM (Gaira-Cine).</p>
+                            <ul class="text-sm space-y-2 list-disc list-inside text-gray-700 dark:text-gray-300">
+                                <li><strong>6:00 PM:</strong> Primer pulso de evacuación (Pescadito).</li>
+                                <li><strong>11:00 PM:</strong> Evacuación final de Gaira a barrios.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- ====================================================== -->
+                <!--                       DOMINGO 9                          -->
+                <!-- ====================================================== -->
+                <article>
+                    <h3 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-6">DÍA 3: DOMINGO 9</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        
+                        <div class="flujo-card border-teal-500 p-5 bg-white dark:bg-gray-800">
+                            <h4 class="text-xl font-bold mb-2">Flujo 1: "31 Minutos" (Especial)</h4>
+                            <p class="text-sm mb-3"><span class="font-bold text-teal-600 dark:text-teal-300">FLOTA:</span> 22 Buses (12 Dedicadas + 10 Circulares)</p>
+                            <ul class="text-sm space-y-2 list-disc list-inside text-gray-700 dark:text-gray-300">
+                                <li><strong>9:30 AM:</strong> Recogida en barrios (con pre-inscripción).</li>
+                                <li><strong>10:30 AM:</strong> Llegada a Teatro (Evento 11:30 AM).</li>
+                                <li><strong>1:00 PM:</strong> Regreso de familias a barrios.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="flujo-card border-orange-500 p-5 bg-white dark:bg-gray-800">
+                            <h4 class="text-xl font-bold mb-2">Flujo 2: Flujo Constante (Tarde)</h4>
+                            <p class="text-sm mb-3"><span class="font-bold text-orange-600 dark:text-orange-300">FLOTA:</span> 38 Buses (Circulares)</p>
+                             <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">Eventos inician: 2:30 PM (T. Paz), 3:00 PM (Pescadito), 5:00 PM (Gaira).</p>
+                            <ul class="text-sm space-y-2 list-disc list-inside text-gray-700 dark:text-gray-300">
+                                <li><strong>1:30 PM:</strong> Inicia flujo a Tarima Paz y Pescadito.</li>
+                                <li><strong>8:00 PM (CRÍTICO):</strong> Alta frecuencia a Pescadito (Farid Ortiz @ 9:00 PM).</li>
+                            </ul>
+                        </div>
+
+                        <div class="flujo-card border-purple-500 p-5 bg-white dark:bg-gray-800">
+                            <h4 class="text-xl font-bold mb-2">Flujo 3: El Éxodo (Noche Larga)</h4>
+                            <p class="text-sm mb-3"><span class="font-bold text-purple-600 dark:text-purple-300">FLOTA:</span> 38 Buses (Circulares)</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">Cierres: ~9:00 PM (Gaira), 10:00 PM (Pescadito), 1:00 AM (T. Paz), 1:30 AM (T. Artes).</p>
+                            <ul class="text-sm space-y-2 list-disc list-inside text-gray-700 dark:text-gray-300">
+                                <li><strong>9:00 PM:</strong> Primer pulso de evacuación (Gaira).</li>
+                                <li><strong>10:00 PM:</strong> Segundo pulso (Pescadito).</li>
+                                <li><strong>1:00 AM - 1:30 AM:</strong> Evacuación final (T. Paz y T. Artes) a barrios.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Carga de Leaflet.js (Usando CDNJS) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <!-- Carga de Leaflet Routing Machine JS -->
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+            
+    <!-- Script de Inicialización del Mapa y Toggle de Tema -->
+    <script>
+        // --- INICIO SCRIPT TOGGLE DÍA/NOCHE ---
+        const themeToggle = document.getElementById('theme-toggle');
+        const htmlElement = document.documentElement;
+
+        // Función para cambiar el tema
+        function toggleTheme() {
+            htmlElement.classList.toggle('dark');
+            // Guardar preferencia en localStorage
+            if (htmlElement.classList.contains('dark')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+            // Recargar el mapa para que cambie el estilo de tiles
+            if (window.mapInstance) {
+                window.mapInstance.remove();
+                initializeMap(); // Llama a la función principal de inicialización
+            }
+        }
+
+        // Cargar tema guardado al iniciar
+        if (localStorage.getItem('theme') === 'light') {
+            htmlElement.classList.remove('dark');
+        } else {
+            htmlElement.classList.add('dark'); // Default es oscuro
+        }
+
+        // Listener para el botón
+        themeToggle.addEventListener('click', toggleTheme);
+        // --- FIN SCRIPT TOGGLE DÍA/NOCHE ---
+
+
+        // --- INICIO SCRIPT DEL MAPA ---
+        
+        // Variable global para la instancia del mapa, para poder recargarlo
+        window.mapInstance = null;
+
+        function initializeMap() {
+            const mapDiv = document.getElementById('mapa-real');
+            if (!mapDiv) return; // Salir si el div no existe
+            
+            // Limpiar mensaje inicial de carga
+            mapDiv.innerHTML = ''; 
+            
+            try {
+                // 1. Determinar el tema actual
+                const isDarkMode = document.documentElement.classList.contains('dark');
+                
+                // 2. Definir capa de mapa (Tiles) según el tema
+                let mapTilesUrl, mapAttribution;
+                if (isDarkMode) {
+                    // MODO OSCURO (CartoDB Dark)
+                    mapTilesUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+                    mapAttribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
+                } else {
+                    // MODO CLARO (OpenStreetMap)
+                    mapTilesUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+                    mapAttribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+                }
+
+                // 3. Inicializar el Mapa
+                // Centrado general para Santa Marta
+                window.mapInstance = L.map('mapa-real').setView([11.233, -74.205], 13); 
+                
+                L.tileLayer(mapTilesUrl, {
+                    attribution: mapAttribution,
+                    maxZoom: 19
+                }).addTo(window.mapInstance);
+                
+                // 4. Crear Iconos Personalizados
+                function createIcon(iconName, colorHex) {
+                    return L.divIcon({
+                        html: `<i class="fas ${iconName} text-2xl" style="color: ${colorHex}; text-shadow: 0 0 6px rgba(0,0,0,0.9);"></i>`,
+                        className: 'bg-transparent border-0',
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15]
+                    });
+                }
+                
+                const iconOrigen = createIcon('fa-map-marker-alt', '#22c55e'); // Verde (Punto de Encuentro)
+                const iconDestino = createIcon('fa-music', '#a855f7'); // Morado (Artístico)
+                const iconAcademico = createIcon('fa-university', '#3b82f6'); // Azul (Cultural)
+
+                // 5. Definir Coordenadas (¡PRECISIÓN ABSOLUTA - GOOGLE MAPS!)
+                
+                // PUNTOS DE ENCUENTRO (ORIGEN)
+                const pescaitoPunto = [11.2486, -74.2050];  // Cancha La Castellana (Google Maps)
+                const gairaPunto = [11.2035, -74.2195];    // Parque Central de Gaira (Google Maps)
+                const mamatocoPunto = [11.2334, -74.1802];   // Glorieta Mamatoco (Google Maps)
+                
+                // ESCENARIOS (DESTINO)
+                const teatroPunto = [11.2445, -74.2108];   // Teatro Santa Marta
+                const icanhPunto = [11.2435, -74.2118];   // ICANH (Casa Giraldo)
+                const tarimaPazPunto = [11.2450, -74.2130];  // Parque Bolívar
+                const tarimaArtesPunto = [11.2470, -74.2150]; // Camellón Bahía
+                
+                // Puntos de Descarga/Evacuación (para las rutas)
+                // Usamos Parque Bolívar como punto central de descarga
+                const centroDescarga = [11.2450, -74.2130]; 
+                // Usamos el Camellón (Tarima Artes) como punto de evacuación
+                const centroEvacuacion = [11.2470, -74.2150]; 
+
+                // 6. Añadir Marcadores (Pines)
+                L.marker(pescaitoPunto, {icon: iconOrigen}).addTo(window.mapInstance)
+                    .bindPopup("<b>Punto de Encuentro:</b><br>PESCADITO<br><small>Ref: Cancha La Castellana (Cra. 7)</small>");
+                
+                L.marker(gairaPunto, {icon: iconOrigen}).addTo(window.mapInstance)
+                    .bindPopup("<b>Punto de Encuentro:</b><br>GAIRA<br><small>Ref: Parque Central de Gaira</small>");
+                    
+                L.marker(mamatocoPunto, {icon: iconOrigen}).addTo(window.mapInstance)
+                    .bindPopup("<b>Punto de Encuentro:</b><br>MAMATOCO<br><small>Ref: Glorieta</small>");
+
+                L.marker(teatroPunto, {icon: iconAcademico}).addTo(window.mapInstance)
+                    .bindPopup("<b>Escenario Cultural:</b><br>TEATRO (Sala Alterna)");
+                    
+                L.marker(icanhPunto, {icon: iconAcademico}).addTo(window.mapInstance)
+                    .bindPopup("<b>Escenario Cultural:</b><br>ICANH (Casa Giraldo)");
+
+                L.marker(tarimaPazPunto, {icon: iconDestino}).addTo(window.mapInstance)
+                    .bindPopup("<b>Escenario Artístico:</b><br>Tarima PAZ (Parque Bolívar)");
+                    
+                L.marker(tarimaArtesPunto, {icon: iconDestino}).addTo(window.mapInstance)
+                    .bindPopup("<b>Escenario Artístico:</b><br>Tarima ARTES (Camellón de la Bahía)");
+
+                // 7. Añadir RUTAS REALES (Modelo LANZADERA / SHUTTLE)
+                const routingOptions = {
+                    createMarker: () => null, 
+                    addWaypoints: false,      
+                    routeWhileDragging: false, 
+                    show: false               
+                };
+                
+                function formatTime(seconds) {
+                    const mins = Math.round(seconds / 60);
+                    return `${mins} min`; // Solo tiempo de ida
+                }
+
+                // --- RUTA PESCADITO ---
+                // Ida (Sólida)
+                L.Routing.control({
+                    ...routingOptions,
+                    waypoints: [ L.latLng(pescaitoPunto), L.latLng(centroDescarga) ],
+                    lineOptions: { styles: [{color: '#fb923c', weight: 4, opacity: 0.8}] }
+                }).on('routesfound', function(e) {
+                    const summary = e.routes[0].summary;
+                    const durationSpan = document.getElementById('duracion-pescadito');
+                    if (durationSpan) durationSpan.innerText = formatTime(summary.totalTime);
+                }).addTo(window.mapInstance);
+                // Vuelta (Punteada)
+                L.Routing.control({
+                    ...routingOptions,
+                    waypoints: [ L.latLng(centroEvacuacion), L.latLng(pescaitoPunto) ],
+                    lineOptions: { styles: [{color: '#fb923c', weight: 4, opacity: 0.7, dashArray: '5, 10'}] }
+                }).addTo(window.mapInstance);
+
+
+                // --- RUTA GAIRA ---
+                // Ida (Sólida)
+                L.Routing.control({
+                    ...routingOptions,
+                    waypoints: [ L.latLng(gairaPunto), L.latLng(centroDescarga) ],
+                    lineOptions: { styles: [{color: '#22d3ee', weight: 4, opacity: 0.8}] }
+                }).on('routesfound', function(e) {
+                    const summary = e.routes[0].summary;
+                    const durationSpan = document.getElementById('duracion-gaira');
+                    if (durationSpan) durationSpan.innerText = formatTime(summary.totalTime);
+                }).addTo(window.mapInstance);
+                // Vuelta (Punteada)
+                 L.Routing.control({
+                    ...routingOptions,
+                    waypoints: [ L.latLng(centroEvacuacion), L.latLng(gairaPunto) ],
+                    lineOptions: { styles: [{color: '#22d3ee', weight: 4, opacity: 0.7, dashArray: '5, 10'}] }
+                }).addTo(window.mapInstance);
+
+
+                 // --- RUTA MAMATOCO ---
+                 // Ida (Sólida)
+                L.Routing.control({
+                    ...routingOptions,
+                    waypoints: [ L.latLng(mamatocoPunto), L.latLng(centroDescarga) ],
+                    lineOptions: { styles: [{color: '#a3e635', weight: 4, opacity: 0.8}] }
+                }).on('routesfound', function(e) {
+                    const summary = e.routes[0].summary;
+                    const durationSpan = document.getElementById('duracion-mamatoco');
+                    if (durationSpan) durationSpan.innerText = formatTime(summary.totalTime);
+                }).addTo(window.mapInstance);
+                // Vuelta (Punteada)
+                L.Routing.control({
+                    ...routingOptions,
+                    waypoints: [ L.latLng(centroEvacuacion), L.latLng(mamatocoPunto) ],
+                    lineOptions: { styles: [{color: '#a3e635', weight: 4, opacity: 0.7, dashArray: '5, 10'}] }
+                }).addTo(window.mapInstance);
+                 
+            } catch (e) {
+                console.error("Error detallado durante la inicialización del mapa:", e);
+                if (mapDiv) {
+                    mapDiv.innerHTML = `<div class="p-4 text-center text-red-500 dark:text-red-400">Error al dibujar el mapa. Detalles: ${e.message}</div>`;
+                }
+            }
+        }
+        
+        // Verificador para asegurar que las librerías estén cargadas
+        function checkAndInitMap() {
+            let attemptCounter = 0;
+            const maxAttempts = 100; // 10 segundos
+            const mapDiv = document.getElementById('mapa-real');
+
+            const interval = setInterval(() => {
+                if (typeof L !== 'undefined' && typeof L.map === 'function' && typeof L.Routing !== 'undefined') {
+                    clearInterval(interval);
+                    initializeMap(); // ¡Librerías listas! Iniciar mapa
+                } else if (attemptCounter >= maxAttempts) {
+                    clearInterval(interval);
+                    console.error("Error: Se superó el tiempo de espera (10s) para cargar Leaflet y/o Routing Machine.");
+                    if (mapDiv) {
+                        mapDiv.innerHTML = `<div class="p-4 text-center text-red-500 dark:text-red-400">Error al cargar las librerías del mapa después de 10 segundos. Verifique la conexión.</div>`;
+                    }
+                }
+                attemptCounter++;
+            }, 100);
+        }
+
+        // Iniciar el verificador del mapa solo cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', checkAndInitMap);
+        
+        // --- FIN SCRIPT DEL MAPA ---
+    </script>
+
+</body>
+</html>
