@@ -130,7 +130,7 @@
 
         /* ===== PANEL ===== */        
         body:not(.dark-mode) #panel {
-            background: var(--violeta);
+            background: var(--violeta-dark);
             color: #EDE6D6;
         }
         body.dark-mode #panel {
@@ -142,7 +142,7 @@
         
         /* Panel de Control */
         #panel {
-            background: var(--violeta);
+            background: var(--violeta-dark);
             box-shadow: 2px 0 12px rgba(0,0,0,0.25);
             color: #EDE6D6;
             position: absolute; 
@@ -704,7 +704,7 @@
         <h1>Red de <span style="color: var(--naranja);">Mujeres</span> Artistas, Sabedoras y Gestoras &bull; Artes para la Paz</h1>
         
         <a id="link-culturas" class="header-logo-link" href="https://www.mincultura.gov.co/" target="_blank" rel="noopener noreferrer" title="Ir al Ministerio de las Culturas, las Artes y los Saberes de Colombia">
-            <img id="logo-culturas" src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/GRIS_CULTURAS.png?v=2" alt="Logo Culturas" class="header-logo-right" />
+            <img id="logo-culturas" src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/BLANCO_CULTURAS.png" alt="Logo Culturas" class="header-logo-right" />
         </a>
     </div>
 
@@ -768,7 +768,7 @@
 
         <!-- BOTÓN PRINCIPAL DE TOGGLE UNIFICADO -->
         <button id="main-toggle-btn" aria-label="Alternar panel">
-            <div class="toggle-icon open">
+            <div class="toggle-icon" id="toggle-icon-el">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -791,7 +791,7 @@
         // URLs de Logos del Header (Día/Noche)
         const headerLogos = {
             day: {
-                right: 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/GRIS_CULTURAS.png?v=2'
+                right: 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/BLANCO_CULTURAS.png'
             },
             night: {
                 right: 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/BLANCO_CULTURAS.png'
@@ -1251,7 +1251,17 @@
             
             initThemeAuto();
 
-            // NO clustering - use a simple featureGroup so all 7 markers are always visible
+            // Set initial toggle icon state based on viewport
+            const iconEl = toggleBtn.querySelector('.toggle-icon');
+            if (window.innerWidth > 800) {
+                // Desktop: panel starts open
+                iconEl.classList.add('open');
+            } else {
+                // Mobile: panel starts collapsed (hamburger)
+                iconEl.classList.remove('open');
+            }
+
+            // NO clustering - use a simple featureGroup so all markers are always visible
             markersLayer = L.featureGroup();
             map.addLayer(markersLayer);
             updateMarkers();
