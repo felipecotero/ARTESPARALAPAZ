@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Mapa Red de Organizaciones de Mujeres • Artes para la Paz</title>
+    <meta name="description" content="Mapa interactivo de las 7 organizaciones de la Red de Organizaciones de Mujeres del programa Artes para la Paz 2025.">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
+          
+    <style>
+        @font-face {
+            font-family: 'LanceAPLP';
+            src: url('https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/Lance-RegularAPLP.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        html, body {
+            height: 100%; width: 100%; margin: 0; padding: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(120deg, #f0f0f0 0%, #e0e7ff 100%);
+            color: #222;
+            transition: background 0.5s, color 0.3s;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+        body.dark-mode {
+            background: linear-gradient(120deg, #1a1a1a 0%, #312e81 100%);
+            color: #f0f0f0;
+        }
+        #main-header {
+            background: rgba(255,255,255,0.95);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            padding: 12px 24px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: relative; z-index: 1500;
+            transition: background 0.3s, color 0.3s;
+            flex-shrink: 0;
+        }
+
+        #main-header h1 {
+            font-family: 'LanceAPLP', sans-serif; 
+            font-size: 1.8em; 
+            margin: 0 15px; flex-grow: 1; text-align: center;
+            letter-spacing: 1px;
+            line-height: 1.1;
+        }
+        .header-logo {
+            height: 48px; width: auto; flex-shrink: 0;
+            transition: filter 0.3s;
+        }
+        .header-logo-right {
+            height: 60px; width: auto; flex-shrink: 0; margin-left: 12px; opacity: 0.95;
+            transition: transform 0.18s, opacity 0.2s;
+        }
+        .header-logo-right:hover { transform: translateY(-2px); opacity: 1; }
+        
+        @media (max-width: 800px) {
+            .header-logo-right { height: 40px; margin-left: 8px; }
+            .header-logo { height: 36px; }
+            #main-header h1 { font-size: 1.1em; margin: 0 8px; }
+            #main-header { padding: 10px; }
+        }
+
+        #theme-toggle-btn {
+            background: rgba(255,255,255,0.06); border: none; color: #ffffff;
+            width: 40px; height: 34px; display:flex; align-items:center; justify-content:center;
+            border-radius: 8px; cursor: pointer; transition: background 0.2s, transform 0.12s;
+            padding: 6px;
+        }
+        #theme-toggle-btn:hover { background: rgba(255,255,255,0.12); transform: translateY(-1px); }
+        
+        /* ESTILOS DE COLOR DEL HEADER */
+        body:not(.dark-mode) #main-header {
+            background: #ffdc4a; /* Amarillo */
+            color: #111; 
+        }
+        body:not(.dark-mode) #main-header h1 { 
+            color: #c026d3; /* Fucsia/Morado */
+            text-shadow: 0px 1px 0px rgba(255,255,255,0.4); 
+        }
+        body.dark-mode #main-header {
+            background: linear-gradient(135deg, #1e1b2e 0%, #2d1f3d 100%); color: #fff;
+        }
+        body.dark-mode #main-header h1 {
+            color: #f0abfc;
+            text-shadow: 0 0 20px rgba(240,171,252,0.3);
+        }
+        
+        body:not(.dark-mode) #panel {
+            background: #2b8ec6;
+            color: #fff;
+        }
+        body.dark-mode #panel {
+            background: rgba(30,41,59,0.98); color: #f0f0f0;
+        }
+        body.dark-mode #theme-toggle-btn { color: #ffffff; }
+        
+        #app-container { flex-grow: 1; position: relative; overflow: hidden; min-height: 0; display: flex; }
+        
+        /* Panel de Control */
+        #panel {
+            background: rgba(255,255,255,0.98);
+            box-shadow: 2px 0 12px rgba(0,0,0,0.18);
+            color: #222;
+            position: absolute; 
+            top: 0; left: 0;
+            width: 420px; height: 100%; 
+            padding: 24px 54px 20px 20px; 
+            display: flex; flex-direction: column; overflow-y: auto;
+            z-index: 2000; 
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-sizing: border-box;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        #filters h2, #legend h2 {
+            border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 10px; color: inherit;
+        }
+        body.dark-mode #filters h2, body.dark-mode #legend h2 {
+            border-bottom: 1px solid #444;
+        }
+
+        /* --- BOTÓN TOGGLE FLOTANTE --- */
+        #main-toggle-btn {
+            position: absolute;
+            top: 12px; 
+            z-index: 4000; 
+            width: 32px; 
+            height: 32px;
+            background: #d946ef; 
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+            transition: left 0.3s ease, transform 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #main-toggle-btn:hover {
+            background: #c026d3;
+            transform: scale(1.05);
+        }
+
+        body.dark-mode #main-toggle-btn {
+            background: #f0abfc;
+        }
+        body.dark-mode #main-toggle-btn:hover {
+            background: #f5d0fe;
+        }
+
+        /* Icono Animado */
+        .toggle-icon {
+            width: 18px;
+            height: 14px;
+            position: relative;
+            transform: rotate(0deg);
+            transition: .4s ease-in-out;
+        }
+        .toggle-icon span {
+            display: block;
+            position: absolute;
+            height: 2px;
+            width: 100%;
+            background: #fff;
+            border-radius: 2px;
+            opacity: 1;
+            left: 0;
+            transform: rotate(0deg);
+            transition: .25s ease-in-out;
+        }
+
+        .toggle-icon span:nth-child(1) { top: 0px; }
+        .toggle-icon span:nth-child(2) { top: 6px; }
+        .toggle-icon span:nth-child(3) { top: 12px; }
+
+        .toggle-icon.open span:nth-child(1) {
+            top: 6px;
+            transform: rotate(135deg);
+        }
+        .toggle-icon.open span:nth-child(2) {
+            opacity: 0;
+            left: -60px;
+        }
+        .toggle-icon.open span:nth-child(3) {
+            top: 6px;
+            transform: rotate(-135deg);
+        }
+
+        /* Posicionamiento en Escritorio (Panel width 420px) */
+        @media (min-width: 801px) {
+            /* Panel Abierto */
+            #app-container:not(.panel-collapsed) #main-toggle-btn {
+                left: 380px; 
+            }
+            /* Panel Cerrado */
+            #app-container.panel-collapsed #main-toggle-btn {
+                left: 20px; 
+            }
+            #app-container.panel-collapsed #panel {
+                transform: translateX(-100%);
+            }
+            /* Mapa responsive al panel */
+            #app-container:not(.panel-collapsed) #map-container {
+                left: 420px; 
+                width: calc(100% - 420px);
+            }
+            #app-container.panel-collapsed #map-container {
+                left: 0; 
+                width: 100%;
+            }
+        }
+
+        /* Posicionamiento en Móvil (Panel width 85vw) */
+        @media (max-width: 800px) {
+            #panel {
+                width: 85vw; 
+                padding-right: 45px;
+                transform: translateX(-100%); 
+            }
+            /* Estado Abierto Móvil */
+            #panel.show {
+                transform: translateX(0);
+            }
+            /* Cuando el panel tiene la clase .show, el botón (hermano siguiente) se mueve */
+            #panel.show ~ #main-toggle-btn {
+                left: calc(85vw - 45px);
+            }
+            /* Estado Cerrado Móvil (Por defecto) */
+            #main-toggle-btn {
+                left: 15px; 
+            }
+            /* En móvil el mapa siempre ocupa el 100% */
+            #map-container {
+                left: 0 !important;
+                width: 100% !important;
+            }
+        }
+        
+        .filter-option label {
+            display: flex; align-items: center; cursor: pointer; padding: 6px 0;
+            transition: background 0.2s;
+        }
+        .filter-option label:hover {
+            background: #e0e7ff;
+        }
+        body.dark-mode .filter-option label:hover {
+            background: #312e81;
+        }
+        #search-box {
+            margin-bottom: 18px;
+            display: flex; align-items: center;
+            position: relative; 
+            width: 100%;
+        }
+        
+        :root { --search-clear-w: 34px; --search-btn-w: 40px; --search-gap: 8px; --filters-blue: #51cafc; --panel-theme-purple: #d946ef; --mujeres-pink: #d946ef; --mujeres-pink-light: #f0abfc; }
+        #search-input {
+            flex-grow: 1; 
+            padding: 7px 12px; border-radius: 6px; border: 1px solid #d946ef;
+            padding-right: 30px; 
+            font-size: 0.95em; outline: none; margin-right: 6px;
+            box-sizing: border-box; position: relative; z-index: 2500; background: #fff;
+            height: 36px;
+            -webkit-appearance: none;
+        }
+        #search-input:focus {
+            border-color: #f0abfc;
+            box-shadow: 0 0 0 3px rgba(217, 70, 239, 0.15);
+        }
+        
+        #search-btn {
+            background: var(--mujeres-pink); color: #fff; border: none; border-radius: 6px;
+            width: var(--search-btn-w); height: 36px; cursor: pointer; font-size: 1em; 
+            display: inline-flex; align-items: center; justify-content: center;
+            transition: background 0.18s, transform 0.12s;
+            margin-right: 0; 
+            flex-shrink: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #search-btn:hover { filter: brightness(1.1); transform: scale(1.02); }
+        
+        #search-suggestions {
+            display: none; position: relative; width: 100%; margin-bottom: 8px; z-index: 2500;
+            max-height: 260px; overflow-y: auto; border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(16,24,40,0.12);
+        }
+        .suggestion-item {
+            padding: 10px 12px; background: rgba(255,255,255,0.98); cursor: pointer; border-bottom: 1px solid rgba(0,0,0,0.04);
+            color: #111; display: block;
+        }
+        .suggestion-item:last-child { border-bottom: none; }
+        .suggestion-item:hover, .suggestion-item:focus { background: #fdf2f8; outline: none; }
+        .suggestion-item.highlight { background: #fce7f3; }
+        body.dark-mode .suggestion-item { background: rgba(20,24,32,0.96); color: #fff; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        body.dark-mode .suggestion-item:hover, body.dark-mode .suggestion-item:focus { background: rgba(40,44,59,0.95); }
+        
+        /* Botón X pequeño dentro del input de búsqueda */
+        #search-clear-btn {
+            position: absolute; 
+            left: calc(100% - var(--search-btn-w) - 40px); 
+            top: 50%; transform: translateY(-50%);
+            width: 20px; height: 20px; border-radius: 50%; border: none; background: transparent;
+            display: none; align-items: center; justify-content: center; cursor: pointer; z-index: 2600;
+            font-size: 12px; color: #999; padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #search-clear-btn:hover { color: #333; background: #eee; }
+        body.dark-mode #search-clear-btn { color: #ccc; }
+        #search-clear-btn.visible { display: flex !important; }
+        
+        .filter-option.active { border-radius: 6px; }
+        .filter-option .filter-btn { 
+            display:flex; 
+            align-items:center; 
+            justify-content: space-between;
+            gap:8px; 
+            padding:6px 8px; 
+            cursor:pointer; 
+            background: transparent; 
+            border: none; 
+            width: 100%; 
+            text-align: left; 
+        }
+        .filter-option .filter-btn:focus { outline: 2px solid #f0abfc; }
+        .filter-btn.night-mode { opacity: 0.95; }
+        .filter-btn.night-mode:active, .filter-option.active .filter-btn.night-mode { background: rgba(255,255,255,0.04); }
+        .filter-btn div span { color: #111; }
+        .filter-option.active .filter-btn div span { color: #111; }
+        body.dark-mode .filter-option.active .filter-btn div span { color: #fff; }
+
+        .network-count {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            min-width: 20px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        body:not(.dark-mode) .network-count {
+            background-color: var(--mujeres-pink);
+            color: white;
+        }
+        body.dark-mode .network-count {
+            background-color: var(--mujeres-pink-light);
+            color: #1a1a1a;
+        }
+
+        .filters-card {
+            background: rgba(255,255,255,0.96);
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 6px 18px rgba(16,24,40,0.06);
+            margin-bottom: 12px;
+        }
+        #panel .filters-card h2 { margin: 0 0 8px 0; color: #111; font-size: 1.0em; font-weight: 700; }
+        .filters-card { background: #51cafc; }
+        body.dark-mode #panel .filters-card { background: rgba(20,24,32,0.82); box-shadow: 0 6px 18px rgba(0,0,0,0.45); }
+        body.dark-mode #panel .filters-card h2 { color: #fff; }
+
+        :root {
+            --blue-pastel: #d7f0ff;
+            --blue-dark: #063c6b;
+        }
+        .filters-card .filter-btn { background: transparent; border-radius: 8px; padding: 8px; display: flex; align-items: center; gap:8px; }
+        .filters-card .filter-btn .legend-logo { filter: none; }
+        body:not(.dark-mode) .filters-card .filter-btn div span { color: var(--blue-dark); }
+        body:not(.dark-mode) .filters-card .filter-option.active .filter-btn { background: var(--blue-pastel); }
+        body:not(.dark-mode) .filters-card .filter-option.active .filter-btn div span { color: var(--blue-dark); font-weight: 600; }
+        body.dark-mode .filters-card .filter-btn div span { color: #ffffff; }
+        body.dark-mode .filters-card .filter-option.active .filter-btn { background: var(--blue-pastel); }
+        body.dark-mode .filters-card .filter-option.active .filter-btn div span { color: var(--blue-dark); font-weight: 700; }
+
+        .activity-filters {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.3);
+        }
+        body.dark-mode .activity-filters { border-top: 1px solid rgba(255,255,255,0.1); }
+        .activity-filter-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        .activity-filter-item input { margin-right: 8px; }
+        
+        .popup-content details {
+            margin-top: 8px;
+            border: 1px solid #fce7f3;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.5);
+        }
+        .popup-content summary {
+            padding: 6px 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9em;
+            color: #a21caf;
+            list-style: none; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .popup-content summary::-webkit-details-marker { display: none; }
+        .popup-content summary:after {
+            content: '+'; 
+            font-weight: bold;
+        }
+        .popup-content details[open] summary:after {
+            content: '-';
+        }
+        .popup-content details[open] summary {
+            border-bottom: 1px solid #fce7f3;
+            background: #fdf2f8;
+        }
+        .popup-content .event-details {
+            padding: 8px 10px;
+            font-size: 0.85em;
+            line-height: 1.4;
+        }
+        .popup-content .event-tag {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            margin-right: 4px;
+            margin-bottom: 2px;
+            font-weight: 700;
+            min-width: 18px;
+            text-align: center;
+        }
+        .tag-formacion { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
+        .tag-publico { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+        .tag-circulacion { background: #fce7f3; color: #be185d; border: 1px solid #fbcfe8; }
+
+        #map-container {
+            width: 100%; height: 100%; position: absolute; top: 0; left: 0; 
+            transition: left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), width 0.3s;
+        }
+        #map { width: 100%; height: 100%; }
+        
+        #map.day-enhance { filter: saturate(1.3) contrast(1.1) hue-rotate(15deg) brightness(0.95); }
+        body.dark-mode #map { filter: saturate(1.2) contrast(1.05) brightness(0.85) hue-rotate(10deg); }
+        
+        .header-tooltip {
+            position: absolute; transform: translateY(-8px); z-index: 5000; background: rgba(0,0,0,0.85); color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 13px; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.12s, transform 0.12s;
+        }
+        .header-tooltip.show { opacity: 1; transform: translateY(-12px); }
+        
+        .panel-theme-btn {
+            background: var(--mujeres-pink); border: 1px solid rgba(0,0,0,0.06); padding: 8px 10px; border-radius: 8px; cursor: pointer;
+            color: #fff; display: inline-flex; align-items: center; justify-content: center;
+            transition: background 0.2s, transform 0.12s;
+        }
+        .panel-theme-btn:hover { background: #c026d3; transform: translateY(-1px); }
+        body.dark-mode .panel-theme-btn { background: #f0abfc; color: #1a1a1a; border-color: rgba(255,255,255,0.08); }
+        body.dark-mode .panel-theme-btn:hover { background: #f5d0fe; }
+        
+        .leaflet-tooltip {
+            background: rgba(162,28,175,0.9); color: #fff; border: 1px solid #d946ef;
+            border-radius: 5px; padding: 6px; font-size: 1em;
+        }
+        .leaflet-marker-icon {
+            filter: drop-shadow(0px 4px 8px rgba(217,70,239,0.6));
+            transition: filter 0.3s, transform 0.3s;
+        }
+        .leaflet-marker-icon:hover {
+            filter: drop-shadow(0px 6px 14px rgba(240,171,252,0.9));
+            transform: scale(1.15);
+        }
+
+        /* Org count badge */
+        .org-count-badge {
+            background: linear-gradient(135deg, #d946ef 0%, #f0abfc 100%);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            box-shadow: 0 2px 8px rgba(217, 70, 239, 0.35);
+            border: 1px solid rgba(255,255,255,0.2);
+            min-width: 80px;
+            transition: all 0.3s ease;
+        }
+        body.dark-mode .org-count-badge {
+            background: linear-gradient(135deg, #f0abfc 0%, #f5d0fe 100%);
+            color: #1a1a1a;
+        }
+        .org-count-number {
+            font-size: 1.4em;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        .org-count-label {
+            font-size: 0.6em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.9;
+            margin-top: 2px;
+            font-weight: 600;
+        }
+
+        .tutorial-card {
+            background: #fdf2f8;
+            border-radius: 12px;
+            padding: 12px 16px;
+            box-shadow: 0 6px 18px rgba(16,24,40,0.06);
+            margin-top: 20px;
+            max-height: 240px; 
+            overflow-y: auto; 
+        }
+        body:not(.dark-mode) .tutorial-card { color: #831843; }
+        body.dark-mode .tutorial-card { background: rgba(40,44,59,0.95); }
+        .tutorial-card h2 { margin: 0 0 10px 0; color: #111; font-size: 1.05em; font-weight: 700; }
+        body.dark-mode .tutorial-card h2 { color: #fff; }
+        .tutorial-card ul { list-style-type: none; padding-left: 0; margin: 0; }
+        .tutorial-card li { font-size: 0.85em; line-height: 1.5; margin-bottom: 10px; padding-right: 8px; }
+        .tutorial-card li:last-child { margin-bottom: 0; }
+        .tutorial-card strong { color: #d946ef; }
+        body.dark-mode .tutorial-card strong { color: #f0abfc; }
+
+        /* Mujeres branding line */
+        .mujeres-brand-line {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid rgba(217,70,239,0.2);
+        }
+        .mujeres-brand-line img {
+            width: 42px; height: 42px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+        }
+        .mujeres-brand-line span {
+            font-weight: 800;
+            font-size: 1.05em;
+            color: #86198f;
+        }
+        body.dark-mode .mujeres-brand-line span { color: #f5d0fe; }
+        body.dark-mode .mujeres-brand-line { border-bottom-color: rgba(240,171,252,0.2); }
+
+        /* Legend logo in panel */
+        .legend-logo {
+            width: 24px; height: 24px; margin-right: 10px;
+        }
+
+        /* Pulse animation for markers */
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(217,70,239,0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(217,70,239,0); }
+            100% { box-shadow: 0 0 0 0 rgba(217,70,239,0); }
+        }
+
+        /* Collapsible org list */
+        #org-toggle-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #d946ef 0%, #c026d3 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.92em;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.2s, transform 0.1s;
+            margin-bottom: 6px;
+        }
+        #org-toggle-btn:hover { background: linear-gradient(135deg, #c026d3 0%, #a21caf 100%); }
+        #org-toggle-btn .chevron {
+            transition: transform 0.3s ease;
+            font-size: 0.8em;
+        }
+        #org-toggle-btn.expanded .chevron {
+            transform: rotate(180deg);
+        }
+        #filters-list {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+        #filters-list.expanded {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        /* Beneficiarios badge in popup */
+        .popup-content .badge-beneficiarios {
+            display: inline-block;
+            background: #ecfdf5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="main-header" tabindex="0">
+        <a id="link-artes" class="header-logo-link" href="https://artesparalapaz.mincultura.gov.co/Paginas/index.aspx" target="_blank" rel="noopener noreferrer" title="Volver a la página de Artes para la Paz">
+            <img id="logo-artes" src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/APLP%20MORADO.png?v=2" alt="Logo Artes para la Paz" class="header-logo">
+        </a>
+        
+        <h1>Red de Organizaciones de Mujeres &bull; Artes para la Paz</h1>
+        
+        <a id="link-culturas" class="header-logo-link" href="https://www.mincultura.gov.co/" target="_blank" rel="noopener noreferrer" title="Ir al Ministerio de las Culturas, las Artes y los Saberes de Colombia">
+            <img id="logo-culturas" src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/GRIS_CULTURAS.png?v=2" alt="Logo Culturas" class="header-logo-right" />
+        </a>
+    </div>
+
+    <div id="app-container">
+        <div id="panel" tabindex="0">
+            <!-- Branding Mujeres -->
+            <div class="mujeres-brand-line">
+                <img src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/ORGANIZACIONES%20DE%20MUJERES.png" alt="Logo Red de Mujeres">
+                <span>Red de Organizaciones de Mujeres</span>
+            </div>
+
+            <div id="search-box">
+                <input id="search-input" type="text" placeholder="Buscar organización, ciudad..." aria-label="Buscar" tabindex="0">
+                <button id="search-clear-btn" title="Borrar búsqueda" aria-label="Borrar búsqueda" tabindex="0">✕</button>
+                <button id="search-btn" title="Buscar" tabindex="0">🔍</button>
+            </div>
+            <div id="search-suggestions" role="listbox" aria-label="Sugerencias de búsqueda"></div>
+            <div id="filters">
+                <div class="filters-card">
+                    <button id="org-toggle-btn" type="button">
+                        <span>📍 Ver organizaciones (7)</span>
+                        <span class="chevron">▼</span>
+                    </button>
+                    <div id="filters-list"></div>
+                    
+                    <div class="activity-filters">
+                        <div style="font-weight: 700; margin-bottom: 8px; color: inherit;">Filtrar por Tipo de Actividad</div>
+                        <label class="activity-filter-item">
+                            <input type="checkbox" class="activity-check" value="formacion" checked> Formación
+                        </label>
+                        <label class="activity-filter-item">
+                            <input type="checkbox" class="activity-check" value="circulacion" checked> Circulación
+                        </label>
+                        <label class="activity-filter-item">
+                            <input type="checkbox" class="activity-check" value="publico" checked> Evento con Público
+                        </label>
+                        <label class="activity-filter-item">
+                            <input type="checkbox" class="activity-check" value="otro" checked> Otros / Sin Clasificar
+                        </label>
+                    </div>
+
+                    <div id="panel-theme-row" style="margin-top:10px; display:flex; align-items:center; justify-content: space-between;">
+                        <button id="panel-theme-toggle-btn" class="panel-theme-btn" title="Cambiar modo claro/oscuro" aria-pressed="false">🌙</button>
+                        <div id="org-count-display" class="org-count-badge" title="Total de organizaciones de la Red de Mujeres">
+                            <span class="org-count-number" id="total-org-count">7</span>
+                            <span class="org-count-label">Organizaciones</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="tutorial-panel" class="tutorial-card">
+                <h2>¿Cómo usar el mapa?</h2>
+                <ul>
+                    <li><strong>Explora:</strong> Todas las 7 organizaciones de la Red de Mujeres están visibles en el mapa.</li>
+                    <li><strong>Detalles:</strong> Haz clic en una organización para ver sus eventos y actividades.</li>
+                    <li><strong>Filtra:</strong> Usa los filtros de tipo de actividad (Formación, Circulación, etc.) o la búsqueda.</li>
+                    <li><strong>Tema:</strong> Cambia entre modo diurno y nocturno con el botón 🌙/☀️.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- BOTÓN PRINCIPAL DE TOGGLE UNIFICADO -->
+        <button id="main-toggle-btn" aria-label="Alternar panel">
+            <div class="toggle-icon open">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </button>
+
+        <div id="map-container" tabindex="0">
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin="" defer></script>
+    <script>
+    window.addEventListener('DOMContentLoaded', function() {
+        
+        const logoUrl = 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/ORGANIZACIONES%20DE%20MUJERES.png';
+        
+        // URLs de Logos del Header (Día/Noche)
+        const headerLogos = {
+            day: {
+                right: 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/GRIS_CULTURAS.png?v=2'
+            },
+            night: {
+                right: 'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/BLANCO_CULTURAS.png'
+            }
+        };
+        
+        const placeholderLogo = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><rect width='80' height='80' rx='12' fill='%23d946ef'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='14' font-family='Arial'>M</text></svg>";
+        
+        let logoReady = false;
+        const logoImg = new Image();
+        logoImg.onload = () => { logoReady = true; };
+        logoImg.onerror = () => { logoReady = false; };
+        logoImg.src = logoUrl;
+
+        const eventTypes = {
+            'FORMACION': 'formacion',
+            'FOMACIÓN': 'formacion',
+            'FORMACIÓN': 'formacion',
+            'EVENTO DE FORMACION': 'formacion',
+            'EVENTO DE FORMACIÓN': 'formacion',
+            'EVENTO FORMATIVO': 'formacion',
+            'CIRCULACION': 'circulacion',
+            'CIRCULACIÓN': 'circulacion',
+            'EVENTO DE CIRCULACION': 'circulacion',
+            'EVENTO DE CIRCULACIÓN': 'circulacion',
+            'EVENTO CON PUBLICO': 'publico',
+            'EVENTO CON PÚBLICO': 'publico',
+            'EVENTO DE CIRCULACION CON PUBLICO': 'publico',
+            'EVENTO DE CIRCULACIÓN CON PÚBLICO': 'publico',
+            'CIRCULACIÓN-FORMACIÓN': 'formacion',
+            'CIRCULACIÓN-CREACIÓN': 'circulacion',
+            'EVENTO DE ARTICULACIÓN': 'formacion',
+            'EVENTO DE ENCUENTRO': 'formacion', 
+            'EVENTO DE CREACIÓN COLECTIVA': 'formacion',
+            'ENCUENTRO BIOCULTURAL': 'circulacion',
+            'LABORATORIO DE CREACIÓN': 'formacion',
+            'GRABACIÓN MUSICAL': 'formacion',
+            'SABERES TRADICIONALES': 'formacion'
+        };
+        
+        const eventTypeLetters = {
+            'formacion': 'F',
+            'circulacion': 'C',
+            'publico': 'E',
+            'otro': '?'
+        };
+        
+        const eventTypeLabels = {
+            'formacion': 'Formación',
+            'circulacion': 'Circulación',
+            'publico': 'Evento Público',
+            'otro': 'Otro'
+        };
+
+        // --- DATA RED DE MUJERES (7 Organizaciones) ---
+        const organizations = [
+            {
+                name: 'Chaibá, Fundación para el desarrollo humano', 
+                city: 'Suesca', 
+                lat: 5.103, lng: -73.800,
+                events: [
+                    { name: 'Festival Titúa', type: 'CIRCULACIÓN', ben: 500, dates: '03/11/25 - 09/11/25', desc: 'Festival enfocado en la recuperación y difusión del Patrimonio Cultural Inmaterial cundiboyacense.' }
+                ]
+            },
+            {
+                name: 'FUNDACION CULTURAL KYNZA XIE', 
+                city: 'Chía', 
+                lat: 4.858, lng: -74.033,
+                events: [
+                    { name: 'Muestra final Escuela Hilos de Luna', type: 'CIRCULACIÓN', ben: 25, dates: '21/11/25 - 22/11/25', desc: 'Jornada de cierre del proceso formativo de tejeduría artesanal.' }
+                ]
+            },
+            {
+                name: 'Asociación de mujeres Wiwa Abudzibu Asomuwadzi', 
+                city: 'Santa Marta', 
+                lat: 11.240, lng: -74.199,
+                events: [
+                    { name: 'Encuentro intercultural Wiwa', type: 'CIRCULACIÓN', ben: 434, dates: '08/11/25', desc: 'Encuentro comunitario de danzas tradicionales y diálogo intergeneracional.' }
+                ]
+            },
+            {
+                name: 'ORGANIZACION DE MUJERES VICTIMAS DEL RIO IRO (ORVIEN)', 
+                city: 'Río Iró', 
+                lat: 5.217, lng: -76.683,
+                events: [
+                    { name: 'Encuentro rescate de tradiciones', type: 'CIRCULACIÓN', ben: 2440, dates: '10/11/25 - 16/11/25', desc: 'Rescate de tradición: danza, literatura oral y música para evitar reclutamiento.' },
+                    { name: 'Conversatorios con comunidad', type: 'CIRCULACIÓN', dates: '03/11/25 - 09/11/25', desc: 'Espacios colectivos para reconstruir la tradición del territorio.' },
+                    { name: 'Encuentro de juegos tradicionales', type: 'CIRCULACIÓN', dates: '17/11/25 - 23/11/25', desc: 'Rescate de juegos tradicionales ante la pérdida de espacios.' },
+                    { name: 'Encuentro de sanadoras', type: 'CIRCULACIÓN', dates: '03/11/25 - 09/11/25', desc: 'Espacios de sanación espiritual desde costumbres propias.' }
+                ]
+            },
+            {
+                name: 'FUNDACION MICELIO TEJIENDO SABERES', 
+                city: 'Corozal', 
+                lat: 9.316, lng: -75.294,
+                events: [
+                    { name: 'Festival Ancestral Zenú', type: 'CIRCULACIÓN', ben: 2050, dates: '16/11/25', desc: 'Encuentro de danzas ancestrales y juegos tradicionales de la etnia Zenú.' },
+                    { name: 'Conversatorio de saberes', type: 'CIRCULACIÓN', dates: '15/11/25', desc: 'Diálogo intergeneracional sobre mitos y prácticas espirituales.' }
+                ]
+            },
+            {
+                name: 'Asociación COMPAÑÍA AMÉRICA DANZA', 
+                city: 'Soacha', 
+                lat: 4.580, lng: -74.217,
+                events: [
+                    { name: 'Feria Comunitaria', type: 'CIRCULACIÓN', ben: 987, dates: '10/11/25 - 16/11/25', desc: 'Cocreación de gesto artístico colectivo para la seguridad de las mujeres.' }
+                ]
+            },
+            {
+                name: 'FUNDACION DECUPLUM', 
+                city: 'Valledupar', 
+                lat: 10.463, lng: -73.253,
+                events: [
+                    { name: 'Encuentro Vallenato Femenino EVAFE', type: 'CIRCULACIÓN', ben: 115, dates: '29/09/25 - 05/10/25', desc: 'Festival que visibiliza el papel de la mujer en la cultura vallenata.' }
+                ]
+            }
+        ];
+
+        // Preload logo then init
+        setTimeout(() => {
+            renderFilters();
+            initMap();
+        }, 300);
+
+        const appContainer = document.getElementById('app-container');
+        const panel = document.getElementById('panel');
+        const toggleBtn = document.getElementById('main-toggle-btn');
+        const searchInput = document.getElementById('search-input');
+        const searchBtn = document.getElementById('search-btn');
+        const markersById = new Map();
+        
+        const initialView = { center: [6.5, -74.5], zoom: 6 };
+
+        document.addEventListener('change', function(e) {
+            if(e.target.classList.contains('activity-check')) {
+                updateMarkers(searchInput.value);
+            }
+        });
+
+        function renderFilters(){
+             const filtersList = document.getElementById('filters-list');
+             filtersList.innerHTML = '';
+             
+             // Show all orgs as a list
+             organizations.forEach((org, idx) => {
+                const item = document.createElement('div');
+                item.className = 'legend-item filter-option active';
+                item.style.cssText = 'margin-bottom: 2px;';
+                const btn = document.createElement('button');
+                btn.className = 'filter-btn';
+                btn.type = 'button';
+                btn.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <img src="${logoReady ? logoUrl : placeholderLogo}" class="legend-logo" alt="Logo Red de Mujeres" style="width:20px;height:20px;">
+                        <span style="font-size:0.82em;">${org.name}</span>
+                    </div>
+                `;
+                btn.addEventListener('click', () => {
+                    performSearch(org);
+                });
+                item.appendChild(btn);
+                filtersList.appendChild(item);
+             });
+
+             // Update org count
+             document.getElementById('total-org-count').textContent = organizations.length;
+
+             // Collapsible toggle for org list
+             const orgToggleBtn = document.getElementById('org-toggle-btn');
+             if (orgToggleBtn) {
+                 orgToggleBtn.addEventListener('click', () => {
+                     const list = document.getElementById('filters-list');
+                     list.classList.toggle('expanded');
+                     orgToggleBtn.classList.toggle('expanded');
+                 });
+             }
+        }
+
+        let map, markersLayer;
+        let searchOverrideId = null;
+
+        const suggestionsEl = document.getElementById('search-suggestions');
+        function clearSuggestions(){ suggestionsEl.innerHTML = ''; suggestionsEl.style.display = 'none'; }
+        
+        function findMatches(q){
+            if (!q) return [];
+            const term = q.toLowerCase();
+            return organizations.filter(org => 
+                org.name.toLowerCase().includes(term) || 
+                (org.events && org.events.some(e => e.name.toLowerCase().includes(term))) ||
+                (org.city && org.city.toLowerCase().includes(term))
+            );
+        }
+
+        function performSearch(org){
+            let targetOrg = org;
+            if (typeof org === 'string') {
+                const matches = findMatches(org);
+                targetOrg = matches.length ? matches[0] : null;
+            }
+            if (!targetOrg) return;
+            const id = String(organizations.indexOf(targetOrg));
+            searchOverrideId = id;
+            searchInput.value = targetOrg.name;
+            updateMarkers(targetOrg.name);
+            const marker = markersById.get(id);
+            if (marker) {
+                marker.openPopup();
+                if (window.innerWidth <= 800 && panel.classList.contains('show')) {
+                    togglePanel(); 
+                }
+                map.setView(marker.getLatLng(), Math.max(map.getZoom(), 10), { animate: true });
+            }
+        }
+
+        function handleSearchInput(e) {
+            const v = e.target.value;
+            if (!v) { 
+                searchOverrideId = null;
+                updateMarkers('');
+                clearSuggestions(); 
+                if (map) map.setView([6.5, -74.5], 6, { animate: true });
+                document.getElementById('search-clear-btn').classList.remove('visible');
+                return; 
+            }
+            document.getElementById('search-clear-btn').classList.add('visible');
+            const matches = findMatches(v).slice(0,6);
+            suggestionsEl.innerHTML = '';
+            matches.forEach((m, idx) => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+                div.innerText = m.name + ' — ' + m.city;
+                div.addEventListener('pointerdown', (ev) => { 
+                    ev.preventDefault();
+                    performSearch(m); 
+                    clearSuggestions(); 
+                });
+                suggestionsEl.appendChild(div);
+            });
+            if(matches.length) suggestionsEl.style.display = 'block'; else clearSuggestions();
+        }
+
+        searchInput.addEventListener('input', handleSearchInput);
+        
+        searchInput.addEventListener('focus', () => {
+            if(searchInput.value) handleSearchInput({target: searchInput});
+        });
+
+        document.getElementById('search-clear-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            searchInput.value = '';
+            searchOverrideId = null;
+            updateMarkers('');
+            clearSuggestions();
+            document.getElementById('search-clear-btn').classList.remove('visible');
+            if (map) map.setView([6.5, -74.5], 6, { animate: true });
+        });
+
+        function updateMarkers(searchTerm = '') {
+             if (!markersLayer) return;
+             markersLayer.clearLayers();
+             markersById.clear();
+
+             const activityChecks = document.querySelectorAll('.activity-check:checked');
+             const activeTypes = Array.from(activityChecks).map(c => c.value);
+
+             let filteredOrgs = [];
+
+             if (searchOverrideId !== null) {
+                 const idx = parseInt(searchOverrideId, 10);
+                 if (organizations[idx]) filteredOrgs = [organizations[idx]];
+             } else {
+                 filteredOrgs = [...organizations];
+                 
+                 if (searchTerm) {
+                     const term = searchTerm.toLowerCase();
+                     filteredOrgs = filteredOrgs.filter(org =>
+                         org.name.toLowerCase().includes(term) ||
+                         (org.events && org.events.some(e => e.name.toLowerCase().includes(term))) ||
+                         (org.city && org.city.toLowerCase().includes(term))
+                     );
+                 }
+
+                 filteredOrgs = filteredOrgs.filter(org => {
+                     if (org.events) {
+                         return org.events.some(e => {
+                             const rawType = e.type || '';
+                             const mapped = eventTypes[rawType.toUpperCase()] || 'otro';
+                             return activeTypes.includes(mapped);
+                         });
+                     } else {
+                         return activeTypes.includes('otro');
+                     }
+                 });
+             }
+
+             // Update visible count
+             document.getElementById('total-org-count').textContent = filteredOrgs.length;
+
+             filteredOrgs.forEach(org => {
+                 const iconSize = 42;
+                 const iconUrlFinal = logoReady ? logoUrl : placeholderLogo;
+                 const customIcon = L.icon({
+                     iconUrl: iconUrlFinal,
+                     iconSize: [iconSize, iconSize], iconAnchor: [iconSize / 2, iconSize], popupAnchor: [0, -iconSize]
+                 });
+
+                 let popupHtml = `<div class="popup-content"><h5 style="color:#a21caf; margin:0 0 6px 0; font-size:1.05em;">${org.name}</h5>`;
+                 popupHtml += `<p style="margin:4px 0;"><strong>Ciudad:</strong> ${org.city}</p>`;
+
+                 if (org.events && org.events.length > 0) {
+                     org.events.forEach(e => {
+                         const typeClass = eventTypes[(e.type || '').toUpperCase()] || 'otro';
+                         const typeLetter = eventTypeLetters[typeClass] || '?';
+                         const typeLabel = eventTypeLabels[typeClass] || (e.type || 'Evento');
+                         
+                         let tagClass = '';
+                         if (typeClass === 'formacion') tagClass = 'tag-formacion';
+                         else if (typeClass === 'publico') tagClass = 'tag-publico';
+                         else if (typeClass === 'circulacion') tagClass = 'tag-circulacion';
+
+                         popupHtml += `<details>`;
+                         popupHtml += `<summary>
+                                         <span>${e.name.substring(0, 28)}${e.name.length>28?'...':''}</span>
+                                         <span class="event-tag ${tagClass}" title="${typeLabel}">${typeLetter}</span>
+                                       </summary>`;
+                         popupHtml += `<div class="event-details">
+                                         <div style="margin-bottom:4px;"><strong>${e.name}</strong></div>
+                                         <div style="margin-bottom:4px;"><span class="event-tag ${tagClass}" style="padding:2px 8px; width:auto; display:inline-block;">${typeLabel}</span></div>
+                                         <div style="font-size:0.9em; color:#555;">📅 ${e.dates || 'Fechas por definir'}</div>`;
+                         
+                         if (e.ben) popupHtml += `<div style="margin-top:4px;"><span class="badge-beneficiarios">👥 ${e.ben.toLocaleString()} beneficiarios</span></div>`;
+                         if (e.desc) popupHtml += `<div style="margin-top:6px; font-style:italic;">${e.desc}</div>`;
+                         
+                         popupHtml += `</div></details>`;
+                     });
+                 }
+
+                 popupHtml += '</div>';
+
+                 const marker = L.marker([org.lat, org.lng], { icon: customIcon });
+                 marker.bindTooltip(`${org.name} — ${org.city}`);
+                 marker.bindPopup(popupHtml, { maxWidth: 320 });
+                 markersLayer.addLayer(marker);
+                 const id = organizations.indexOf(org);
+                 markersById.set(String(id), marker);
+             });
+        }
+
+        function initMap() {
+            if(typeof L === 'undefined') return;
+            map = L.map('map', { zoomControl: false }).setView([6.5, -74.5], 6);
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+            
+            let dayTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' });
+            let nightTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' });
+            
+            function updateTheme(isDark) {
+                if (isDark) {
+                    document.body.classList.add('dark-mode');
+                    if(map.hasLayer(dayTiles)) map.removeLayer(dayTiles);
+                    if(!map.hasLayer(nightTiles)) nightTiles.addTo(map);
+                    document.getElementById('map').classList.remove('day-enhance');
+                    document.getElementById('logo-culturas').src = headerLogos.night.right;
+                    const btn = document.getElementById('panel-theme-toggle-btn');
+                    if(btn) btn.innerText = '☀️';
+                    
+                } else {
+                    document.body.classList.remove('dark-mode');
+                    if(map.hasLayer(nightTiles)) map.removeLayer(nightTiles);
+                    if(!map.hasLayer(dayTiles)) dayTiles.addTo(map);
+                    document.getElementById('map').classList.add('day-enhance');
+                    document.getElementById('logo-culturas').src = headerLogos.day.right;
+                    const btn = document.getElementById('panel-theme-toggle-btn');
+                    if(btn) btn.innerText = '🌙';
+                }
+            }
+
+            function initThemeAuto() {
+                const now = new Date();
+                const hour = now.getHours();
+                const isNightTime = hour < 6 || hour >= 18;
+                updateTheme(isNightTime);
+            }
+            
+            initThemeAuto();
+
+            // NO clustering - use a simple featureGroup so all 7 markers are always visible
+            markersLayer = L.featureGroup();
+            map.addLayer(markersLayer);
+            updateMarkers();
+            
+            // Auto-Pan for popups
+            map.on('popupopen', function(e) {
+                const contentNode = e.popup._contentNode;
+                contentNode.addEventListener('toggle', function(event) {
+                    if (event.target.tagName.toLowerCase() === 'details' && event.target.open) {
+                        setTimeout(() => {
+                            const popupRect = contentNode.getBoundingClientRect();
+                            const headerRect = document.getElementById('main-header').getBoundingClientRect();
+                            const padding = 20; 
+                            if (popupRect.top < headerRect.bottom + padding) {
+                                const offsetY = (headerRect.bottom + padding) - popupRect.top;
+                                map.panBy([0, -offsetY]);
+                            }
+                        }, 100); 
+                    }
+                }, true); 
+            });
+
+            // Toggle Panel
+            function togglePanel() {
+                const isDesktop = window.innerWidth > 800;
+                
+                if (isDesktop) {
+                   appContainer.classList.toggle('panel-collapsed');
+                } else {
+                   panel.classList.toggle('show');
+                }
+                
+                const icon = toggleBtn.querySelector('.toggle-icon');
+                
+                let isOpen;
+                if(isDesktop) {
+                    isOpen = !appContainer.classList.contains('panel-collapsed');
+                } else {
+                    isOpen = panel.classList.contains('show');
+                }
+
+                if(isOpen) {
+                    icon.classList.add('open');
+                } else {
+                    icon.classList.remove('open');
+                }
+                
+                setTimeout(() => map.invalidateSize(), 300);
+            }
+            
+            // Make togglePanel accessible for search
+            window._togglePanel = togglePanel;
+            
+            toggleBtn.addEventListener('click', togglePanel);
+            
+            window.addEventListener('resize', () => {
+                 const icon = toggleBtn.querySelector('.toggle-icon');
+                 const isDesktop = window.innerWidth > 800;
+                 let isOpen;
+                 if(isDesktop) isOpen = !appContainer.classList.contains('panel-collapsed');
+                 else isOpen = panel.classList.contains('show');
+                 
+                 if(isOpen) icon.classList.add('open');
+                 else icon.classList.remove('open');
+            });
+
+            // Theme toggle button
+            const themeBtn = document.getElementById('panel-theme-toggle-btn');
+            if(themeBtn){
+                themeBtn.addEventListener('click', () => {
+                    const isCurrentlyDark = document.body.classList.contains('dark-mode');
+                    updateTheme(!isCurrentlyDark);
+                });
+            }
+        }
+    });
+    </script>
+</body>
+</html>
