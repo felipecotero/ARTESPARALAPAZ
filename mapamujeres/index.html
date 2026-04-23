@@ -1143,15 +1143,14 @@
                  }
 
                  filteredOrgs = filteredOrgs.filter(org => {
-                     if (org.events) {
-                         return org.events.some(e => {
-                             const rawType = e.type || '';
-                             const mapped = eventTypes[rawType.toUpperCase()] || 'otro';
-                             return activeTypes.includes(mapped);
-                         });
-                     } else {
+                     if (!org.events || org.events.length === 0) {
                          return activeTypes.includes('otro');
                      }
+                     return org.events.some(e => {
+                         const rawType = e.type || '';
+                         const mapped = eventTypes[rawType.toUpperCase()] || 'otro';
+                         return activeTypes.includes(mapped);
+                     });
                  });
              }
 
@@ -1195,6 +1194,12 @@
                          
                          popupHtml += `</div></details>`;
                      });
+                 } else {
+                     popupHtml += `<div style="margin-top:10px; padding:12px; background:#ecfdf5; border:1px solid #a7f3d0; border-radius:8px; text-align:center;">
+                                     <div style="font-size:1.4em; margin-bottom:4px;">🌿</div>
+                                     <div style="font-weight:600; color:#047857; font-size:0.9em;">Información próximamente</div>
+                                     <div style="font-size:0.8em; color:#5A7A6B; margin-top:4px;">Los eventos y actividades de esta organización están siendo confirmados.</div>
+                                  </div>`;
                  }
 
                  popupHtml += '</div>';
