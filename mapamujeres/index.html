@@ -19,21 +19,21 @@
     <style>
         /* ===== BRAND IDENTITY — Red de Mujeres Artistas, Sabedoras y Gestoras ===== */
         :root {
-            /* Paleta principal */
+            /* Paleta principal — Verde bosque + Terracota */
             --crema: #F5EDE0;
             --crema-light: #FAF6EF;
-            --violeta: #4A2878;
-            --violeta-dark: #3A1D60;
-            --violeta-deep: #1A1040;
-            --naranja: #D4842A;
-            --naranja-light: #E8A54C;
+            --violeta: #1B5E4B;
+            --violeta-dark: #14493A;
+            --violeta-deep: #0C2E24;
+            --naranja: #C4643A;
+            --naranja-light: #D98B5F;
             --dorado: #D4A843;
 
             /* Paleta funcional */
-            --text-dark: #2A1B3D;
-            --text-body: #3D2C52;
-            --text-muted: #6B5B7B;
-            --border-warm: rgba(74, 40, 120, 0.15);
+            --text-dark: #1A3329;
+            --text-body: #2B4A3D;
+            --text-muted: #5A7A6B;
+            --border-warm: rgba(27, 94, 75, 0.15);
 
             /* Aliases para compatibilidad */
             --search-clear-w: 34px;
@@ -61,14 +61,14 @@
             overflow: hidden;
         }
         body.dark-mode {
-            background: linear-gradient(120deg, #0F0A1E 0%, var(--violeta-deep) 100%);
+            background: linear-gradient(120deg, #081E17 0%, var(--violeta-deep) 100%);
             color: #EDE6D6;
         }
 
         /* ===== HEADER ===== */
         #main-header {
             background: var(--crema);
-            box-shadow: 0 2px 8px rgba(74,40,120,0.08);
+            box-shadow: 0 2px 8px rgba(27,94,75,0.12);
             padding: 12px 24px;
             display: flex; align-items: center; justify-content: space-between;
             position: relative; z-index: 1500;
@@ -121,7 +121,7 @@
         body:not(.dark-mode) #main-header h1 span[style] { color: var(--naranja-light) !important; }
         /* Acento naranja en la palabra "Mujeres" se logra con CSS inline en el HTML */
         body.dark-mode #main-header {
-            background: linear-gradient(135deg, #0F0A1E 0%, #1E1340 100%); color: #EDE6D6;
+            background: linear-gradient(135deg, #081E17 0%, #0C2E24 100%); color: #EDE6D6;
         }
         body.dark-mode #main-header h1 {
             color: var(--naranja-light);
@@ -134,7 +134,7 @@
             color: #EDE6D6;
         }
         body.dark-mode #panel {
-            background: rgba(15,10,30,0.97); color: #EDE6D6;
+            background: rgba(8,20,15,0.97); color: #EDE6D6;
         }
         body.dark-mode #theme-toggle-btn { color: #ffffff; }
         
@@ -178,7 +178,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 8px rgba(74,40,120,0.35);
+            box-shadow: 0 4px 8px rgba(27,94,75,0.4);
             transition: left 0.3s ease, transform 0.2s;
             -webkit-tap-highlight-color: transparent;
         }
@@ -346,7 +346,7 @@
         #search-suggestions {
             display: none; position: relative; width: 100%; margin-bottom: 8px; z-index: 2500;
             max-height: 260px; overflow-y: auto; border-radius: 8px;
-            box-shadow: 0 8px 24px rgba(74,40,120,0.12);
+            box-shadow: 0 8px 24px rgba(27,94,75,0.15);
         }
         .suggestion-item {
             padding: 10px 12px; background: var(--violeta-dark); cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -355,8 +355,8 @@
         .suggestion-item:last-child { border-bottom: none; }
         .suggestion-item:hover, .suggestion-item:focus { background: var(--naranja); color: #fff; outline: none; }
         .suggestion-item.highlight { background: var(--naranja); color: #fff; }
-        body.dark-mode .suggestion-item { background: rgba(15,10,30,0.96); color: #EDE6D6; border-bottom: 1px solid rgba(212,132,42,0.08); }
-        body.dark-mode .suggestion-item:hover, body.dark-mode .suggestion-item:focus { background: rgba(212,132,42,0.12); }
+        body.dark-mode .suggestion-item { background: rgba(8,20,15,0.96); color: #EDE6D6; border-bottom: 1px solid rgba(196,100,58,0.08); }
+        body.dark-mode .suggestion-item:hover, body.dark-mode .suggestion-item:focus { background: rgba(196,100,58,0.15); }
         
         /* Botón X pequeño dentro del input de búsqueda */
         #search-clear-btn {
@@ -438,7 +438,7 @@
             padding-top: 10px;
             border-top: 1px solid rgba(255,255,255,0.15);
         }
-        body.dark-mode .activity-filters { border-top: 1px solid rgba(212,132,42,0.15); }
+        body.dark-mode .activity-filters { border-top: 1px solid rgba(196,100,58,0.15); }
         .activity-filter-item {
             display: flex;
             align-items: center;
@@ -463,7 +463,7 @@
             margin-top: 8px;
             border: 1px solid var(--border-warm);
             border-radius: 6px;
-            background: rgba(245,237,224,0.5);
+            background: rgba(20,60,46,0.5);
         }
         .popup-content summary {
             padding: 6px 10px;
@@ -486,7 +486,7 @@
         }
         .popup-content details[open] summary {
             border-bottom: 1px solid var(--border-warm);
-            background: rgba(74,40,120,0.05);
+            background: rgba(27,94,75,0.08);
         }
         .popup-content .event-details {
             padding: 8px 10px;
@@ -505,7 +505,7 @@
             text-align: center;
         }
         .tag-formacion { background: #FFF3D6; color: #96630A; border: 1px solid var(--dorado); }
-        .tag-publico { background: #EDE0F5; color: var(--violeta); border: 1px solid #C8A8E0; }
+        .tag-publico { background: #D6F0E5; color: var(--violeta); border: 1px solid #8CC8AF; }
         .tag-circulacion { background: #FDECD4; color: #8B5014; border: 1px solid var(--naranja-light); }
 
         #map-container {
@@ -518,7 +518,7 @@
         body.dark-mode #map { filter: saturate(1.2) contrast(1.05) brightness(0.85) hue-rotate(5deg); }
         
         .header-tooltip {
-            position: absolute; transform: translateY(-8px); z-index: 5000; background: rgba(26,16,64,0.9); color: #EDE6D6; padding: 6px 10px; border-radius: 6px; font-size: 13px; font-family: 'DM Sans', sans-serif; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.12s, transform 0.12s;
+            position: absolute; transform: translateY(-8px); z-index: 5000; background: rgba(12,46,36,0.92); color: #EDE6D6; padding: 6px 10px; border-radius: 6px; font-size: 13px; font-family: 'DM Sans', sans-serif; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.12s, transform 0.12s;
         }
         .header-tooltip.show { opacity: 1; transform: translateY(-12px); }
         
@@ -533,15 +533,15 @@
         
         .leaflet-tooltip {
             font-family: 'DM Sans', sans-serif;
-            background: rgba(74,40,120,0.92); color: #EDE6D6; border: 1px solid var(--violeta);
+            background: rgba(27,94,75,0.92); color: #EDE6D6; border: 1px solid var(--violeta);
             border-radius: 5px; padding: 6px; font-size: 1em;
         }
         .leaflet-marker-icon {
-            filter: drop-shadow(0px 4px 8px rgba(74,40,120,0.5));
+            filter: drop-shadow(0px 4px 8px rgba(27,94,75,0.5));
             transition: filter 0.3s, transform 0.3s;
         }
         .leaflet-marker-icon:hover {
-            filter: drop-shadow(0px 6px 14px rgba(212,132,42,0.7));
+            filter: drop-shadow(0px 6px 14px rgba(196,100,58,0.7));
             transform: scale(1.15);
         }
 
@@ -556,7 +556,7 @@
             align-items: center;
             justify-content: center;
             line-height: 1;
-            box-shadow: 0 2px 8px rgba(74,40,120,0.3);
+            box-shadow: 0 2px 8px rgba(27,94,75,0.3);
             border: 1px solid rgba(255,255,255,0.2);
             min-width: 80px;
             transition: all 0.3s ease;
@@ -593,7 +593,7 @@
             border: 1px solid rgba(255,255,255,0.12);
         }
         body:not(.dark-mode) .tutorial-card { color: rgba(255,255,255,0.85); }
-        body.dark-mode .tutorial-card { background: rgba(30,20,50,0.85); border-color: rgba(212,132,42,0.15); }
+        body.dark-mode .tutorial-card { background: rgba(12,30,22,0.85); border-color: rgba(196,100,58,0.15); }
         .tutorial-card h2 { margin: 0 0 10px 0; color: #FFFFFF; font-family: 'Bricolage Grotesque', sans-serif; font-size: 1.05em; font-weight: 700; }
         body.dark-mode .tutorial-card h2 { color: var(--naranja-light); }
         .tutorial-card ul { list-style-type: none; padding-left: 0; margin: 0; }
@@ -622,7 +622,7 @@
             color: #FFFFFF;
         }
         body.dark-mode .mujeres-brand-line span { color: var(--naranja-light); }
-        body.dark-mode .mujeres-brand-line { border-bottom-color: rgba(212,132,42,0.2); }
+        body.dark-mode .mujeres-brand-line { border-bottom-color: rgba(196,100,58,0.2); }
 
         /* Legend logo in panel */
         .legend-logo {
@@ -631,9 +631,9 @@
 
         /* Pulse animation for markers */
         @keyframes pulse-ring {
-            0% { box-shadow: 0 0 0 0 rgba(74,40,120,0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(74,40,120,0); }
-            100% { box-shadow: 0 0 0 0 rgba(74,40,120,0); }
+            0% { box-shadow: 0 0 0 0 rgba(27,94,75,0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(27,94,75,0); }
+            100% { box-shadow: 0 0 0 0 rgba(27,94,75,0); }
         }
 
         /* ===== COLLAPSIBLE ORG LIST ===== */
@@ -655,7 +655,7 @@
             margin-bottom: 6px;
         }
         #org-toggle-btn:hover { background: linear-gradient(135deg, var(--naranja-light) 0%, var(--naranja) 100%); }
-        body.dark-mode #org-toggle-btn { background: linear-gradient(135deg, var(--naranja) 0%, #B56A18 100%); color: #1a1a1a; }
+        body.dark-mode #org-toggle-btn { background: linear-gradient(135deg, var(--naranja) 0%, #A04E28 100%); color: #1a1a1a; }
         body.dark-mode #org-toggle-btn:hover { background: linear-gradient(135deg, var(--naranja-light) 0%, var(--naranja) 100%); }
         #org-toggle-btn .chevron {
             transition: transform 0.3s ease;
@@ -1163,7 +1163,7 @@
                      iconSize: [iconSize, iconSize], iconAnchor: [iconSize / 2, iconSize], popupAnchor: [0, -iconSize]
                  });
 
-                 let popupHtml = `<div class="popup-content"><h5 style="color:#4A2878; margin:0 0 6px 0; font-size:1.05em; font-family:'Bricolage Grotesque',sans-serif;">${org.name}</h5>`;
+                 let popupHtml = `<div class="popup-content"><h5 style="color:#1B5E4B; margin:0 0 6px 0; font-size:1.05em; font-family:'Bricolage Grotesque',sans-serif;">${org.name}</h5>`;
                  popupHtml += `<p style="margin:4px 0;"><strong>Ciudad:</strong> ${org.city}</p>`;
 
                  if (org.events && org.events.length > 0) {
