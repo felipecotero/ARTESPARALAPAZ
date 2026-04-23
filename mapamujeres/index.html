@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Mapa Red de Mujeres Artistas, Sabedoras y Gestoras • Artes para la Paz</title>
-    <meta name="description" content="Mapa interactivo de las 15 organizaciones de la Red de Organizaciones de Mujeres del programa Artes para la Paz 2025.">
+    <meta name="description" content="Mapa interactivo de las 16 organizaciones de la Red de Organizaciones de Mujeres del programa Artes para la Paz 2025.">
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
@@ -725,7 +725,7 @@
             <div id="filters">
                 <div class="filters-card">
                     <button id="org-toggle-btn" type="button">
-                        <span>📍 Ver organizaciones (15)</span>
+                        <span>📍 Ver organizaciones (16)</span>
                         <span class="chevron">▼</span>
                     </button>
                     <div id="filters-list"></div>
@@ -749,7 +749,7 @@
                     <div id="panel-theme-row" style="margin-top:10px; display:flex; align-items:center; justify-content: space-between;">
                         <button id="panel-theme-toggle-btn" class="panel-theme-btn" title="Cambiar modo claro/oscuro" aria-pressed="false">🌙</button>
                         <div id="org-count-display" class="org-count-badge" title="Total de organizaciones de la Red de Mujeres">
-                            <span class="org-count-number" id="total-org-count">15</span>
+                            <span class="org-count-number" id="total-org-count">16</span>
                             <span class="org-count-label">Organizaciones</span>
                         </div>
                     </div>
@@ -758,7 +758,7 @@
             <div id="tutorial-panel" class="tutorial-card">
                 <h2>¿Cómo usar el mapa?</h2>
                 <ul>
-                    <li><strong>Explora:</strong> Todas las 15 organizaciones de la Red de Mujeres están visibles en el mapa.</li>
+                    <li><strong>Explora:</strong> Todas las 16 organizaciones de la Red de Mujeres están visibles en el mapa.</li>
                     <li><strong>Detalles:</strong> Haz clic en una organización para ver sus eventos y actividades.</li>
                     <li><strong>Filtra:</strong> Usa los filtros de tipo de actividad (Formación, Circulación, etc.) o la búsqueda.</li>
                     <li><strong>Tema:</strong> Cambia entre modo diurno y nocturno con el botón 🌙/☀️.</li>
@@ -846,7 +846,7 @@
             'otro': 'Otro'
         };
 
-        // --- DATA RED DE MUJERES (15 Organizaciones) ---
+        // --- DATA RED DE MUJERES (16 Organizaciones) ---
         const organizations = [
             {
                 name: 'Chaibá, Fundación para el desarrollo humano', 
@@ -900,14 +900,7 @@
                     { name: 'Feria Comunitaria', type: 'CIRCULACIÓN', ben: 987, dates: '10/11/25 - 16/11/25', desc: 'Cocreación de gesto artístico colectivo para la seguridad de las mujeres.' }
                 ]
             },
-            {
-                name: 'FUNDACION DECUPLUM', 
-                city: 'Valledupar', 
-                lat: 10.463, lng: -73.253,
-                events: [
-                    { name: 'Encuentro Vallenato Femenino EVAFE', type: 'CIRCULACIÓN', ben: 115, dates: '29/09/25 - 05/10/25', desc: 'Festival que visibiliza el papel de la mujer en la cultura vallenata.' }
-                ]
-            },
+
             {
                 name: 'FUNDACIÓN PATERPAUTT',
                 city: 'Montería',
@@ -925,7 +918,7 @@
                 ]
             },
             {
-                name: 'Corporación Errante Lab',
+                name: 'Juntanza Catatumbo',
                 city: 'Ocaña',
                 lat: 8.233, lng: -73.353,
                 events: [
@@ -957,20 +950,30 @@
                 ]
             },
             {
-                name: 'FUNDACIÓN ARTE Y PARTE JULIÁN RODRÍGUEZ',
-                city: 'Cali',
-                lat: 3.451, lng: -76.532,
-                events: [
-                    { name: 'CORAL DE NIÑAS DEL VALLE Y EL CAUCA', type: 'FORMACIÓN', ben: 945, dates: 'Fechas por definir', desc: 'Conformación de coral con niñas como herramienta de empoderamiento y sensibilización frente a derechos.' }
-                ]
-            },
-            {
                 name: 'Corporación violeta en movimiento',
                 city: 'Pasto',
                 lat: 1.213, lng: -77.281,
                 events: [
                     { name: 'Venus Fest', type: 'EVENTO CON PÚBLICO', ben: 500, dates: 'Fechas por definir', desc: 'Festival artístico que fomenta la igualdad de género y visibiliza procesos creativos de mujeres.' }
                 ]
+            },
+            {
+                name: 'Feminal Crew',
+                city: 'Cali',
+                lat: 3.451, lng: -76.532,
+                events: []
+            },
+            {
+                name: 'Radio Liberto',
+                city: 'Pitalito',
+                lat: 1.854, lng: -76.051,
+                events: []
+            },
+            {
+                name: 'Cabildo Santiago',
+                city: 'Santiago',
+                lat: 1.147, lng: -77.001,
+                events: []
             }
         ];
 
