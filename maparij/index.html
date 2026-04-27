@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=5.0">
+<title>Mapa Red Intercultural Juvenil • Artes para la Paz</title>
+<meta name="description" content="Mapa interactivo de las 32 organizaciones de la Red Intercultural Juvenil del programa Artes para la Paz 2025.">
+<meta name="theme-color" content="#ff6b35">
+<meta property="og:title" content="Red Intercultural Juvenil • Artes para la Paz">
+<meta property="og:description" content="Mapa interactivo de las 32 organizaciones de la Red Intercultural Juvenil.">
+<meta property="og:image" content="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/RED%20JUVENIL.png">
+<link rel="icon" type="image/png" href="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/RED%20JUVENIL.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<style>
+@font-face{font-family:'LanceAPLP';src:url('https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/Lance-RegularAPLP.woff2') format('woff2');font-display:swap;}
+:root{--rij-orange:#ff6b35;--rij-orange-light:#ff8c5a;--rij-blue:#004e89;--rij-yellow:#f7b801;--rij-green:#2a9d8f;--rij-purple:#6a4c93;--rij-bg:#fff8f4;--rij-dark:#1a1a2e;}
+html,body{height:100%;width:100%;margin:0;padding:0;font-family:'Segoe UI',Arial,sans-serif;background:var(--rij-bg);color:#222;display:flex;flex-direction:column;overflow:hidden;}
+body.dark-mode{background:linear-gradient(120deg,#1a1a2e 0%,#16213e 100%);color:#f0f0f0;}
+
+#main-header{background:var(--rij-orange);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;z-index:1500;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+body.dark-mode #main-header{background:linear-gradient(135deg,#1a1a2e,#2d1f3d);}
+#main-header h1{font-family:'LanceAPLP',sans-serif;font-size:1.6em;margin:0 12px;flex-grow:1;text-align:center;color:#fff;letter-spacing:1px;line-height:1.1;}
+body.dark-mode #main-header h1{color:#ff8c5a;text-shadow:0 0 20px rgba(255,107,53,0.3);}
+.header-logo{height:48px;width:auto;flex-shrink:0;}
+.header-logo-right{height:62px;width:auto;flex-shrink:0;margin-left:12px;opacity:0.95;transition:transform 0.18s;}
+.header-logo-right:hover{transform:translateY(-2px);opacity:1;}
+@media(max-width:800px){.header-logo{height:36px;}.header-logo-right{height:46px;margin-left:6px;}#main-header h1{font-size:1em;margin:0 6px;}#main-header{padding:8px 10px;}}
+
+#app-container{flex-grow:1;position:relative;overflow:hidden;min-height:0;display:flex;}
+#panel{background:var(--rij-orange);box-shadow:2px 0 12px rgba(0,0,0,0.18);color:#fff;position:absolute;top:0;left:0;width:400px;height:100%;padding:20px 50px 20px 16px;display:flex;flex-direction:column;overflow-y:auto;z-index:2000;transition:transform 0.3s cubic-bezier(0.25,0.8,0.25,1);box-sizing:border-box;-webkit-overflow-scrolling:touch;}
+body.dark-mode #panel{background:rgba(30,41,59,0.98);color:#f0f0f0;}
+
+#main-toggle-btn{position:absolute;top:12px;z-index:4000;width:32px;height:32px;background:var(--rij-orange);border:none;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 8px rgba(0,0,0,0.25);transition:left 0.3s ease,transform 0.2s;}
+#main-toggle-btn:hover{filter:brightness(1.1);transform:scale(1.05);}
+body.dark-mode #main-toggle-btn{background:var(--rij-orange-light);}
+.toggle-icon{width:18px;height:14px;position:relative;}.toggle-icon span{display:block;position:absolute;height:2px;width:100%;background:#fff;border-radius:2px;left:0;transition:.25s ease-in-out;}
+.toggle-icon span:nth-child(1){top:0}.toggle-icon span:nth-child(2){top:6px}.toggle-icon span:nth-child(3){top:12px}
+.toggle-icon.open span:nth-child(1){top:6px;transform:rotate(135deg)}.toggle-icon.open span:nth-child(2){opacity:0;left:-60px}.toggle-icon.open span:nth-child(3){top:6px;transform:rotate(-135deg)}
+
+@media(min-width:801px){
+#app-container:not(.panel-collapsed) #main-toggle-btn{left:360px;}
+#app-container.panel-collapsed #main-toggle-btn{left:20px;}
+#app-container.panel-collapsed #panel{transform:translateX(-100%);}
+#app-container:not(.panel-collapsed) #map-container{left:400px;width:calc(100% - 400px);}
+#app-container.panel-collapsed #map-container{left:0;width:100%;}
+}
+@media(max-width:800px){
+#panel{width:85vw;padding-right:42px;transform:translateX(-100%);}
+#panel.show{transform:translateX(0);}
+#panel.show~#main-toggle-btn{left:calc(85vw - 42px);}
+#main-toggle-btn{left:15px;}
+#map-container{left:0!important;width:100%!important;}
+}
+
+#search-box{margin-bottom:14px;display:flex;position:relative;width:100%;}
+#search-input{flex-grow:1;padding:8px 30px 8px 12px;border-radius:8px;border:2px solid rgba(255,255,255,0.3);font-size:0.95em;outline:none;margin-right:6px;background:rgba(255,255,255,0.15);color:#fff;height:38px;}
+#search-input::placeholder{color:rgba(255,255,255,0.6);}
+#search-input:focus{border-color:var(--rij-yellow);box-shadow:0 0 0 3px rgba(247,184,1,0.2);background:rgba(255,255,255,0.2);}
+body.dark-mode #search-input{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.15);}
+#search-btn{background:var(--rij-yellow);color:#1a1a1a;border:none;border-radius:8px;width:40px;height:38px;cursor:pointer;font-size:1em;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;}
+#search-btn:hover{filter:brightness(1.1);}
+#search-clear-btn{position:absolute;right:54px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;border:none;background:transparent;display:none;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:rgba(255,255,255,0.7);padding:0;}
+#search-clear-btn.visible{display:flex!important;}
+#search-suggestions{display:none;position:relative;width:100%;margin-bottom:8px;z-index:2500;max-height:250px;overflow-y:auto;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.2);}
+.suggestion-item{padding:10px 12px;background:rgba(255,255,255,0.95);cursor:pointer;border-bottom:1px solid rgba(0,0,0,0.04);color:#111;display:block;font-size:0.9em;}
+.suggestion-item:hover{background:#fff3e0;}
+body.dark-mode .suggestion-item{background:rgba(20,24,32,0.96);color:#fff;}body.dark-mode .suggestion-item:hover{background:rgba(40,44,59,0.95);}
+
+.filters-card{background:rgba(255,255,255,0.12);border-radius:12px;padding:12px;margin-bottom:12px;backdrop-filter:blur(4px);}
+body.dark-mode .filters-card{background:rgba(20,24,32,0.6);}
+#org-toggle-btn{width:100%;background:linear-gradient(135deg,var(--rij-blue),#003d6e);color:#fff;border:none;border-radius:8px;padding:10px 14px;font-size:0.92em;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+#org-toggle-btn:hover{filter:brightness(1.15);}
+#org-toggle-btn .chevron{transition:transform 0.3s;font-size:0.8em;}
+#org-toggle-btn.expanded .chevron{transform:rotate(180deg);}
+#filters-list{max-height:0;overflow:hidden;transition:max-height 0.4s ease;}
+#filters-list.expanded{max-height:500px;overflow-y:auto;}
+.filter-option{margin-bottom:2px;}
+.filter-btn{display:flex;align-items:center;gap:8px;padding:7px 8px;cursor:pointer;background:transparent;border:none;width:100%;text-align:left;border-radius:8px;color:#fff;font-size:0.88em;transition:background 0.2s;}
+.filter-btn:hover,.filter-option.active .filter-btn{background:rgba(255,255,255,0.15);}
+body.dark-mode .filter-option.active .filter-btn{background:rgba(255,255,255,0.1);}
+.network-count{padding:2px 8px;border-radius:12px;font-size:0.78em;font-weight:bold;min-width:20px;text-align:center;background:var(--rij-yellow);color:#1a1a1a;}
+.org-count-badge{background:linear-gradient(135deg,var(--rij-blue),var(--rij-green));color:white;padding:6px 14px;border-radius:10px;display:flex;flex-direction:column;align-items:center;line-height:1;box-shadow:0 2px 8px rgba(0,78,137,0.35);min-width:80px;}
+.org-count-number{font-size:1.4em;font-weight:800;}.org-count-label{font-size:0.6em;text-transform:uppercase;letter-spacing:0.5px;opacity:0.9;margin-top:2px;font-weight:600;}
+
+.rij-brand-line{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:2px solid rgba(255,255,255,0.2);}
+.rij-brand-line img{width:42px;height:42px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));}
+.rij-brand-line span{font-weight:800;font-size:1.05em;color:#fff;}
+
+.panel-theme-btn{background:var(--rij-blue);border:none;padding:8px 10px;border-radius:8px;cursor:pointer;color:#fff;display:inline-flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.panel-theme-btn:hover{filter:brightness(1.2);transform:translateY(-1px);}
+
+.tutorial-card{background:rgba(255,255,255,0.12);border-radius:12px;padding:12px 16px;margin-top:16px;max-height:220px;overflow-y:auto;backdrop-filter:blur(4px);}
+.tutorial-card h2{margin:0 0 8px;font-size:1em;font-weight:700;color:#fff;}
+.tutorial-card ul{list-style:none;padding:0;margin:0;}.tutorial-card li{font-size:0.83em;line-height:1.5;margin-bottom:8px;}
+.tutorial-card strong{color:var(--rij-yellow);}
+
+#map-container{width:100%;height:100%;position:absolute;top:0;left:0;transition:left 0.3s,width 0.3s;}
+#map{width:100%;height:100%;}
+body.dark-mode #map{filter:saturate(1.2) contrast(1.05) brightness(0.85);}
+
+.leaflet-tooltip{background:rgba(255,107,53,0.9);color:#fff;border:1px solid var(--rij-orange);border-radius:5px;padding:6px;font-size:1em;}
+.leaflet-marker-icon{filter:drop-shadow(0px 4px 8px rgba(255,107,53,0.5));transition:filter 0.3s,transform 0.3s;}
+.leaflet-marker-icon:hover{filter:drop-shadow(0px 6px 14px rgba(255,107,53,0.8));transform:scale(1.15);}
+.popup-content{max-width:280px;}.popup-content h3{margin:0 0 4px;font-size:0.95em;color:var(--rij-blue);}.popup-content .popup-city{font-size:0.8em;color:#666;margin:0 0 6px;}.popup-content .popup-desc{font-size:0.82em;line-height:1.4;margin:0 0 6px;}.popup-content .popup-lema{font-style:italic;font-size:0.8em;color:var(--rij-orange);margin:4px 0;}.popup-content .popup-sectors{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0;}.popup-content .sector-tag{display:inline-block;padding:2px 6px;border-radius:4px;font-size:0.72em;font-weight:700;background:#e3f2fd;color:#1565c0;border:1px solid #90caf9;}.popup-content .popup-benef{font-size:0.78em;color:#555;margin:4px 0;}
+</style>
+</head>
+<body>
+<div id="main-header">
+<a href="https://artesparalapaz.mincultura.gov.co/Paginas/index.aspx" target="_blank" rel="noopener" title="Artes para la Paz">
+<img src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/APLP%20MORADO.png?v=2" alt="Artes para la Paz" class="header-logo">
+</a>
+<h1>Red Intercultural Juvenil &bull; Artes para la Paz</h1>
+<a href="https://www.mincultura.gov.co/" target="_blank" rel="noopener" title="Ministerio de las Culturas">
+<img id="logo-culturas" src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/BLANCO_CULTURAS.png" alt="Ministerio de las Culturas" class="header-logo-right">
+</a>
+</div>
+
+<div id="app-container">
+<div id="panel">
+<div class="rij-brand-line">
+<img src="https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/RED%20JUVENIL.png" alt="RIJ">
+<span>Red Intercultural Juvenil</span>
+</div>
+<div id="search-box">
+<input id="search-input" type="text" placeholder="Buscar organización, ciudad..." aria-label="Buscar">
+<button id="search-clear-btn" title="Borrar">✕</button>
+<button id="search-btn" title="Buscar">🔍</button>
+</div>
+<div id="search-suggestions" role="listbox"></div>
+<div class="filters-card">
+<button id="org-toggle-btn" type="button"><span>📍 Ver organizaciones (32)</span><span class="chevron">▼</span></button>
+<div id="filters-list"></div>
+<div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;">
+<button id="panel-theme-toggle-btn" class="panel-theme-btn" title="Modo oscuro">🌙</button>
+<div class="org-count-badge"><span class="org-count-number" id="total-org-count">32</span><span class="org-count-label">Organizaciones</span></div>
+</div>
+</div>
+<div class="tutorial-card">
+<h2>¿Cómo usar el mapa?</h2>
+<ul>
+<li><strong>Explora:</strong> Las 32 organizaciones de la RIJ están visibles en el mapa.</li>
+<li><strong>Detalles:</strong> Haz clic en un marcador para ver información de la organización.</li>
+<li><strong>Filtra:</strong> Usa la lista de organizaciones o la búsqueda para encontrar una específica.</li>
+<li><strong>Tema:</strong> Cambia entre modo diurno y nocturno con el botón 🌙/☀️.</li>
+</ul>
+</div>
+</div>
+<button id="main-toggle-btn" aria-label="Alternar panel"><div class="toggle-icon open"><span></span><span></span><span></span></div></button>
+<div id="map-container"><div id="map"></div></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" defer></script>
+<script src="data.js"></script>
+<script>
+window.addEventListener('DOMContentLoaded',function(){
+const logoUrl='https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/RED%20JUVENIL.png';
+const placeholderLogo="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><rect width='80' height='80' rx='12' fill='%23ff6b35'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='14' font-family='Arial'>RIJ</text></svg>";
+let isDark=false;
+const map=L.map('map',{zoomControl:true}).setView([4.5,-74],5.5);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',subdomains:'abcd',maxZoom:19}).addTo(map);
+const markers=[];const allMarkerObjs=[];
+
+function makeIcon(){return L.icon({iconUrl:logoUrl,iconSize:[36,36],iconAnchor:[18,36],popupAnchor:[0,-34],className:'rij-marker'});}
+function makeFallbackIcon(){return L.divIcon({html:'<div style="width:32px;height:32px;background:var(--rij-orange);border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:12px;">RIJ</div>',iconSize:[32,32],iconAnchor:[16,32],popupAnchor:[0,-30],className:''});}
+
+let markerIcon;const testImg=new Image();testImg.onload=()=>{markerIcon=makeIcon();};testImg.onerror=()=>{markerIcon=makeFallbackIcon();};testImg.src=logoUrl;
+setTimeout(()=>{if(!markerIcon)markerIcon=makeFallbackIcon();initMap();},300);
+
+function initMap(){
+const filtersList=document.getElementById('filters-list');
+organizations.forEach((org,i)=>{
+const icon=markerIcon||makeFallbackIcon();
+const marker=L.marker([org.lat,org.lng],{icon:icon}).addTo(map);
+const sectorsHtml=org.sectors.map(s=>`<span class="sector-tag">${s}</span>`).join('');
+const lemaHtml=org.lema?`<p class="popup-lema">"${org.lema}"</p>`:'';
+marker.bindPopup(`<div class="popup-content"><h3>${org.name}</h3><p class="popup-city">📍 ${org.city}</p><p class="popup-desc">${org.desc}</p>${lemaHtml}<div class="popup-sectors">${sectorsHtml}</div><p class="popup-benef">👥 ${org.benef.toLocaleString()} beneficiarios · Rep: ${org.rep}</p></div>`,{maxWidth:300});
+marker.bindTooltip(org.name,{direction:'top',offset:[0,-30]});
+markers.push({marker,org,idx:i});allMarkerObjs.push(marker);
+
+const opt=document.createElement('div');opt.className='filter-option';opt.dataset.idx=i;
+opt.innerHTML=`<button class="filter-btn" type="button"><div><span style="font-size:0.85em;">${org.name}</span><br><span style="font-size:0.7em;opacity:0.7;">${org.city}</span></div><span class="network-count">${org.benef.toLocaleString()}</span></button>`;
+opt.querySelector('.filter-btn').addEventListener('click',()=>{
+document.querySelectorAll('.filter-option').forEach(o=>o.classList.remove('active'));
+opt.classList.add('active');
+map.setView([org.lat,org.lng],10,{animate:true});
+marker.openPopup();
+});
+filtersList.appendChild(opt);
+});
+}
+
+// Toggle panel
+const toggleBtn=document.getElementById('main-toggle-btn');const panel=document.getElementById('panel');const appContainer=document.getElementById('app-container');const toggleIcon=toggleBtn.querySelector('.toggle-icon');
+function isDesktop(){return window.innerWidth>800;}
+toggleBtn.addEventListener('click',()=>{
+if(isDesktop()){appContainer.classList.toggle('panel-collapsed');toggleIcon.classList.toggle('open');}
+else{panel.classList.toggle('show');toggleIcon.classList.toggle('open');}
+setTimeout(()=>map.invalidateSize(),350);
+});
+
+// Org list toggle
+const orgToggle=document.getElementById('org-toggle-btn');const orgList=document.getElementById('filters-list');
+orgToggle.addEventListener('click',()=>{orgToggle.classList.toggle('expanded');orgList.classList.toggle('expanded');});
+
+// Search
+const searchInput=document.getElementById('search-input');const searchSuggestions=document.getElementById('search-suggestions');const searchClear=document.getElementById('search-clear-btn');
+searchInput.addEventListener('input',()=>{
+const q=searchInput.value.trim().toLowerCase();searchClear.classList.toggle('visible',q.length>0);
+if(q.length<2){searchSuggestions.style.display='none';return;}
+const matches=organizations.filter(o=>o.name.toLowerCase().includes(q)||o.city.toLowerCase().includes(q));
+if(!matches.length){searchSuggestions.style.display='none';return;}
+searchSuggestions.innerHTML='';matches.slice(0,8).forEach(o=>{
+const div=document.createElement('div');div.className='suggestion-item';div.textContent=`${o.name} — ${o.city}`;
+div.addEventListener('click',()=>{
+const m=markers.find(x=>x.org.name===o.name);if(m){map.setView([o.lat,o.lng],10,{animate:true});m.marker.openPopup();}
+searchSuggestions.style.display='none';searchInput.value=o.name;
+});searchSuggestions.appendChild(div);
+});searchSuggestions.style.display='block';
+});
+searchClear.addEventListener('click',()=>{searchInput.value='';searchClear.classList.remove('visible');searchSuggestions.style.display='none';});
+document.getElementById('search-btn').addEventListener('click',()=>{searchInput.dispatchEvent(new Event('input'));});
+
+// Theme toggle
+const themeBtn=document.getElementById('panel-theme-toggle-btn');const logoCulturas=document.getElementById('logo-culturas');
+themeBtn.addEventListener('click',()=>{
+isDark=!isDark;document.body.classList.toggle('dark-mode',isDark);themeBtn.textContent=isDark?'☀️':'🌙';
+logoCulturas.src=isDark?'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/BLANCO_CULTURAS.png':'https://raw.githubusercontent.com/felipecotero/ARTESPARALAPAZ/main/GRIS_CULTURAS.png';
+});
+});
+</script>
+</body>
+</html>
