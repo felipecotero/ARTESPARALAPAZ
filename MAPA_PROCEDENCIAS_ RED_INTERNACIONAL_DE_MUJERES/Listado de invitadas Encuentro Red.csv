@@ -1,0 +1,71 @@
+﻿#;RED;NOMBRE;"TERRITORIO 
+DPTO/MUN";NOMBRE ORGANIZACIÓN;BREVE DESCRIPCIÓN ORG.;CELULAR;CORREO ELECTRÓNICO;TRASLADO TERRESTRE;VALOR TRASLADO TERRESTRE IDA Y VUELTA;TRASLADO AÉREO;VALOR TRASLADO AEREO IDA Y VUELTA
+1;DPCHO;Mónica Bernal Bonilla ;CUND/ Suesca;Chaibá - Fundación para el Desarrollo Humano;;3115576008;fundacionchaiba@gmail.com ;Suesca - Bogotá;;N/A;N/A
+2;DPCHO;Leidy Andrea Mora Hernández;CUND/ Chía;Fundación Cultural Kynza Xie;;3193214751;fundacionculturalkynzaxie@gmail.com;Chía- Cundinamarca;;N/A;N/A
+3;DPCHO;Fabis Marcela Bolaño Plata;CESAR/ Valledupar;Asociación de Mujeres Wiwa Abudzibu Asomuwadzi;;3128446970;marcebo2090@gmail.com;Aeropuerto Bogotá- Hotel y Viceversa;;Valledupar- Bogotá- Valledupar;
+4;DPCHO;Luz Nery Ramírez Mosquera;CHOCÓ/ Río Iró;Organización de Mujeres Víctimas del Río Iró (ORVIEN);;3206478530;ramirezmosqueraluz@gmail.com;;;;
+5;DPCHO;Rosa Beatriz Barreto Herazo ;SUCRE/ Corozal;Fundación Micelio Tejiendo Saberes;;3137982429;beato45@hotmail.com ;;;;
+6;DPCHO;Sandra Pilar Guapachá;CUND/ Soacha;Asociación Compañía América Danza;;3108750987;c.americadanza@gmail.com;;;;
+7;DPCHO;Gudiela Milena Paternina Pautt ;CORDOBA / Montería;Fundación Paterpautt;;3147073032;fundacionpaterpautt2@gmail.com;;;;
+8;DPCHO;Natalia López Rodríguez;NTE SANTANDER/ Ocaña;Juntanza Catatumbo;;3152823013;taliasvagalia@gmail.com;;;;
+9;DPCHO;Dulfay Rodríguez Rodríguez;AMAZONAS/ Leticia;Asociación de Mujeres Triunfadoras Tejiendo Vida;;3212006262;asociacionmuttevi@gmail.com;;;;
+10;DPCHO;Natalia García Diez ;CORDOBA/ Montería;Fundación el Hogar de Tota;;3215643629;historiasdelanacol@gmail.com;;;;
+11;DPCHO;Candida Ramona Alfonso;ARAUCA/Arauca;Asociación de Mujeres Casa del Sembrador;;3202260507;asociacioncasadelsembrador@gmail.com ;;;;
+12;DPCHO;Maricela Estefanía Rodríguez Calderón;NARIÑO/Pasto;Corporación Violeta en Movimiento;;3108330319;kniarebel@gmail.com ;;;;
+13;DPCHO; Ingrid Tatiana Parra Gómez;VALLE DEL CAUCA /Jamundí;Feminal Crew;;3175741616; ingrid.parra@correounivalle.edu.co;;;;
+14;DPCHO;Sandra Milena Quintero Galvis;HUILA/ Pitalito;Radio Liberto;;3118646740;sandramqg069@gmail.com;;;;
+15;DPCHO;Carmen Alicia Jansasoy Tisoy ;PUTUMAYO/Santiago;Cabildo Santiago;;3165510753;jansasoy2001@gmail.com;;;;
+16;DPCHO;YENNILYN LARA GONZÁLEZ;CORDOBA/Montería;Artes de Lara;;3122117325;yennilyn-1998@hotmail.com;;;;
+17;DPCHO;Martha Liliana Caizales Tascón;RISARALDA/ Mistrató;Asociación Embera Chami;;3116852097;mujeres.chami@gmail.com;;;;
+;DPCHO;Suma Tamia Cuatindioy;PUTUMAYO/ San Andrés;Resguardo San Andrés;;3103521024;rosaquinchoa@gmail.com;;;;
+18;CG/RIA;Ninfa Rodriguez;GUAINIA / INIRIDA;RED DE MUJERES LIDERES;Red de Mujeres lideres conformada en el 2025 como parte de la Red Internacional de Mujeres. Liderada por mujeres del museo comunitario de Inirida ;r;;Resguardos- Inírida;50.000;Inirida - Bogotá - Inirida;1.500.000
+19;CG/RIA;Magally Ortiz;GUAINIA / INIRIDA;RED DE MUJERES LIDERES;;;;Resguardos- Inírida;50.000;Inirida - Bogotá - Inirida;1.500.000
+20;"CG/
+CHOCÓ";Nelly Caicedo Caizamo;CHOCÓ/QUIBDÓ;RED DE MUJERES ARTISTAS, CULTORAS Y SABEDORAS POR LA PAZ DE CHOCÓ;Precursoras de la Red Internacional nodo chocó;;;Comunidades- Quibdó;50.000;Quibdó - Bogotá - Quibdó;650.000
+21;"CG/
+CHOCÓ";Coco Kilele;CHOCÓ/QUIBDÓ;RED DE MUJERES ARTISTAS, CULTORAS Y SABEDORAS POR LA PAZ DE CHOCÓ;;;;Comunidades- Quibdó;60.000;Quibdó - Bogotá - Quibdó;650.000
+22;"CG/
+CHOCÓ";Uzy Caizamo;CHOCÓ/QUIBDÓ;RED DE MUJERES ARTISTAS, CULTORAS Y SABEDORAS POR LA PAZ DE CHOCÓ;;;;Comunidades- Quibdó;60.000;Quibdó - Bogotá - Quibdó;650.000
+23;"CG/
+CHOCÓ";Jekksy Perea;CHOCÓ/QUIBDÓ;RED DE MUJERES ARTISTAS, CULTORAS Y SABEDORAS POR LA PAZ DE CHOCÓ;;;;Comunidades- Quibdó;50.000;Quibdó - Bogotá - Quibdó;650.000
+24;CG;Patricia Salazar;MOCOA/PUTUMAYO;ADMUCAP;Mujeres víctimas directas de este fenómeno, quienes decidieron transformar el dolor y las afectaciones en procesos organizativos de resistencia, cuidado y construcción de paz.;;;Comunidad - Villa Garzón;80.000;Villa Garzón - Bogotá - Villa Garzón ;1.000.000
+25;"F/
+RECUATEJ";Natalia Cano;PEREIRA/RISARALDA;YAH COLECTIVA;Artistas gráficas de pereira que se articulas permanentemente con los movimientos feministas;;;Comunidad - Pereira;80.000;Pereira - Bogotá - Pereira;450.000
+26;"F/
+RECUATEJ";Iris Gómez;TURBO/ANTIOQUIA;MAMA NEGRA URABA;Organización de Saberes, gastronomía tradicional y economias comunitarias. Cuenta con el proyecto tambores de mama negra que es un proceso de sanación  mujeres victimas de vbg a través del sonido y el movimiento. También cuenta con procesos de relevo generacional de niñas en bullergue;;;Turbo - Apartadó - Turbo;100.000;Apartadó - Bogotá - Apartado ;1.000.000
+27;PIGMLD;Yaneth Ortiz;ATONUEVO/GUAJIRA;CIRCULO INTERCULTURAL DE MUJERES EN RESISTENCIA DEL SUR DE LA GUAJIRA;Reune 43 mujeres afro, campesinas e indigenas (Wayú) de la guajira en torno a practicas culturales, saberes, participación política y defensa del territorio y el agua. ;3044797088;yanethorbo@gmail.com;Atonuevo - Riohacha - Atonuevo;70.000;Riohacha - Bogotá - Riohacha ;650.000
+28;PIGMLD;Paola Navia;NARIÑO (PACIFICO NARIÑENSE);FUNDACIÓN CANAPAVI;Cuentan con una linea estrategica que es la Red de cantadoras del pacifico sur que reune a 200 mujeres  atravesando tema de patrimonio, mujeres, derechos humanos y enfoque de género;3103577989;;;200.000;;650.000
+29;ORINQUIA;Sandra Gonzalez;YOPAL/CASANARE;AQUELARRE;Teatro como herramienta para la trasnormación cultural del machismo a partir de la colectiva feminista aquelarre con practicas de oralidad y teatro. ;3123654475;sanjanethgonzalez@yahoo.es;Comunidad - Yopal ;70.000;Yopal - Bogotá - Yopal ;450.000
+30;ANDINA;Maria Luisa Rios Vanegas;NEIVA/HUILA;Red de mujeres afro;;3203919698;yembereafros@gmail.com;Comunidad - Neiva;60.000;Neiva - Bogotá - Neiva;550.000
+31;"F/
+RCARIBE";Mama Zulma;MAGDALENA/TAGANGA;Colectivo Femenino “Taganga te toca” – Alma de tribu, voz de mujer.;"El Colectivo Femenino ""Taganga te toca"" nació en el año 2023 como una respuesta orgánica, valiente y necesaria ante la normalización de la Violencia Basada en Género (VBG) en nuestra comunidad pesquera. Nuestra identidad y compromiso se consolidaron tras los dolorosos feminicidios que fracturaron nuestro tejido social en 2023 y 2024. Frente al miedo colectivo y el silencio institucional, nos unimos bajo la firme convicción de recuperar el cuerpo de la mujer como nuestro primer territorio de paz, utilizando el arte ancestral, el diseño y la formación ciudadana como herramientas definitivas de sanación y resistencia.";3017359093;;Taganga - Sta Marta -Taganaga;70.000;Sta Marta - Bogotá - Sta Marta;400.000
+32;"CG/
+CORAL";Marcela López;CALI/VALLE DEL CAUCA;CORAL DE NIÑAS;Coral de 300 niñas que componen, cantan y se vinculan en torno a los derechos de las niñás, a la prevención de vbg, al derecho de una vida libre de violencias, al cuidado de la paz, la vida, el territorio y el ambiente desde una perspectiva de género. ;;;Cali - Palmira - Cali;200.000;Palmira - Bogotá - Palmira;500.000
+33;CG;Ana Collazos;NEIVA/HUILA;MUJERES POETAS DEL HUILA;Red de mujeres poetisas del huila, con quienes se han realizado conmemoraciones y se ha movilizado el reconocimiento de las mujeres poetas en el territorio del Huila;;;Comunidad - Neiva;60.000;Neiva - Bogotá - Neiva;550.000
+34;CG;Partera campesina;CHOACHI/CUNDINAMARCA;PARCAS;La Asociación de Parteras Campesinas Cundiboyacenses PARCAS trabaja por la dignificación de las parteras campesinas y la salvaguarda de la Partería Tradicional Campesina en el territorio cundiboyacense como experiencia valiosa de prácticas para el cuidado de las mujeres, las infancias, las comunidades y el territorio.;;;Choachí - Bogotá - Choachí;100.000;N/A;N/A
+35;CG;Liceth Quiñonez;;ASOPARUPA;"La Asociación de Parteras Unidas del Pacifico (ASOPARUPA) es una organización de base, conformada y administrada por mujeres que agremia a 254 y coordina a 1600 parteras, con la misión de proteger los derechos de las mujeres y salvaguardar el Patrimonio Cultural de los saberes asociados a la partería tradicional afro como aporte al cuidado del medio ambiente, de la salud de la mujer, el tejido social y preservación de los valores intangibles de la comunidad afro del Pacifico colombiano.
+
+Hoy somos 254 parteras representadas por una junta directiva y equipo administrativo de mujeres que direccionan, gestionan y representan nuestra misión, visión y objetivos comunes.";;;Buenaventura - Cali - Palmira - Cali - Buenaventura;250000;Palmira - Bogotá - Palmira;500000
+36;CG;Partera Indigena (CNMI);;;;;;;200000;;500000
+37;CG;Clementina Ramirez;BUCARAMANGA/SANTANDER;Asociación cuidadores familiares de Santander 24/7 ACUFASAN;"Su razón de ser es acompañar, dignificar y visibilizar el trabajo de quienes cuidan, partiendo de la premisa de que cuidar no es solo estar físicamente, sino sostener la existencia del otro, muchas veces renunciando a los proyectos, tiempos y sueños propios. Para dar respuesta a las necesidades reales de los cuidadores familiares y de las personas con discapacidad, Acufasan se mueve con firmeza en tres frentes profundamente interconectados.
+El primer frente es su rama artística, denominada “Artes sin Límites”. En Acufasan existe la convicción profunda de que el arte sana, une y libera el alma de las cargas cotidianas. Bajo esta bandera, crearon talleres de teatro, danza, circo, música, títeres, artes plásticas y artesanías; espacios diseñados con amor no solo para niños, niñas y jóvenes con discapacidad, sino también para sus cuidadores, quienes encuentran allí un respiro vital para crear, expresarse y recuperar su propia voz";;;Bucaramanga - Lebrija - Bucaramanga;200000;Lebrija - Bogotá - Lebrija;350000
+38;CG;Ilba Trujillo;NEIVA/HUILA;;Fundación La Vida es Bella RBF* tiene como misión promover el restablecimiento de derechos de las personas con discapacidad y sus cuidadores. Lo hacemos a través del arte, la cultura, la educación y el emprendimiento, buscando siempre mejorar su calidad de vida y garantizarles una vida digna, con oportunidades y respeto.;;;Comunidad - Neiva;60.000;Neiva - Bogotá - Neiva;550.000
+39;CG;María Susana Ortiz;BUCARAMANGA/SANTANDER; Red de Mujeres de las Artes Escénicas de Bucaramanga.;"Nuestra Red nace con la proyección de favorecer la necesaria transversalización de la perspectiva 
+de género en la planeación de la cultura y, de manera particular, en el campo de las artes escénicas. Nos mueve el interés profundo de aportar en la toma de decisiones sobre el fomento artístico local, así como diseñar de forma conjunta estrategias y acciones concretas que promuevan la equidad laboral, la dignificación de nuestros oficios y la prevención de las violencias de género en nuestros entornos creativos.";3104656312;masuco28@gmail.com;Bucaramanga - Lebrija - Bucaramanga;200000;Lebrija - Bogotá - Lebrija;350000
+40;CG;Matilde Mora;SUMAPAZ/CUNDINAMARCA;ASODEMUC;Asociación de Mujeres Campesinas - Drechos culturales de mujeres campesinas a nivel nacional e internacional;311 8432996;;Sumapaz - Bogotá - Sumapaz;;N/A;
+40;INTERNAL;INVITADA MÉXICO - TANIA MENA BUSTOS;;;;;;;;;
+41;INTERNAL;INVITADA MÉXICO - ALEIDA VIOLETA CISNEROS;;;;;;;;;
+42;EQUIPO;Laidis Lemus;Rol: Metodóloga;;;;;;;;
+43;EQUIPO;Apoyo logístico laidis;Rol: Logistica;;;;;;;;
+44;EQUIPO;Juan Pablo Ricardo;Rol: Artista y serigrafia;;;;;;;;
+45;EQUIPO;Memorias;Rol: Realización audiovisual video y foografia del encuentro, entrevistas y reels;;;;;;;;
+46;EQUIPO;Sistematizadora;;;;;;;;;
+47;EQUIPO;Relatora;;;;;;;;;
+48;EQUIPO;Chila Pineda;Rol: Relacionamiento insitucional, horizonte de sentido y articulaciones nacionales e internacionales;;;;;;;;
+49;EQUIPO;Alejandra Ballén;Rol: Apoyo técnico, metodológico, operativo y administrativo;;;;;;;;
+50;EQUIPO;Yuly Camelo;Rol: Relacionamiento insitucional, horizonte de sentido y articulaciones nacionales e internacionales;;;;;;;;
+51;EQUIPO;Monica López Sánchez;Rol: Apoyo técnico, metodológico, operativo y administrativo;;;;;;;;
+52;EQUIPO;Paula Luna (internacionales);Rol: Articulaciones internacionales;;;;;;;;
+53;EQUIPO;Persona Apoyo despacho 1;Rol: ;;;;;;;;
+54;EQUIPO;Persona Apoyo despacho 2;Rol: ;;;;;;;;
+55;EQUIPO;Persona Apoyo despacho 3;Rol: ;;;;;;;;

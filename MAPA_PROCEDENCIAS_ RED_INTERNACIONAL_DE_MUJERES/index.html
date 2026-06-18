@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Red Internacional de Mujeres por la Paz – Mapa de Procedencias</title>
+    <meta name="description" content="Mapa interactivo de procedencias de la Red Internacional de Mujeres por la Paz. Visualiza las comunidades y organizaciones de mujeres constructoras de paz en Colombia.">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet MarkerCluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #8B5CF6;
+            --primary-light: #A78BFA;
+            --primary-dark: #6D28D9;
+            --accent: #F472B6;
+            --accent-light: #FBCFE8;
+            --accent-dark: #EC4899;
+            --gold: #F59E0B;
+            --bg-dark: #0F0A1A;
+            --bg-card: #1A1028;
+            --bg-glass: rgba(26, 16, 40, 0.92);
+            --text-primary: #F5F3FF;
+            --text-secondary: #C4B5FD;
+            --text-muted: #8B7FB8;
+            --border: rgba(139, 92, 246, 0.25);
+            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* ─── HEADER ─── */
+        #header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: linear-gradient(180deg, rgba(15, 10, 26, 0.95) 0%, rgba(15, 10, 26, 0.8) 60%, rgba(15, 10, 26, 0) 100%);
+            padding: 14px 28px 35px;
+            pointer-events: none;
+        }
+
+        #header-content {
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header-logos {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-shrink: 0;
+        }
+
+        .header-logo {
+            height: 44px;
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
+            transition: transform 0.3s ease;
+        }
+
+        .header-logo:hover {
+            transform: scale(1.05);
+        }
+
+        .header-logo.logo-culturas {
+            height: 48px;
+        }
+
+        .header-logo.logo-aplp {
+            height: 36px;
+        }
+
+        .header-divider {
+            width: 1px;
+            height: 36px;
+            background: var(--border);
+            flex-shrink: 0;
+        }
+
+        .header-icon {
+            display: none;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 4px 20px rgba(244, 114, 182, 0.35); }
+            50% { box-shadow: 0 4px 30px rgba(244, 114, 182, 0.55); }
+        }
+
+        .header-text h1 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        .header-text p {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-top: 2px;
+        }
+
+        /* ─── STATS BAR ─── */
+        #stats-bar {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            gap: 6px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 10px 20px;
+            box-shadow: var(--shadow);
+            animation: stats-slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+            animation-delay: 0.5s;
+            max-width: calc(100vw - 48px);
+        }
+
+        @keyframes stats-slide-up {
+            from { opacity: 0; transform: translateX(-50%) translateY(30px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 12px;
+            transition: background 0.3s;
+        }
+
+        .stat-item:hover {
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .stat-icon {
+            font-size: 1.1rem;
+        }
+
+        .stat-value {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-divider {
+            width: 1px;
+            height: 28px;
+            background: var(--border);
+            align-self: center;
+        }
+
+        /* ─── LEGEND ─── */
+        #legend {
+            position: fixed;
+            bottom: 90px;
+            left: 24px;
+            z-index: 1000;
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 14px 18px;
+            box-shadow: var(--shadow);
+            max-height: calc(100vh - 180px);
+            overflow-y: auto;
+            animation: legend-slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+            animation-delay: 0.7s;
+        }
+
+        @keyframes legend-slide-up {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .legend-title {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 7px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 3px 6px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .legend-item:hover {
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--text-primary);
+        }
+
+        .legend-item:last-child {
+            margin-bottom: 0;
+        }
+
+        #legend::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        #legend::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #legend::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        .legend-dot {
+            width: 14px;
+            height: 14px;
+            min-width: 14px;
+            min-height: 14px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            box-shadow: 0 0 8px rgba(0,0,0,0.3);
+            display: inline-block;
+        }
+
+        /* ─── MAP ─── */
+        #map {
+            width: 100%;
+            height: 100vh;
+        }
+
+        /* ─── LEAFLET CUSTOM STYLES ─── */
+        .leaflet-tile-pane {
+            filter: saturate(1.3) brightness(1.05) contrast(1.05) hue-rotate(-10deg);
+        }
+
+        .custom-marker {
+            position: relative;
+            width: 30px !important;
+            height: 42px !important;
+        }
+
+        .marker-pin {
+            width: 30px;
+            height: 30px;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            position: absolute;
+            left: 0;
+            top: 0;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 2px solid rgba(255,255,255,0.4);
+        }
+
+        .marker-pin:hover {
+            transform: rotate(-45deg) scale(1.2);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.6);
+        }
+
+        .marker-pin::after {
+            content: '';
+            width: 12px;
+            height: 12px;
+            background: rgba(255,255,255,0.35);
+            position: absolute;
+            border-radius: 50%;
+            top: 7px;
+            left: 7px;
+        }
+
+        .marker-pin-tail {
+            width: 2px;
+            height: 14px;
+            position: absolute;
+            left: 14px;
+            top: 28px;
+            border-radius: 0 0 2px 2px;
+            opacity: 0.7;
+        }
+
+        /* ─── POPUP STYLES ─── */
+        .leaflet-popup {
+            max-height: calc(100vh - 120px);
+        }
+
+        .leaflet-popup-content-wrapper {
+            background: var(--bg-glass) !important;
+            backdrop-filter: blur(24px) !important;
+            -webkit-backdrop-filter: blur(24px) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 20px !important;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6) !important;
+            color: var(--text-primary) !important;
+            padding: 0 !important;
+            overflow: hidden;
+            max-height: calc(100vh - 140px);
+        }
+
+        .leaflet-popup-tip {
+            background: var(--bg-glass) !important;
+            border: 1px solid var(--border) !important;
+            box-shadow: none !important;
+        }
+
+        .leaflet-popup-content {
+            margin: 0 !important;
+            font-family: 'Outfit', sans-serif !important;
+            min-width: 280px;
+            max-width: 360px;
+            max-height: calc(100vh - 160px);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .leaflet-popup-content::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .leaflet-popup-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .leaflet-popup-content::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        .leaflet-popup-close-button {
+            color: var(--text-muted) !important;
+            font-size: 22px !important;
+            padding: 8px 12px !important;
+            z-index: 10;
+            transition: color 0.2s !important;
+        }
+
+        .leaflet-popup-close-button:hover {
+            color: var(--accent) !important;
+        }
+
+        .popup-card {
+            padding: 0;
+        }
+
+        .popup-header {
+            padding: 20px 22px 14px;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .popup-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+
+        .popup-header.red-dpcho::before { background: linear-gradient(90deg, #8B5CF6, #A78BFA); }
+        .popup-header.red-cg::before { background: linear-gradient(90deg, #F472B6, #FBCFE8); }
+        .popup-header.red-cgria::before { background: linear-gradient(90deg, #34D399, #6EE7B7); }
+        .popup-header.red-cgchoco::before { background: linear-gradient(90deg, #FBBF24, #FDE68A); }
+        .popup-header.red-frecuatej::before { background: linear-gradient(90deg, #F97316, #FDBA74); }
+        .popup-header.red-pigmld::before { background: linear-gradient(90deg, #EF4444, #FCA5A5); }
+        .popup-header.red-orinquia::before { background: linear-gradient(90deg, #06B6D4, #67E8F9); }
+        .popup-header.red-andina::before { background: linear-gradient(90deg, #A78BFA, #C4B5FD); }
+        .popup-header.red-cgcoral::before { background: linear-gradient(90deg, #10B981, #6EE7B7); }
+        .popup-header.red-internal::before { background: linear-gradient(90deg, #64748B, #94A3B8); }
+
+        .popup-red-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-bottom: 8px;
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--primary-light);
+        }
+
+        .popup-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.3;
+            margin-bottom: 4px;
+        }
+
+        .popup-territory {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .popup-body {
+            padding: 16px 22px;
+        }
+
+        .popup-org {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 8px;
+            line-height: 1.4;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .popup-desc {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            line-height: 1.65;
+            margin-bottom: 14px;
+            max-height: 140px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .popup-desc::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .popup-desc::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .popup-desc::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        .popup-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .popup-detail-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            padding: 6px 10px;
+            background: rgba(139, 92, 246, 0.06);
+            border-radius: 10px;
+        }
+
+        .popup-detail-icon {
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .popup-detail-label {
+            color: var(--text-muted);
+            font-weight: 500;
+            min-width: 55px;
+        }
+
+        .popup-detail-value {
+            color: var(--text-primary);
+            font-weight: 400;
+            word-break: break-all;
+            overflow-wrap: break-word;
+            min-width: 0;
+        }
+
+        /* ─── CLUSTER STYLES ─── */
+        .marker-cluster-small,
+        .marker-cluster-medium,
+        .marker-cluster-large {
+            background: rgba(139, 92, 246, 0.25) !important;
+            backdrop-filter: blur(8px);
+        }
+
+        .marker-cluster-small div,
+        .marker-cluster-medium div,
+        .marker-cluster-large div {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%) !important;
+            color: white !important;
+            font-family: 'Outfit', sans-serif !important;
+            font-weight: 700 !important;
+            font-size: 14px !important;
+        }
+
+        /* ─── LOADING SCREEN ─── */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+
+        #loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 1rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 768px) {
+            .header-text h1 { font-size: 1.05rem; }
+            .header-text p { font-size: 0.72rem; }
+            .header-icon { width: 42px; height: 42px; font-size: 22px; border-radius: 12px; }
+            #header { padding: 12px 16px 24px; }
+            #stats-bar { bottom: 16px; padding: 8px 14px; gap: 4px; border-radius: 16px; }
+            .stat-item { padding: 4px 8px; gap: 6px; }
+            .stat-value { font-size: 1rem; }
+            .stat-label { font-size: 0.65rem; }
+            #legend { bottom: 78px; left: 12px; padding: 10px 14px; }
+            .leaflet-popup-content { min-width: 260px; max-width: 320px; }
+        }
+
+        @media (max-width: 480px) {
+            #stats-bar { flex-wrap: wrap; justify-content: center; max-width: 90vw; }
+            .stat-divider { display: none; }
+            .header-logos { gap: 8px; }
+            .header-logo { height: 32px; }
+            .header-logo.logo-culturas { height: 36px; }
+            .header-logo.logo-aplp { height: 28px; }
+        }
+
+        /* ─── FOOTER LOGOS ─── */
+        #footer-logos {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 8px 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .footer-logo {
+            height: 32px;
+            width: auto;
+            object-fit: contain;
+            opacity: 0.85;
+            transition: opacity 0.3s;
+        }
+
+        .footer-logo:hover {
+            opacity: 1;
+        }
+
+        .footer-divider {
+            width: 1px;
+            height: 24px;
+            background: var(--border);
+        }
+
+        @media (max-width: 768px) {
+            #footer-logos { padding: 6px 10px; gap: 8px; top: auto; bottom: 80px; right: 12px; }
+            .footer-logo { height: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Cargando mapa de procedencias…</div>
+    </div>
+
+    <!-- Header -->
+    <header id="header">
+        <div id="header-content">
+            <div class="header-logos">
+                <img src="logo_culturas.png" alt="Ministerio de las Culturas" class="header-logo logo-culturas">
+                <img src="logo_aplp.png" alt="Artes para la Paz" class="header-logo logo-aplp">
+            </div>
+            <div class="header-divider"></div>
+            <img src="logo_red_mujeres.png" alt="Red Internacional de Mujeres" class="header-logo logo-red-mujeres" style="height: 52px; border-radius: 50%; box-shadow: 0 2px 12px rgba(0,0,0,0.3);">
+            <div class="header-text">
+                <h1>Red Internacional de Mujeres por la Paz</h1>
+                <p>Mapa de procedencias · Encuentro Nacional</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Institutional Logos -->
+    <div id="footer-logos">
+        <img src="logo_creamos.png" alt="Creamos Cultura de Paz" class="footer-logo">
+    </div>
+
+    <!-- Legend -->
+    <div id="legend">
+        <div class="legend-title">Redes</div>
+        <div class="legend-item" data-filter="DPCHO">
+            <div class="legend-dot" style="background: linear-gradient(135deg, #8B5CF6, #A78BFA);"></div>
+            <span>Despacho</span>
+        </div>
+        <div class="legend-item" data-filter="CG">
+            <div class="legend-dot" style="background: linear-gradient(135deg, #F472B6, #FBCFE8);"></div>
+            <span>CG</span>
+        </div>
+        <div class="legend-item" data-filter="CG/RIA">
+            <div class="legend-dot" style="background: linear-gradient(135deg, #34D399, #6EE7B7);"></div>
+            <span>CG / RIA</span>
+        </div>
+        <div class="legend-item" data-filter="CG/CHOCÓ">
+            <div class="legend-dot" style="background: linear-gradient(135deg, #FBBF24, #FDE68A);"></div>
+            <span>CG / Chocó</span>
+        </div>
+        <div class="legend-item" data-filter="F/RECUATEJ">
+            <div class="legend-dot" style="background: linear-gradient(135deg, #F97316, #FDBA74);"></div>
+            <span>F / Recuatej</span>
+        </div>
+        <div class="legend-item" data-filter="PIGMLD">
+            <div class="legend-dot" style="background: linear-gradient(135deg, #EF4444, #FCA5A5);"></div>
+            <span>PIGMLD</span>
+        </div>
+        <div class="legend-item" data-filter="ORINQUIA">
+            <div class="legend-dot" style="background: linear-gradient(135deg, #06B6D4, #67E8F9);"></div>
+            <span>Orinoquía</span>
+        </div>
+        <div class="legend-item" data-filter="ANDINA">
+            <div class="legend-dot" style="background: linear-gradient(135deg, #A78BFA, #C4B5FD);"></div>
+            <span>Andina</span>
+        </div>
+        <div class="legend-item" data-filter="CG/CORAL">
+            <div class="legend-dot" style="background: linear-gradient(135deg, #10B981, #6EE7B7);"></div>
+            <span>CG / Coral</span>
+        </div>
+        <div class="legend-item" data-filter="INTERNAL">
+            <div class="legend-dot" style="background: linear-gradient(135deg, #64748B, #94A3B8);"></div>
+            <span>Internacional</span>
+        </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div id="stats-bar">
+        <div class="stat-item">
+            <span class="stat-icon">👩‍🤝‍👩</span>
+            <div>
+                <div class="stat-value" id="stat-women">40</div>
+                <div class="stat-label">Mujeres</div>
+            </div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <span class="stat-icon">🏘️</span>
+            <div>
+                <div class="stat-value" id="stat-territories">22</div>
+                <div class="stat-label">Territorios</div>
+            </div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <span class="stat-icon">🌿</span>
+            <div>
+                <div class="stat-value" id="stat-orgs">30</div>
+                <div class="stat-label">Organizaciones</div>
+            </div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <span class="stat-icon">🗺️</span>
+            <div>
+                <div class="stat-value" id="stat-depts">17</div>
+                <div class="stat-label">Departamentos</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map -->
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- MarkerCluster JS -->
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+    <script>
+        // ═══════════════════════════════════════════════════════
+        // DATA: Women of the Red Internacional de Mujeres por la Paz
+        // ═══════════════════════════════════════════════════════
+        const womenData = [
+            {
+                id: 1, red: "DPCHO", nombre: "Mónica Bernal Bonilla",
+                territorio: "CUND/ Suesca", dpto: "Cundinamarca",
+                organizacion: "Chaibá - Fundación para el Desarrollo Humano",
+                descripcion: "",
+                celular: "3115576008", correo: "fundacionchaiba@gmail.com",
+                traslado: "Suesca - Bogotá",
+                lat: 5.1019, lng: -73.7961
+            },
+            {
+                id: 2, red: "DPCHO", nombre: "Leidy Andrea Mora Hernández",
+                territorio: "CUND/ Chía", dpto: "Cundinamarca",
+                organizacion: "Fundación Cultural Kynza Xie",
+                descripcion: "",
+                celular: "3193214751", correo: "fundacionculturalkynzaxie@gmail.com",
+                traslado: "Chía - Cundinamarca",
+                lat: 4.8637, lng: -74.0596
+            },
+            {
+                id: 3, red: "DPCHO", nombre: "Fabis Marcela Bolaño Plata",
+                territorio: "CESAR/ Valledupar", dpto: "Cesar",
+                organizacion: "Asociación de Mujeres Wiwa Abudzibu Asomuwadzi",
+                descripcion: "",
+                celular: "3128446970", correo: "marcebo2090@gmail.com",
+                traslado: "Valledupar - Bogotá - Valledupar",
+                lat: 10.4735, lng: -73.2505
+            },
+            {
+                id: 4, red: "DPCHO", nombre: "Luz Nery Ramírez Mosquera",
+                territorio: "CHOCÓ/ Río Iró", dpto: "Chocó",
+                organizacion: "Organización de Mujeres Víctimas del Río Iró (ORVIEN)",
+                descripcion: "",
+                celular: "3206478530", correo: "ramirezmosqueraluz@gmail.com",
+                traslado: "",
+                lat: 5.2833, lng: -76.6667
+            },
+            {
+                id: 5, red: "DPCHO", nombre: "Rosa Beatriz Barreto Herazo",
+                territorio: "SUCRE/ Corozal", dpto: "Sucre",
+                organizacion: "Fundación Micelio Tejiendo Saberes",
+                descripcion: "",
+                celular: "3137982429", correo: "beato45@hotmail.com",
+                traslado: "",
+                lat: 9.3183, lng: -75.2947
+            },
+            {
+                id: 6, red: "DPCHO", nombre: "Sandra Pilar Guapachá",
+                territorio: "CUND/ Soacha", dpto: "Cundinamarca",
+                organizacion: "Asociación Compañía América Danza",
+                descripcion: "",
+                celular: "3108750987", correo: "c.americadanza@gmail.com",
+                traslado: "",
+                lat: 4.5796, lng: -74.2166
+            },
+            {
+                id: 7, red: "DPCHO", nombre: "Gudiela Milena Paternina Pautt",
+                territorio: "CORDOBA / Montería", dpto: "Córdoba",
+                organizacion: "Fundación Paterpautt",
+                descripcion: "",
+                celular: "3147073032", correo: "fundacionpaterpautt2@gmail.com",
+                traslado: "",
+                lat: 8.7479, lng: -75.8814
+            },
+            {
+                id: 8, red: "DPCHO", nombre: "Natalia López Rodríguez",
+                territorio: "NTE SANTANDER/ Ocaña", dpto: "Norte de Santander",
+                organizacion: "Juntanza Catatumbo",
+                descripcion: "",
+                celular: "3152823013", correo: "taliasvagalia@gmail.com",
+                traslado: "",
+                lat: 8.2369, lng: -73.3561
+            },
+            {
+                id: 9, red: "DPCHO", nombre: "Dulfay Rodríguez Rodríguez",
+                territorio: "AMAZONAS/ Leticia", dpto: "Amazonas",
+                organizacion: "Asociación de Mujeres Triunfadoras Tejiendo Vida",
+                descripcion: "",
+                celular: "3212006262", correo: "asociacionmuttevi@gmail.com",
+                traslado: "",
+                lat: -4.2153, lng: -69.9406
+            },
+            {
+                id: 10, red: "DPCHO", nombre: "Natalia García Diez",
+                territorio: "CORDOBA/ Montería", dpto: "Córdoba",
+                organizacion: "Fundación el Hogar de Tota",
+                descripcion: "",
+                celular: "3215643629", correo: "historiasdelanacol@gmail.com",
+                traslado: "",
+                lat: 8.7520, lng: -75.8860
+            },
+            {
+                id: 11, red: "DPCHO", nombre: "Candida Ramona Alfonso",
+                territorio: "ARAUCA/Arauca", dpto: "Arauca",
+                organizacion: "Asociación de Mujeres Casa del Sembrador",
+                descripcion: "",
+                celular: "3202260507", correo: "asociacioncasadelsembrador@gmail.com",
+                traslado: "",
+                lat: 7.0847, lng: -70.7592
+            },
+            {
+                id: 12, red: "DPCHO", nombre: "Maricela Estefanía Rodríguez Calderón",
+                territorio: "NARIÑO/Pasto", dpto: "Nariño",
+                organizacion: "Corporación Violeta en Movimiento",
+                descripcion: "",
+                celular: "3108330319", correo: "kniarebel@gmail.com",
+                traslado: "",
+                lat: 1.2136, lng: -77.2811
+            },
+            {
+                id: 13, red: "DPCHO", nombre: "Ingrid Tatiana Parra Gómez",
+                territorio: "VALLE DEL CAUCA /Jamundí", dpto: "Valle del Cauca",
+                organizacion: "Feminal Crew",
+                descripcion: "",
+                celular: "3175741616", correo: "ingrid.parra@correounivalle.edu.co",
+                traslado: "",
+                lat: 3.2618, lng: -76.5394
+            },
+            {
+                id: 14, red: "DPCHO", nombre: "Sandra Milena Quintero Galvis",
+                territorio: "HUILA/ Pitalito", dpto: "Huila",
+                organizacion: "Radio Liberto",
+                descripcion: "",
+                celular: "3118646740", correo: "sandramqg069@gmail.com",
+                traslado: "",
+                lat: 1.8528, lng: -76.0484
+            },
+            {
+                id: 15, red: "DPCHO", nombre: "Carmen Alicia Jansasoy Tisoy",
+                territorio: "PUTUMAYO/Santiago", dpto: "Putumayo",
+                organizacion: "Cabildo Santiago",
+                descripcion: "",
+                celular: "3165510753", correo: "jansasoy2001@gmail.com",
+                traslado: "",
+                lat: 1.1467, lng: -77.0000
+            },
+            {
+                id: 16, red: "DPCHO", nombre: "Yennilyn Lara González",
+                territorio: "CORDOBA/Montería", dpto: "Córdoba",
+                organizacion: "Artes de Lara",
+                descripcion: "",
+                celular: "3122117325", correo: "yennilyn-1998@hotmail.com",
+                traslado: "",
+                lat: 8.7560, lng: -75.8900
+            },
+            {
+                id: 17, red: "DPCHO", nombre: "Martha Liliana Caizales Tascón",
+                territorio: "RISARALDA/ Mistrató", dpto: "Risaralda",
+                organizacion: "Asociación Embera Chami",
+                descripcion: "",
+                celular: "3116852097", correo: "mujeres.chami@gmail.com",
+                traslado: "",
+                lat: 5.2983, lng: -75.8900
+            },
+            {
+                id: 18, red: "DPCHO", nombre: "Suma Tamia Cuatindioy",
+                territorio: "PUTUMAYO/ San Andrés", dpto: "Putumayo",
+                organizacion: "Resguardo San Andrés",
+                descripcion: "",
+                celular: "3103521024", correo: "rosaquinchoa@gmail.com",
+                traslado: "",
+                lat: 1.1358, lng: -76.6244
+            },
+            {
+                id: 19, red: "CG/RIA", nombre: "Ninfa Rodriguez",
+                territorio: "GUAINÍA / INÍRIDA", dpto: "Guainía",
+                organizacion: "Red de Mujeres Líderes",
+                descripcion: "Red de Mujeres líderes conformada en el 2025 como parte de la Red Internacional de Mujeres. Liderada por mujeres del museo comunitario de Inírida.",
+                celular: "", correo: "",
+                traslado: "Inírida - Bogotá - Inírida",
+                lat: 3.8653, lng: -67.9239
+            },
+            {
+                id: 20, red: "CG/RIA", nombre: "Magally Ortiz",
+                territorio: "GUAINÍA / INÍRIDA", dpto: "Guainía",
+                organizacion: "Red de Mujeres Líderes",
+                descripcion: "",
+                celular: "", correo: "",
+                traslado: "Inírida - Bogotá - Inírida",
+                lat: 3.8700, lng: -67.9280
+            },
+            {
+                id: 21, red: "CG/CHOCÓ", nombre: "Nelly Caicedo Caizamo",
+                territorio: "CHOCÓ/QUIBDÓ", dpto: "Chocó",
+                organizacion: "Red de Mujeres Artistas, Cultoras y Sabedoras por la Paz de Chocó",
+                descripcion: "Precursoras de la Red Internacional nodo Chocó.",
+                celular: "", correo: "",
+                traslado: "Quibdó - Bogotá - Quibdó",
+                lat: 5.6919, lng: -76.6583
+            },
+            {
+                id: 22, red: "CG/CHOCÓ", nombre: "Coco Kilele",
+                territorio: "CHOCÓ/QUIBDÓ", dpto: "Chocó",
+                organizacion: "Red de Mujeres Artistas, Cultoras y Sabedoras por la Paz de Chocó",
+                descripcion: "",
+                celular: "", correo: "",
+                traslado: "Quibdó - Bogotá - Quibdó",
+                lat: 5.6950, lng: -76.6550
+            },
+            {
+                id: 23, red: "CG/CHOCÓ", nombre: "Uzy Caizamo",
+                territorio: "CHOCÓ/QUIBDÓ", dpto: "Chocó",
+                organizacion: "Red de Mujeres Artistas, Cultoras y Sabedoras por la Paz de Chocó",
+                descripcion: "",
+                celular: "", correo: "",
+                traslado: "Quibdó - Bogotá - Quibdó",
+                lat: 5.6880, lng: -76.6620
+            },
+            {
+                id: 24, red: "CG/CHOCÓ", nombre: "Jekksy Perea",
+                territorio: "CHOCÓ/QUIBDÓ", dpto: "Chocó",
+                organizacion: "Red de Mujeres Artistas, Cultoras y Sabedoras por la Paz de Chocó",
+                descripcion: "",
+                celular: "", correo: "",
+                traslado: "Quibdó - Bogotá - Quibdó",
+                lat: 5.6940, lng: -76.6600
+            },
+            {
+                id: 25, red: "CG", nombre: "Patricia Salazar",
+                territorio: "MOCOA/PUTUMAYO", dpto: "Putumayo",
+                organizacion: "ADMUCAP",
+                descripcion: "Mujeres víctimas directas de este fenómeno, quienes decidieron transformar el dolor y las afectaciones en procesos organizativos de resistencia, cuidado y construcción de paz.",
+                celular: "", correo: "",
+                traslado: "Villa Garzón - Bogotá - Villa Garzón",
+                lat: 1.1486, lng: -76.6469
+            },
+            {
+                id: 26, red: "F/RECUATEJ", nombre: "Natalia Cano",
+                territorio: "PEREIRA/RISARALDA", dpto: "Risaralda",
+                organizacion: "YAH COLECTIVA",
+                descripcion: "Artistas gráficas de Pereira que se articulan permanentemente con los movimientos feministas.",
+                celular: "", correo: "",
+                traslado: "Pereira - Bogotá - Pereira",
+                lat: 4.8133, lng: -75.6961
+            },
+            {
+                id: 27, red: "F/RECUATEJ", nombre: "Iris Gómez",
+                territorio: "TURBO/ANTIOQUIA", dpto: "Antioquia",
+                organizacion: "MAMA NEGRA URABÁ",
+                descripcion: "Organización de Saberes, gastronomía tradicional y economías comunitarias. Cuenta con el proyecto Tambores de Mamá Negra, un proceso de sanación para mujeres víctimas de VBG a través del sonido y el movimiento. También cuenta con procesos de relevo generacional de niñas en bullergue.",
+                celular: "", correo: "",
+                traslado: "Apartadó - Bogotá - Apartadó",
+                lat: 8.0928, lng: -76.7262
+            },
+            {
+                id: 28, red: "PIGMLD", nombre: "Yaneth Ortiz",
+                territorio: "ATONUEVO/GUAJIRA", dpto: "La Guajira",
+                organizacion: "Círculo Intercultural de Mujeres en Resistencia del Sur de la Guajira",
+                descripcion: "Reúne 43 mujeres afro, campesinas e indígenas (Wayú) de la Guajira en torno a prácticas culturales, saberes, participación política y defensa del territorio y el agua.",
+                celular: "3044797088", correo: "yanethorbo@gmail.com",
+                traslado: "Riohacha - Bogotá - Riohacha",
+                lat: 10.8928, lng: -72.6828
+            },
+            {
+                id: 29, red: "PIGMLD", nombre: "Paola Navia",
+                territorio: "NARIÑO (PACÍFICO NARIÑENSE)", dpto: "Nariño",
+                organizacion: "Fundación CANAPAVI",
+                descripcion: "Cuentan con una línea estratégica que es la Red de Cantadoras del Pacífico Sur que reúne a 200 mujeres atravesando temas de patrimonio, mujeres, derechos humanos y enfoque de género.",
+                celular: "3103577989", correo: "",
+                traslado: "",
+                lat: 2.0000, lng: -78.2000
+            },
+            {
+                id: 30, red: "ORINQUIA", nombre: "Sandra González",
+                territorio: "YOPAL/CASANARE", dpto: "Casanare",
+                organizacion: "AQUELARRE",
+                descripcion: "Teatro como herramienta para la transformación cultural del machismo a partir de la colectiva feminista Aquelarre con prácticas de oralidad y teatro.",
+                celular: "3123654475", correo: "sanjanethgonzalez@yahoo.es",
+                traslado: "Yopal - Bogotá - Yopal",
+                lat: 5.3378, lng: -72.3959
+            },
+            {
+                id: 31, red: "ANDINA", nombre: "María Luisa Ríos Vanegas",
+                territorio: "NEIVA/HUILA", dpto: "Huila",
+                organizacion: "Red de Mujeres Afro",
+                descripcion: "",
+                celular: "3203919698", correo: "yembereafros@gmail.com",
+                traslado: "Neiva - Bogotá - Neiva",
+                lat: 2.9345, lng: -75.2809
+            },
+            {
+                id: 32, red: "F/RCARIBE", nombre: "Mama Zulma",
+                territorio: "MAGDALENA/TAGANGA", dpto: "Magdalena",
+                organizacion: "Colectivo Femenino \"Taganga te toca\" – Alma de tribu, voz de mujer",
+                descripcion: "El Colectivo Femenino \"Taganga te toca\" nació en el año 2023 como una respuesta orgánica, valiente y necesaria ante la normalización de la Violencia Basada en Género (VBG) en nuestra comunidad pesquera. Nuestra identidad y compromiso se consolidaron tras los dolorosos feminicidios que fracturaron nuestro tejido social.",
+                celular: "3017359093", correo: "",
+                traslado: "Sta Marta - Bogotá - Sta Marta",
+                lat: 11.2667, lng: -74.1917
+            },
+            {
+                id: 33, red: "CG/CORAL", nombre: "Marcela López",
+                territorio: "CALI/VALLE DEL CAUCA", dpto: "Valle del Cauca",
+                organizacion: "Coral de Niñas",
+                descripcion: "Coral de 300 niñas que componen, cantan y se vinculan en torno a los derechos de las niñas, a la prevención de VBG, al derecho de una vida libre de violencias, al cuidado de la paz, la vida, el territorio y el ambiente desde una perspectiva de género.",
+                celular: "", correo: "",
+                traslado: "Palmira - Bogotá - Palmira",
+                lat: 3.4516, lng: -76.5320
+            },
+            {
+                id: 34, red: "CG", nombre: "Ana Collazos",
+                territorio: "NEIVA/HUILA", dpto: "Huila",
+                organizacion: "Mujeres Poetas del Huila",
+                descripcion: "Red de mujeres poetisas del Huila, con quienes se han realizado conmemoraciones y se ha movilizado el reconocimiento de las mujeres poetas en el territorio del Huila.",
+                celular: "", correo: "",
+                traslado: "Neiva - Bogotá - Neiva",
+                lat: 2.9390, lng: -75.2850
+            },
+            {
+                id: 35, red: "CG", nombre: "Partera campesina",
+                territorio: "CHOACHI/CUNDINAMARCA", dpto: "Cundinamarca",
+                organizacion: "PARCAS",
+                descripcion: "La Asociación de Parteras Campesinas Cundiboyacenses PARCAS trabaja por la dignificación de las parteras campesinas y la salvaguarda de la Partería Tradicional Campesina en el territorio cundiboyacense.",
+                celular: "", correo: "",
+                traslado: "Choachí - Bogotá - Choachí",
+                lat: 4.5286, lng: -73.9261
+            },
+            {
+                id: 36, red: "CG", nombre: "Liceth Quiñonez",
+                territorio: "Buenaventura / Valle del Cauca", dpto: "Valle del Cauca",
+                organizacion: "ASOPARUPA",
+                descripcion: "La Asociación de Parteras Unidas del Pacífico (ASOPARUPA) es una organización de base, conformada y administrada por mujeres que agremia a 254 y coordina a 1600 parteras, con la misión de proteger los derechos de las mujeres y salvaguardar el Patrimonio Cultural de los saberes asociados a la partería tradicional afro.",
+                celular: "", correo: "",
+                traslado: "Buenaventura - Cali - Palmira - Bogotá",
+                lat: 3.8801, lng: -77.0199
+            },
+            {
+                id: 37, red: "CG", nombre: "Clementina Ramírez",
+                territorio: "BUCARAMANGA/SANTANDER", dpto: "Santander",
+                organizacion: "Asociación Cuidadores Familiares de Santander 24/7 ACUFASAN",
+                descripcion: "Su razón de ser es acompañar, dignificar y visibilizar el trabajo de quienes cuidan. Cuentan con su rama artística 'Artes sin Límites', con talleres de teatro, danza, circo, música, títeres, artes plásticas y artesanías.",
+                celular: "", correo: "",
+                traslado: "Lebrija - Bogotá - Lebrija",
+                lat: 7.1193, lng: -73.1227
+            },
+            {
+                id: 38, red: "CG", nombre: "Ilba Trujillo",
+                territorio: "NEIVA/HUILA", dpto: "Huila",
+                organizacion: "Fundación La Vida es Bella RBF",
+                descripcion: "Fundación La Vida es Bella RBF tiene como misión promover el restablecimiento de derechos de las personas con discapacidad y sus cuidadores a través del arte, la cultura, la educación y el emprendimiento.",
+                celular: "", correo: "",
+                traslado: "Neiva - Bogotá - Neiva",
+                lat: 2.9310, lng: -75.2770
+            },
+            {
+                id: 39, red: "CG", nombre: "María Susana Ortiz",
+                territorio: "BUCARAMANGA/SANTANDER", dpto: "Santander",
+                organizacion: "Red de Mujeres de las Artes Escénicas de Bucaramanga",
+                descripcion: "Nuestra Red nace con la proyección de favorecer la necesaria transversalización de la perspectiva de género en la planeación de la cultura y, de manera particular, en el campo de las artes escénicas.",
+                celular: "3104656312", correo: "masuco28@gmail.com",
+                traslado: "Lebrija - Bogotá - Lebrija",
+                lat: 7.1250, lng: -73.1280
+            },
+            {
+                id: 40, red: "CG", nombre: "Matilde Mora",
+                territorio: "SUMAPAZ/CUNDINAMARCA", dpto: "Cundinamarca",
+                organizacion: "ASODEMUC",
+                descripcion: "Asociación de Mujeres Campesinas – Derechos culturales de mujeres campesinas a nivel nacional e internacional.",
+                celular: "311 8432996", correo: "",
+                traslado: "Sumapaz - Bogotá - Sumapaz",
+                lat: 4.1667, lng: -74.1000
+            },
+            {
+                id: 41, red: "INTERNAL", nombre: "Tania Mena Bustos",
+                territorio: "MÉXICO", dpto: "México",
+                organizacion: "Invitada Internacional",
+                descripcion: "Invitada internacional de México.",
+                celular: "", correo: "",
+                traslado: "",
+                lat: 19.4326, lng: -99.1332
+            },
+            {
+                id: 42, red: "INTERNAL", nombre: "Aleida Violeta Cisneros",
+                territorio: "MÉXICO", dpto: "México",
+                organizacion: "Invitada Internacional",
+                descripcion: "Invitada internacional de México.",
+                celular: "", correo: "",
+                traslado: "",
+                lat: 19.4380, lng: -99.1400
+            }
+        ];
+
+        // ═══════════════════════════════════════════════════════
+        // COLOR MAPPING
+        // ═══════════════════════════════════════════════════════
+        const redColors = {
+            'DPCHO':       { color: '#8B5CF6', gradient: 'linear-gradient(135deg, #8B5CF6, #A78BFA)', cssClass: 'red-dpcho' },
+            'CG':          { color: '#F472B6', gradient: 'linear-gradient(135deg, #F472B6, #FBCFE8)', cssClass: 'red-cg' },
+            'CG/RIA':      { color: '#34D399', gradient: 'linear-gradient(135deg, #34D399, #6EE7B7)', cssClass: 'red-cgria' },
+            'CG/CHOCÓ':    { color: '#FBBF24', gradient: 'linear-gradient(135deg, #FBBF24, #FDE68A)', cssClass: 'red-cgchoco' },
+            'F/RECUATEJ':  { color: '#F97316', gradient: 'linear-gradient(135deg, #F97316, #FDBA74)', cssClass: 'red-frecuatej' },
+            'PIGMLD':      { color: '#EF4444', gradient: 'linear-gradient(135deg, #EF4444, #FCA5A5)', cssClass: 'red-pigmld' },
+            'ORINQUIA':    { color: '#06B6D4', gradient: 'linear-gradient(135deg, #06B6D4, #67E8F9)', cssClass: 'red-orinquia' },
+            'ANDINA':      { color: '#A78BFA', gradient: 'linear-gradient(135deg, #A78BFA, #C4B5FD)', cssClass: 'red-andina' },
+            'CG/CORAL':    { color: '#10B981', gradient: 'linear-gradient(135deg, #10B981, #6EE7B7)', cssClass: 'red-cgcoral' },
+            'F/RCARIBE':   { color: '#F97316', gradient: 'linear-gradient(135deg, #F97316, #FDBA74)', cssClass: 'red-frecuatej' },
+            'INTERNAL':    { color: '#64748B', gradient: 'linear-gradient(135deg, #64748B, #94A3B8)', cssClass: 'red-internal' }
+        };
+
+        const redLabels = {
+            'DPCHO': 'Despacho',
+            'CG': 'CG',
+            'CG/RIA': 'CG / RIA',
+            'CG/CHOCÓ': 'CG / Chocó',
+            'F/RECUATEJ': 'F / Recuatej',
+            'PIGMLD': 'PIGMLD',
+            'ORINQUIA': 'Orinoquía',
+            'ANDINA': 'Andina',
+            'CG/CORAL': 'CG / Coral',
+            'F/RCARIBE': 'F / R. Caribe',
+            'INTERNAL': 'Internacional'
+        };
+
+        // ═══════════════════════════════════════════════════════
+        // MAP INITIALIZATION
+        // ═══════════════════════════════════════════════════════
+        const map = L.map('map', {
+            center: [4.5709, -74.2973],
+            zoom: 6,
+            zoomControl: false,
+            attributionControl: true
+        });
+
+        // Zoom control in bottom-right
+        L.control.zoom({ position: 'topright' }).addTo(map);
+
+        // Colorful vibrant tile layer
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(map);
+
+        // ═══════════════════════════════════════════════════════
+        // CUSTOM MARKERS & POPUPS
+        // ═══════════════════════════════════════════════════════
+        function createCustomIcon(red) {
+            const rc = redColors[red] || redColors['CG'];
+            return L.divIcon({
+                className: 'custom-marker',
+                html: `<div class="marker-pin" style="background: ${rc.color};"></div>`,
+                iconSize: [30, 42],
+                iconAnchor: [15, 42],
+                popupAnchor: [0, -36]
+            });
+        }
+
+        function createPopupContent(woman) {
+            const rc = redColors[woman.red] || redColors['CG'];
+            const label = redLabels[woman.red] || woman.red;
+
+            let detailsHTML = '';
+
+            if (woman.celular) {
+                detailsHTML += `
+                    <div class="popup-detail-row">
+                        <span class="popup-detail-icon">📱</span>
+                        <span class="popup-detail-label">Celular</span>
+                        <span class="popup-detail-value">${woman.celular}</span>
+                    </div>`;
+            }
+            if (woman.correo) {
+                detailsHTML += `
+                    <div class="popup-detail-row">
+                        <span class="popup-detail-icon">✉️</span>
+                        <span class="popup-detail-label">Correo</span>
+                        <span class="popup-detail-value" style="font-size:0.72rem; word-break:break-all;">${woman.correo}</span>
+                    </div>`;
+            }
+            if (woman.traslado) {
+                detailsHTML += `
+                    <div class="popup-detail-row">
+                        <span class="popup-detail-icon">🚌</span>
+                        <span class="popup-detail-label">Traslado</span>
+                        <span class="popup-detail-value">${woman.traslado}</span>
+                    </div>`;
+            }
+
+            return `
+                <div class="popup-card">
+                    <div class="popup-header ${rc.cssClass}">
+                        <div class="popup-red-badge">
+                            <span>🕊️</span> ${label}
+                        </div>
+                        <div class="popup-name">${woman.nombre}</div>
+                        <div class="popup-territory">📍 ${woman.territorio}</div>
+                    </div>
+                    <div class="popup-body">
+                        ${woman.organizacion ? `<div class="popup-org">${woman.organizacion}</div>` : ''}
+                        ${woman.descripcion ? `<div class="popup-desc">${woman.descripcion}</div>` : ''}
+                        ${detailsHTML ? `<div class="popup-details">${detailsHTML}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // ADD MARKERS WITH CLUSTERING
+        // ═══════════════════════════════════════════════════════
+        const markers = L.markerClusterGroup({
+            maxClusterRadius: 40,
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: false,
+            zoomToBoundsOnClick: true,
+            iconCreateFunction: function(cluster) {
+                const count = cluster.getChildCount();
+                let size = 'small';
+                if (count > 10) size = 'large';
+                else if (count > 5) size = 'medium';
+                return L.divIcon({
+                    html: `<div><span>${count}</span></div>`,
+                    className: `marker-cluster marker-cluster-${size}`,
+                    iconSize: L.point(44, 44)
+                });
+            }
+        });
+
+        const allMarkerLayers = [];
+
+        womenData.forEach((woman, index) => {
+            const icon = createCustomIcon(woman.red);
+            const marker = L.marker([woman.lat, woman.lng], {
+                icon: icon,
+                riseOnHover: true
+            });
+
+            marker.bindPopup(createPopupContent(woman), {
+                maxWidth: 360,
+                minWidth: 280,
+                className: 'custom-popup',
+                closeButton: true,
+                autoPan: true,
+                autoPanPaddingTopLeft: L.point(30, 100),
+                autoPanPaddingBottomRight: L.point(30, 100)
+            });
+
+            marker.womanData = woman;
+            markers.addLayer(marker);
+            allMarkerLayers.push(marker);
+        });
+
+        map.addLayer(markers);
+
+        // ═══════════════════════════════════════════════════════
+        // LEGEND FILTERING
+        // ═══════════════════════════════════════════════════════
+        let activeFilter = null;
+
+        document.querySelectorAll('.legend-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const filter = item.dataset.filter;
+
+                if (activeFilter === filter) {
+                    // Reset filter
+                    activeFilter = null;
+                    markers.clearLayers();
+                    allMarkerLayers.forEach(m => markers.addLayer(m));
+                    document.querySelectorAll('.legend-item').forEach(i => i.style.opacity = '1');
+                } else {
+                    activeFilter = filter;
+                    markers.clearLayers();
+                    allMarkerLayers.forEach(m => {
+                        const rd = m.womanData.red;
+                        // Match filter, including partial matches for composite reds
+                        if (rd === filter || rd.startsWith(filter + '/') || rd.includes(filter)) {
+                            markers.addLayer(m);
+                        }
+                    });
+                    document.querySelectorAll('.legend-item').forEach(i => {
+                        i.style.opacity = i.dataset.filter === filter ? '1' : '0.35';
+                    });
+                }
+            });
+        });
+
+        // ═══════════════════════════════════════════════════════
+        // HIDE LOADING SCREEN
+        // ═══════════════════════════════════════════════════════
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loading-screen').classList.add('hidden');
+            }, 800);
+        });
+
+        // Also hide after timeout as fallback
+        setTimeout(() => {
+            document.getElementById('loading-screen').classList.add('hidden');
+        }, 3000);
+    </script>
+</body>
+</html>
