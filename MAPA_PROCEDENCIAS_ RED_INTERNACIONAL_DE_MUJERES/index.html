@@ -57,7 +57,7 @@
             left: 0;
             right: 0;
             z-index: 1000;
-            background: linear-gradient(180deg, rgba(15, 10, 26, 0.95) 0%, rgba(15, 10, 26, 0.8) 60%, rgba(15, 10, 26, 0) 100%);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.8) 60%, rgba(255, 255, 255, 0) 100%);
             padding: 14px 28px 35px;
             pointer-events: none;
         }
@@ -117,19 +117,17 @@
         .header-text h1 {
             font-size: 1.35rem;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-light) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #1F2937;
+            margin: 0 0 4px 0;
             letter-spacing: -0.02em;
             line-height: 1.2;
         }
 
         .header-text p {
-            font-size: 0.82rem;
-            color: var(--text-muted);
-            font-weight: 400;
-            margin-top: 2px;
+            font-size: 0.85rem;
+            color: #4B5563;
+            margin: 0;
+            font-weight: 500;
         }
 
         /* ─── STATS BAR ─── */
@@ -436,6 +434,21 @@
             color: var(--primary-light);
         }
 
+        .header-text h1 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #1F2937;
+            margin: 0 0 4px 0;
+            letter-spacing: -0.02em;
+        }
+
+        .header-text p {
+            font-size: 0.85rem;
+            color: #4B5563;
+            margin: 0;
+            font-weight: 500;
+        }
+
         .popup-name {
             font-size: 1.2rem;
             font-weight: 700;
@@ -664,7 +677,7 @@
                 <img src="logo_aplp.png" alt="Artes para la Paz" class="header-logo logo-aplp">
             </div>
             <div class="header-divider"></div>
-            <img src="logo_red_mujeres.png" alt="Red Internacional de Mujeres" class="header-logo logo-red-mujeres" style="height: 52px; border-radius: 50%; box-shadow: 0 2px 12px rgba(0,0,0,0.3);">
+            <img src="logo_red_mujeres.png" alt="Red Internacional de Mujeres" class="header-logo logo-red-mujeres" style="height: 52px; mix-blend-mode: multiply; object-fit: contain;">
             <div class="header-text">
                 <h1>Red Internacional de Mujeres por la Paz</h1>
                 <p>Mapa de procedencias · Encuentro Nacional</p>
@@ -1252,7 +1265,7 @@
                         <div class="popup-red-badge">
                             <span>🕊️</span> ${label}
                         </div>
-                        <div class="popup-name">${woman.organizacion || woman.nombre}</div>
+                        <div class="popup-name">${woman.organizacion || 'Organización no registrada'}</div>
                         <div class="popup-territory">📍 ${woman.territorio}</div>
                     </div>
                     <div class="popup-body">
