@@ -1221,20 +1221,20 @@
 
             let detailsHTML = '';
 
-            if (woman.celular) {
-                detailsHTML += `
-                    <div class="popup-detail-row">
-                        <span class="popup-detail-icon">📱</span>
-                        <span class="popup-detail-label">Celular</span>
-                        <span class="popup-detail-value">${woman.celular}</span>
-                    </div>`;
-            }
             if (woman.correo) {
                 detailsHTML += `
                     <div class="popup-detail-row">
                         <span class="popup-detail-icon">✉️</span>
                         <span class="popup-detail-label">Correo</span>
                         <span class="popup-detail-value" style="font-size:0.72rem; word-break:break-all;">${woman.correo}</span>
+                    </div>`;
+            }
+            if (woman.celular) {
+                detailsHTML += `
+                    <div class="popup-detail-row">
+                        <span class="popup-detail-icon">📱</span>
+                        <span class="popup-detail-label">Celular</span>
+                        <span class="popup-detail-value">${woman.celular}</span>
                     </div>`;
             }
             if (woman.traslado) {
@@ -1252,11 +1252,10 @@
                         <div class="popup-red-badge">
                             <span>🕊️</span> ${label}
                         </div>
-                        <div class="popup-name">${woman.nombre}</div>
+                        <div class="popup-name">${woman.organizacion || woman.nombre}</div>
                         <div class="popup-territory">📍 ${woman.territorio}</div>
                     </div>
                     <div class="popup-body">
-                        ${woman.organizacion ? `<div class="popup-org">${woman.organizacion}</div>` : ''}
                         ${woman.descripcion ? `<div class="popup-desc">${woman.descripcion}</div>` : ''}
                         ${detailsHTML ? `<div class="popup-details">${detailsHTML}</div>` : ''}
                     </div>
