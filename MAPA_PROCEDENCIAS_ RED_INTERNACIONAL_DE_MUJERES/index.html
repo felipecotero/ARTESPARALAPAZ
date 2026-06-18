@@ -284,8 +284,16 @@
         }
 
         .legend-item:hover {
-            background: rgba(139, 92, 246, 0.1);
+            transform: translateX(5px);
             color: var(--text-primary);
+        }
+
+        #legend-content.collapsed {
+            max-height: 0 !important;
+            opacity: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-top: 0;
         }
 
         .legend-item:last-child {
@@ -691,12 +699,11 @@
 
         @media (max-width: 768px) {
             #theme-toggle {
-                position: fixed;
-                top: 14px;
-                right: 14px;
                 width: 38px;
                 height: 38px;
                 font-size: 1rem;
+                margin-left: 0;
+                margin-top: 5px;
             }
             .header-text { max-width: 80%; }
         }
@@ -728,15 +735,20 @@
 
     <!-- Legend -->
     <div id="legend">
-        <div class="legend-title">Redes</div>
-        <div class="legend-item" data-filter="DPCHO">
-            <div class="legend-dot" style="background: linear-gradient(135deg, #8B5CF6, #A78BFA);"></div>
-            <span>Despacho</span>
+        <div class="legend-header" onclick="document.getElementById('legend-content').classList.toggle('collapsed'); document.getElementById('legend-icon').innerText = document.getElementById('legend-content').classList.contains('collapsed') ? '▲' : '▼';" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+            <div class="legend-title" style="margin:0;">Redes</div>
+            <span id="legend-icon" style="font-size:0.8rem; color:var(--text-muted); transition:transform 0.3s;">▼</span>
         </div>
-        <div class="legend-item" data-filter="CG">
-            <div class="legend-dot" style="background: linear-gradient(135deg, #F472B6, #FBCFE8);"></div>
-            <span>CG</span>
-        </div>
+        <div id="legend-content" style="transition: max-height 0.3s ease; overflow: hidden; max-height: 500px;">
+            <div style="height: 12px;"></div>
+            <div class="legend-item" data-filter="DPCHO">
+                <div class="legend-dot" style="background: linear-gradient(135deg, #8B5CF6, #A78BFA);"></div>
+                <span>Despacho</span>
+            </div>
+            <div class="legend-item" data-filter="CG">
+                <div class="legend-dot" style="background: linear-gradient(135deg, #F472B6, #FBCFE8);"></div>
+                <span>CG</span>
+            </div>
         <div class="legend-item" data-filter="CG/RIA">
             <div class="legend-dot" style="background: linear-gradient(135deg, #34D399, #6EE7B7);"></div>
             <span>CG / RIA</span>
@@ -765,9 +777,10 @@
             <div class="legend-dot" style="background: linear-gradient(135deg, #10B981, #6EE7B7);"></div>
             <span>CG / Coral</span>
         </div>
-        <div class="legend-item" data-filter="INTERNAL">
+        <div class="legend-item" data-filter="Internacional">
             <div class="legend-dot" style="background: linear-gradient(135deg, #64748B, #94A3B8);"></div>
             <span>Internacional</span>
+        </div>
         </div>
     </div>
 
@@ -1256,31 +1269,40 @@
             maxZoom: 19
         });
 
-        // Add default dark tiles
+        // Add default layer temporarily, will be replaced by auto-detect
         darkTiles.addTo(map);
 
         // ═══════════════════════════════════════════════════════
-        // THEME TOGGLE LOGIC
+        // THEME TOGGLE LOGIC (Auto Detect Time)
         // ═══════════════════════════════════════════════════════
-        let isDarkMode = true;
+        const currentHour = new Date().getHours();
+        // Light mode between 6:00 AM and 6:00 PM (18:00)
+        let isDarkMode = (currentHour < 6 || currentHour >= 18);
         const themeBtn = document.getElementById('theme-toggle');
         const minculturaLogo = document.getElementById('mincultura-logo');
 
-        themeBtn.addEventListener('click', () => {
-            isDarkMode = !isDarkMode;
+        function applyTheme() {
             if (isDarkMode) {
                 document.body.classList.remove('light-mode');
                 themeBtn.innerHTML = '☀️';
-                map.removeLayer(lightTiles);
-                darkTiles.addTo(map);
+                if (map.hasLayer(lightTiles)) map.removeLayer(lightTiles);
+                if (!map.hasLayer(darkTiles)) darkTiles.addTo(map);
                 minculturaLogo.src = 'logo_culturas_blanco.png';
             } else {
                 document.body.classList.add('light-mode');
                 themeBtn.innerHTML = '🌙';
-                map.removeLayer(darkTiles);
-                lightTiles.addTo(map);
+                if (map.hasLayer(darkTiles)) map.removeLayer(darkTiles);
+                if (!map.hasLayer(lightTiles)) lightTiles.addTo(map);
                 minculturaLogo.src = 'logo_culturas_morado.png';
             }
+        }
+        
+        // Initial application
+        applyTheme();
+
+        themeBtn.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            applyTheme();
         });
 
         // ═══════════════════════════════════════════════════════
