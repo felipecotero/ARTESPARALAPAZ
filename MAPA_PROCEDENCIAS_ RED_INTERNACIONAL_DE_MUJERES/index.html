@@ -698,13 +698,6 @@
         }
 
         @media (max-width: 768px) {
-            #theme-toggle {
-                width: 38px;
-                height: 38px;
-                font-size: 1rem;
-                margin-left: 0;
-                margin-top: 5px;
-            }
             .header-text { max-width: 80%; }
         }
     </style>
@@ -729,12 +722,16 @@
                 <h1>Red Internacional de Mujeres por la Paz</h1>
                 <p>Mapa de procedencias · Encuentro Nacional</p>
             </div>
-            <button id="theme-toggle" title="Cambiar tema">☀️</button>
         </div>
     </header>
 
     <!-- Legend -->
     <div id="legend">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
+            <div class="legend-title" style="margin:0; font-size: 1.05rem;">Tema</div>
+            <button id="theme-toggle" title="Cambiar tema" style="margin-left:0; width:36px; height:36px; font-size:1rem;">☀️</button>
+        </div>
+        
         <div class="legend-header" onclick="document.getElementById('legend-content').classList.toggle('collapsed'); document.getElementById('legend-icon').innerText = document.getElementById('legend-content').classList.contains('collapsed') ? '▲' : '▼';" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
             <div class="legend-title" style="margin:0;">Redes</div>
             <span id="legend-icon" style="font-size:0.8rem; color:var(--text-muted); transition:transform 0.3s;">▼</span>
